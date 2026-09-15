@@ -1,0 +1,28 @@
+{
+  "name": "dinacity",
+  "version": "1.0.0",
+  "description": "DinAcitY - El comparador y agregador de repuestos automotores estilo TurismoCity",
+  "scripts": {
+    "install:all": "npm --prefix backend install && npm --prefix frontend install",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "start": "npm --prefix backend start"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.4"
+  },
+  "keywords": [
+    "repuestos",
+    "automotor",
+    "autos",
+    "motos",
+    "camiones",
+    "comparador-precios",
+    "turismocity",
+    "agregador",
+    "pwa"
+  ],
+  "author": "Maximiliano Di Natale",
+  "license": "MIT"
+}

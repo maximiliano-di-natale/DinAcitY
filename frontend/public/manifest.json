@@ -1,0 +1,17 @@
+{
+  "short_name": "DinAcitY",
+  "name": "DinAcitY - Comparador de Repuestos Automotores",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0f172a",
+  "theme_color": "#ff5722",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "description": "Busca, compara y encuentra los repuestos más baratos para autos, motos y camiones en tiempo real."
+}
