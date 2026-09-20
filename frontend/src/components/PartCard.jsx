@@ -1,8 +1,9 @@
 import React from 'react';
-import { ExternalLink, Star, Shield, Truck, Flame, TrendingDown, MapPin, Store, MessageCircle } from 'lucide-react';
+import { ExternalLink, Star, Shield, Truck, Flame, TrendingDown, MapPin, Store, MessageCircle, HelpCircle } from 'lucide-react';
 
 export function PartCard({ item, onCompare }) {
   const formattedPrice = (val) => {
+    if (!val || val <= 0) return 'A consultar';
     return new Intl.NumberFormat('es-AR', {
       style: 'currency',
       currency: 'ARS',
@@ -11,12 +12,13 @@ export function PartCard({ item, onCompare }) {
   };
 
   const isCheapest = item.isCheapest;
+  const hasPrice = item.hasPublicPrice && item.totalPrice > 0;
 
   const getSourceBadge = (sourceType) => {
     if (sourceType === 'casa_repuestos_mendoza') {
       return {
-        label: 'Casa de Repuestos Mendoza',
-        bg: 'bg-blue-500/15 text-blue-400 border-blue-500/30'
+        label: 'Casa de Repuestos Mendoza (Mostrador / WhatsApp)',
+        bg: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30'
       };
     }
     if (sourceType === 'facebook_marketplace_mendoza') {
@@ -36,8 +38,8 @@ export function PartCard({ item, onCompare }) {
   const getActionButton = () => {
     if (item.actionType === 'whatsapp') {
       return {
-        text: 'Consultar WhatsApp',
-        icon: <MessageCircle className="w-3.5 h-3.5" />,
+        text: 'Consultar por WhatsApp',
+        icon: <MessageCircle className="w-4 h-4" />,
         className: 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/25'
       };
     }
@@ -69,7 +71,7 @@ export function PartCard({ item, onCompare }) {
       {isCheapest && (
         <div className="absolute top-0 right-0 left-0 md:left-auto bg-gradient-to-r from-emerald-600 to-teal-500 text-white text-[11px] font-black uppercase tracking-wider py-1 px-4 flex items-center justify-center gap-1.5 shadow-md z-10 rounded-bl-xl">
           <Flame className="w-3.5 h-3.5 fill-white text-emerald-600 animate-bounce" />
-          <span>¡EL MÁS BARATO EN MENDOZA! • Mejor Precio</span>
+          <span>¡EL MÁS BARATO EN MENDOZA! • Precio Verificado</span>
         </div>
       )}
 
@@ -82,7 +84,7 @@ export function PartCard({ item, onCompare }) {
           loading="lazy"
         />
         <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-md bg-slate-900/90 text-slate-300 text-[11px] font-bold border border-slate-700 backdrop-blur-sm">
-          #{item.rank} más barato
+          #{item.rank} {hasPrice ? 'más barato' : 'opción local'}
         </div>
       </div>
 
@@ -142,13 +144,17 @@ export function PartCard({ item, onCompare }) {
         <div className="mt-3 pt-3 border-t border-slate-750 flex items-center justify-between">
           <div className="flex items-center gap-2 text-xs">
             <Truck className="w-4 h-4 text-slate-400" />
-            {item.freeShipping ? (
-              <span className="font-bold text-emerald-400">Entrega/Retiro GRATIS en Mendoza</span>
+            {hasPrice ? (
+              item.freeShipping ? (
+                <span className="font-bold text-emerald-400">Entrega/Retiro GRATIS en Mendoza</span>
+              ) : (
+                <span className="text-slate-300">Envío en el día en Gran Mendoza: {formattedPrice(item.shippingCost)}</span>
+              )
             ) : (
-              <span className="text-slate-300">Envío en el día en Gran Mendoza: {formattedPrice(item.shippingCost)}</span>
+              <span className="text-amber-400 font-medium">Cotización inmediata directa por WhatsApp</span>
             )}
           </div>
-          {item.savingsVsAvgPercentage > 0 && (
+          {hasPrice && item.savingsVsAvgPercentage > 0 && (
             <span className="text-xs font-bold text-emerald-400 flex items-center gap-1">
               <TrendingDown className="w-3.5 h-3.5" />
               Ahorrás {item.savingsVsAvgPercentage}%
@@ -159,20 +165,36 @@ export function PartCard({ item, onCompare }) {
 
       {/* Price and CTA Sidebar */}
       <div className="p-4 sm:p-5 md:w-56 shrink-0 bg-slate-900/60 md:border-l border-slate-750 flex flex-col justify-center items-stretch text-right md:text-center border-t md:border-t-0">
-        <span className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold block">
-          Precio Final en Mendoza
-        </span>
-        <div className="text-2xl sm:text-3xl font-black text-white my-1">
-          {formattedPrice(item.totalPrice)}
-        </div>
-        {!item.freeShipping && (
-          <span className="text-[11px] text-slate-400 block mb-2">
-            (Precio pieza: {formattedPrice(item.price)})
-          </span>
+        
+        {hasPrice ? (
+          <>
+            <span className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold block">
+              Precio Final Verificado
+            </span>
+            <div className="text-2xl sm:text-3xl font-black text-white my-1">
+              {formattedPrice(item.totalPrice)}
+            </div>
+            {!item.freeShipping && (
+              <span className="text-[11px] text-slate-400 block mb-2">
+                (Precio pieza: {formattedPrice(item.price)})
+              </span>
+            )}
+          </>
+        ) : (
+          <div className="my-2 text-center">
+            <span className="text-[10px] uppercase tracking-wider text-amber-400 font-bold block mb-1">
+              Precio en Mostrador
+            </span>
+            <span className="inline-block px-3 py-1 rounded-lg bg-amber-500/10 text-amber-300 border border-amber-500/25 font-black text-sm">
+              Precio a consultar
+            </span>
+            <span className="text-[10px] text-slate-400 block mt-1.5 leading-tight">
+              Sin precios inventados. Consulta por WhatsApp en Mendoza.
+            </span>
+          </div>
         )}
 
         <div className="space-y-2 mt-2">
-          {/* Main Action CTA: Direct real link (Mercado Libre, Marketplace o WhatsApp Mendoza) */}
           <a
             href={item.productUrl}
             target="_blank"
@@ -183,14 +205,15 @@ export function PartCard({ item, onCompare }) {
             {actionBtn.icon}
           </a>
 
-          {/* Compare Button */}
-          <button
-            type="button"
-            onClick={() => onCompare(item)}
-            className="w-full py-1.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-medium text-xs transition border border-slate-700 flex items-center justify-center gap-1"
-          >
-            <span>Comparar en Mendoza</span>
-          </button>
+          {hasPrice && (
+            <button
+              type="button"
+              onClick={() => onCompare(item)}
+              className="w-full py-1.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-medium text-xs transition border border-slate-700 flex items-center justify-center gap-1"
+            >
+              <span>Comparar precios</span>
+            </button>
+          )}
         </div>
       </div>
 

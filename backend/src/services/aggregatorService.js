@@ -36,7 +36,6 @@ export class AggregatorService {
       sortBy = 'price_asc'
     } = params;
 
-    // Analizar la intención de búsqueda
     const parsed = titleNormalizer.parseSearchIntent(query, { brand, model, vehicleType, year });
     const effectiveQuery = parsed.canonicalPart.canonicalName;
     const effectiveBrand = parsed.vehicleBrand;
@@ -59,7 +58,6 @@ export class AggregatorService {
     if (cached && Date.now() - cached.timestamp < this.cacheTTL) {
       allItems = [...cached.items];
     } else {
-      // Disparar búsqueda a las 3 fuentes de Mendoza
       const [mlResult, mendozaStoresResult, fbResult] = await Promise.allSettled([
         this.mlAdapter.search({
           query: effectiveQuery,
@@ -93,23 +91,6 @@ export class AggregatorService {
 
       allItems = [...mlItems, ...mendozaItems, ...fbItems];
 
-      // Si fue una búsqueda general de un vehículo (ej: "Hilux" o "Gol"),
-      // agregamos también opciones de otra pieza clave (Pastillas de freno) para brindar un catálogo completo
-      if (parsed.isVehicleOnlySearch && allItems.length > 0) {
-        try {
-          const secondaryStoresResult = await this.mendozaStoresAdapter.search({
-            query: 'Pastillas de freno',
-            vehicleType: effectiveType,
-            brand: effectiveBrand,
-            model: effectiveModel,
-            year: effectiveYear
-          });
-          if (Array.isArray(secondaryStoresResult)) {
-            allItems = [...allItems, ...secondaryStoresResult.slice(0, 4)];
-          }
-        } catch (e) {}
-      }
-
       this.cache.set(cacheKey, {
         timestamp: Date.now(),
         items: allItems
@@ -118,8 +99,8 @@ export class AggregatorService {
 
     // Filtrado dinámico
     let filtered = allItems.filter((item) => {
-      if (minPrice && item.totalPrice < Number(minPrice)) return false;
-      if (maxPrice && item.totalPrice > Number(maxPrice)) return false;
+      if (minPrice && item.hasPublicPrice && item.totalPrice < Number(minPrice)) return false;
+      if (maxPrice && item.hasPublicPrice && item.totalPrice > Number(maxPrice)) return false;
       if (condition && condition !== 'todos' && item.condition !== condition) return false;
       if (freeShippingOnly === 'true' || freeShippingOnly === true) {
         if (!item.freeShipping) return false;
@@ -134,22 +115,26 @@ export class AggregatorService {
       return true;
     });
 
-    // Ordenamiento matemático: DEL MÁS BARATO AL MÁS CARO
+    // Separar items con precio público verificado de los que son "Precio a consultar por WhatsApp"
+    const itemsWithPrice = filtered.filter((i) => i.hasPublicPrice && i.totalPrice > 0);
+    const itemsToConsult = filtered.filter((i) => !i.hasPublicPrice);
+
+    // Ordenamiento matemático de los que tienen precio: DEL MÁS BARATO AL MÁS CARO
     if (sortBy === 'price_asc') {
-      filtered.sort((a, b) => a.totalPrice - b.totalPrice);
+      itemsWithPrice.sort((a, b) => a.totalPrice - b.totalPrice);
     } else if (sortBy === 'price_desc') {
-      filtered.sort((a, b) => b.totalPrice - a.totalPrice);
+      itemsWithPrice.sort((a, b) => b.totalPrice - a.totalPrice);
     } else if (sortBy === 'rating') {
-      filtered.sort((a, b) => Number(b.sellerRating) - Number(a.sellerRating));
+      itemsWithPrice.sort((a, b) => Number(b.sellerRating) - Number(a.sellerRating));
     }
 
-    const prices = filtered.map((item) => item.totalPrice);
+    const prices = itemsWithPrice.map((item) => item.totalPrice);
     const minCalculatedPrice = prices.length > 0 ? Math.min(...prices) : 0;
     const maxCalculatedPrice = prices.length > 0 ? Math.max(...prices) : 0;
     const avgPrice = prices.length > 0 ? Math.round(prices.reduce((a, b) => a + b, 0) / prices.length) : 0;
 
-    const enrichedResults = filtered.map((item, index) => {
-      const isCheapest = item.totalPrice === minCalculatedPrice && filtered.length > 1;
+    const enrichedWithPrice = itemsWithPrice.map((item, index) => {
+      const isCheapest = item.totalPrice === minCalculatedPrice && itemsWithPrice.length > 1;
       const savingsVsAvg = avgPrice > item.totalPrice ? Math.round(((avgPrice - item.totalPrice) / avgPrice) * 100) : 0;
       const savingsVsMax = maxCalculatedPrice - item.totalPrice;
 
@@ -165,6 +150,22 @@ export class AggregatorService {
         }
       };
     });
+
+    const enrichedToConsult = itemsToConsult.map((item, index) => {
+      return {
+        ...item,
+        rank: enrichedWithPrice.length + index + 1,
+        isCheapest: false,
+        savingsVsAvgPercentage: 0,
+        savingsVsMaxAmount: 0,
+        priceComparisonSummary: {
+          differenceWithCheapest: 0,
+          isBestOption: false
+        }
+      };
+    });
+
+    const combinedResults = [...enrichedWithPrice, ...enrichedToConsult];
 
     const availableStores = [...new Set(allItems.map((i) => ({ key: i.storeKey, name: i.storeName })))];
     const availableBrands = [...new Set(allItems.map((i) => i.partBrand))];
@@ -191,15 +192,17 @@ export class AggregatorService {
         canonicalPart: parsed.canonicalPart.canonicalName
       },
       stats: {
-        totalResults: enrichedResults.length,
+        totalResults: combinedResults.length,
+        itemsWithVerifiedPrice: enrichedWithPrice.length,
+        itemsToConsultWhatsApp: enrichedToConsult.length,
         minPrice: minCalculatedPrice,
         maxPrice: maxCalculatedPrice,
         avgPrice: avgPrice,
         maxSavingsPossible: maxCalculatedPrice - minCalculatedPrice,
         mendozaSources: {
-          casasRepuestosMendoza: enrichedResults.filter(i => i.sourceType === 'casa_repuestos_mendoza').length,
-          mercadoLibreMendoza: enrichedResults.filter(i => i.sourceType === 'mercadolibre_mendoza').length,
-          facebookMarketplaceMendoza: enrichedResults.filter(i => i.sourceType === 'facebook_marketplace_mendoza').length
+          casasRepuestosMendoza: combinedResults.filter(i => i.sourceType === 'casa_repuestos_mendoza').length,
+          mercadoLibreMendoza: combinedResults.filter(i => i.sourceType === 'mercadolibre_mendoza').length,
+          facebookMarketplaceMendoza: combinedResults.filter(i => i.sourceType === 'facebook_marketplace_mendoza').length
         }
       },
       filtersMeta: {
@@ -208,13 +211,13 @@ export class AggregatorService {
         mendozaZones: availableMendozaZones,
         sourceTypes: [
           { id: 'todos', name: 'Todas las fuentes en Mendoza' },
-          { id: 'casa_repuestos_mendoza', name: 'Casas de Repuestos en Mendoza' },
-          { id: 'facebook_marketplace_mendoza', name: 'Facebook Marketplace Mendoza' },
-          { id: 'mercadolibre_mendoza', name: 'Mercado Libre Mendoza' }
+          { id: 'casa_repuestos_mendoza', name: 'Casas de Repuestos (WhatsApp Mendoza)' },
+          { id: 'facebook_marketplace_mendoza', name: 'Facebook Marketplace Mendoza (Precio Publicado)' },
+          { id: 'mercadolibre_mendoza', name: 'Mercado Libre Mendoza (Precio Publicado)' }
         ],
         conditions: ['nuevo', 'reacondicionado']
       },
-      results: enrichedResults
+      results: combinedResults
     };
   }
 }

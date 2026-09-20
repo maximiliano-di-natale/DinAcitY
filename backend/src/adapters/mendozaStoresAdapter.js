@@ -2,10 +2,10 @@ import { titleNormalizer } from '../services/titleNormalizerService.js';
 
 /**
  * MendozaStoresAdapter
- * Conecta las casas de repuestos de Mendoza con enlaces 100% FUNCIONALES Y VERIFICADOS.
- * Cuando el usuario hace clic en "Ver Oferta / Consultar", se abre directamente
- * el WhatsApp oficial de la casa de repuestos en Mendoza con la consulta pre-cargada,
- * o el catálogo real en Mercado Libre / Marketplace. ¡Cero páginas caídas!
+ * Representa las casas de repuestos físicas de Mendoza (Carril Rodríguez Peña, Guaymallén, Godoy Cruz, Capital).
+ * TRANSPARENCIA TOTAL: Dado que no publican precios en una web abierta con carrito,
+ * NO se inventa ningún precio ficticio (hasPublicPrice: false, price: null).
+ * Se brinda el enlace directo a WhatsApp con el mensaje pre-cargado para cotización inmediata.
  */
 export class MendozaStoresAdapter {
   constructor() {
@@ -14,16 +14,13 @@ export class MendozaStoresAdapter {
         id: 'repuestos-rodriguez-pena',
         name: 'Repuestos Rodríguez Peña',
         storeKey: 'rodriguez_pena',
-        zone: 'Carril Rodríguez Peña (Polo Autopartista Maipú/Godoy Cruz)',
+        zone: 'Carril Rodríguez Peña (Polo Maipú / Godoy Cruz)',
         address: 'Carril Rodríguez Peña 5300, Maipú, Mendoza',
         whatsapp: '5492614978820',
         specialty: ['auto', 'camion'],
         localPickupAvailable: true,
-        localShippingCost: 2800,
-        freeShippingThreshold: 60000,
         sellerRating: '4.9',
         reviewsCount: 412,
-        discountFactor: 0.88,
         badge: 'Polo Industrial Rodríguez Peña'
       },
       {
@@ -35,11 +32,8 @@ export class MendozaStoresAdapter {
         whatsapp: '5492614315500',
         specialty: ['auto', 'moto'],
         localPickupAvailable: true,
-        localShippingCost: 2500,
-        freeShippingThreshold: 55000,
         sellerRating: '4.8',
         reviewsCount: 310,
-        discountFactor: 0.91,
         badge: 'Especialista en Refrigeración y Electricidad'
       },
       {
@@ -51,11 +45,8 @@ export class MendozaStoresAdapter {
         whatsapp: '5492614976644',
         specialty: ['auto', 'camion'],
         localPickupAvailable: true,
-        localShippingCost: 3000,
-        freeShippingThreshold: 70000,
         sellerRating: '4.7',
         reviewsCount: 220,
-        discountFactor: 0.83,
         badge: 'Autopartes Homologadas Mendoza'
       },
       {
@@ -67,11 +58,8 @@ export class MendozaStoresAdapter {
         whatsapp: '5492614459010',
         specialty: ['auto', 'moto', 'camion'],
         localPickupAvailable: true,
-        localShippingCost: 2700,
-        freeShippingThreshold: 65000,
         sellerRating: '4.8',
         reviewsCount: 275,
-        discountFactor: 0.92,
         badge: 'Línea Completa Livianos y Pesados'
       },
       {
@@ -83,11 +71,8 @@ export class MendozaStoresAdapter {
         whatsapp: '5492614321188',
         specialty: ['auto', 'moto'],
         localPickupAvailable: true,
-        localShippingCost: 2400,
-        freeShippingThreshold: 48000,
         sellerRating: '4.9',
         reviewsCount: 380,
-        discountFactor: 0.89,
         badge: 'Especialista en Frenos y Embrague'
       },
       {
@@ -99,11 +84,8 @@ export class MendozaStoresAdapter {
         whatsapp: '5492614257733',
         specialty: ['moto'],
         localPickupAvailable: true,
-        localShippingCost: 1900,
-        freeShippingThreshold: 35000,
         sellerRating: '4.9',
         reviewsCount: 490,
-        discountFactor: 0.85,
         badge: 'Casa Líder en Repuestos de Motos Mendoza'
       },
       {
@@ -115,17 +97,14 @@ export class MendozaStoresAdapter {
         whatsapp: '5492614972200',
         specialty: ['camion'],
         localPickupAvailable: true,
-        localShippingCost: 5500,
-        freeShippingThreshold: 130000,
         sellerRating: '4.8',
         reviewsCount: 165,
-        discountFactor: 0.87,
         badge: 'Especialista en Línea Pesada Scania / Mercedes / Iveco'
       }
     ];
   }
 
-  async search({ query, vehicleType = 'auto', brand, model, year, category, limit = 20 }) {
+  async search({ query, vehicleType = 'auto', brand, model, year, category, limit = 10 }) {
     const parsed = titleNormalizer.parseSearchIntent(query, { brand, model, vehicleType, year });
     const canonical = parsed.canonicalPart;
     const resolvedType = parsed.vehicleType || vehicleType;
@@ -135,85 +114,61 @@ export class MendozaStoresAdapter {
       return store.specialty.includes(resolvedType);
     });
 
-    const basePriceMap = {
-      refrigeracion: resolvedType === 'camion' ? 245000 : resolvedType === 'moto' ? 36000 : 71000,
-      frenos: resolvedType === 'camion' ? 88000 : resolvedType === 'moto' ? 12500 : 27000,
-      motor: resolvedType === 'camion' ? 190000 : resolvedType === 'moto' ? 32000 : 89000,
-      suspension: resolvedType === 'camion' ? 140000 : resolvedType === 'moto' ? 34000 : 49000,
-      embrague: resolvedType === 'camion' ? 360000 : resolvedType === 'moto' ? 42000 : 132000,
-      electricidad: resolvedType === 'camion' ? 175000 : resolvedType === 'moto' ? 29000 : 56000,
-      general: 45000
-    };
-
-    const baseEstimatedPrice = basePriceMap[canonical.category] || 50000;
     const results = [];
-
     let counter = 1;
+
     for (const store of applicableStores) {
-      for (let i = 0; i < 2; i++) {
-        const partBrand = canonical.defaultBrands[(counter + i) % canonical.defaultBrands.length];
-        const isReconditioned = store.id === 'mza-autopartes' && i === 1;
-        const condition = isReconditioned ? 'reacondicionado' : 'nuevo';
+      const partBrand = canonical.defaultBrands[counter % canonical.defaultBrands.length];
+      const title = titleNormalizer.formatStandardTitle({
+        partName: canonical.canonicalName,
+        partBrand: partBrand,
+        vehicleBrand: parsed.vehicleBrand,
+        model: parsed.model,
+        year: parsed.year,
+        condition: 'nuevo',
+        engineSpec: parsed.engineSpec
+      });
 
-        // Título exacto y canónico
-        const title = titleNormalizer.formatStandardTitle({
-          partName: canonical.canonicalName,
-          partBrand: partBrand,
-          vehicleBrand: parsed.vehicleBrand,
-          model: parsed.model,
-          year: parsed.year,
-          condition: condition,
-          engineSpec: parsed.engineSpec
-        });
+      // WhatsApp oficial con mensaje pre-cargado indicando el repuesto y vehículo
+      const whatsappMessage = encodeURIComponent(
+        `Hola ${store.name}, vi en DinAcitY Mendoza el repuesto:\n"${title}"\n¿Tienen disponibilidad y cuál es el precio actual en mostrador?`
+      );
+      const whatsappUrl = `https://wa.me/${store.whatsapp}?text=${whatsappMessage}`;
 
-        const factor = store.discountFactor + ((Math.random() * 0.06) - 0.03);
-        const conditionDiscount = isReconditioned ? 0.70 : 1.0;
-        const price = Math.round((baseEstimatedPrice * factor * conditionDiscount) / 100) * 100;
-        const isFreeShipping = price >= store.freeShippingThreshold;
-        const shippingCost = isFreeShipping ? 0 : store.localShippingCost;
-        const totalPrice = price + shippingCost;
+      results.push({
+        id: `mza-store-${store.storeKey}-${counter}`,
+        sourceType: 'casa_repuestos_mendoza',
+        storeName: store.name,
+        storeKey: store.storeKey,
+        hasPublicPrice: false, // NO TIENE PRECIO PUBLICADO EN WEB ABIERTA
+        price: null,           // Cero precios inventados
+        totalPrice: null,      // Cero precios inventados
+        currency: 'ARS',
+        shippingCost: null,
+        freeShipping: false,
+        condition: 'nuevo',
+        mendozaLocation: {
+          zone: store.zone,
+          address: store.address,
+          phone: store.whatsapp,
+          localPickup: 'Atención y retiro en mostrador en Mendoza'
+        },
+        title: title,
+        partName: canonical.canonicalName,
+        partBrand: partBrand,
+        sellerName: `${store.name} (Mendoza)`,
+        sellerRating: store.sellerRating,
+        reviewsCount: store.reviewsCount,
+        badge: store.badge,
+        imageUrl: this.getImageForCategory(canonical.category),
+        productUrl: whatsappUrl,
+        actionLabel: 'Consultar Precio por WhatsApp',
+        actionType: 'whatsapp',
+        vehicleCompatibility: `${(parsed.vehicleBrand || '').toUpperCase()} ${parsed.model || ''} ${parsed.year || ''}`.trim() || 'Apto línea oficial',
+        warrantyDays: 180
+      });
 
-        // ENLACE 100% REAL Y FUNCIONAL:
-        // Mensaje de WhatsApp directo con consulta preformateada
-        const whatsappText = encodeURIComponent(
-          `Hola ${store.name}, vi en DinAcitY Mendoza el repuesto:\n"${title}"\n¿Tienen stock y cuál es el precio actual?`
-        );
-        const functionalUrl = `https://wa.me/${store.whatsapp}?text=${whatsappText}`;
-
-        results.push({
-          id: `mza-store-${store.storeKey}-${counter}`,
-          sourceType: 'casa_repuestos_mendoza',
-          storeName: store.name,
-          storeKey: store.storeKey,
-          mendozaLocation: {
-            zone: store.zone,
-            address: store.address,
-            phone: store.whatsapp,
-            localPickup: 'Retiro en mostrador en Mendoza GRATIS'
-          },
-          title: title,
-          partName: canonical.canonicalName,
-          partBrand: partBrand,
-          price: price,
-          currency: 'ARS',
-          shippingCost: shippingCost,
-          totalPrice: totalPrice,
-          freeShipping: isFreeShipping,
-          condition: condition,
-          sellerName: `${store.name} (Mendoza)`,
-          sellerRating: store.sellerRating,
-          reviewsCount: store.reviewsCount + Math.floor(Math.random() * 20),
-          badge: store.badge,
-          imageUrl: this.getImageForCategory(canonical.category),
-          productUrl: functionalUrl, // Enlace directo a WhatsApp de la casa de repuestos
-          actionLabel: 'Consultar WhatsApp',
-          actionType: 'whatsapp',
-          vehicleCompatibility: `${(parsed.vehicleBrand || '').toUpperCase()} ${parsed.model || ''} ${parsed.year || ''}`.trim() || 'Apto línea oficial',
-          warrantyDays: isReconditioned ? 90 : 180
-        });
-
-        counter++;
-      }
+      counter++;
     }
 
     return results;
