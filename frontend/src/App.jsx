@@ -18,11 +18,11 @@ export function App() {
   });
 
   const [currentSearchParams, setCurrentSearchParams] = useState({
-    query: 'Radiador de agua',
+    query: 'Toyota Hilux',
     vehicleType: 'auto',
-    brand: 'volkswagen',
-    model: 'Gol Trend',
-    year: '2018'
+    brand: 'toyota',
+    model: 'Hilux',
+    year: '2022'
   });
 
   const [filters, setFilters] = useState({
@@ -54,7 +54,7 @@ export function App() {
     setLoading(true);
     try {
       const queryParams = new URLSearchParams({
-        query: searchParams.query || 'Radiador',
+        query: searchParams.query || '',
         vehicleType: searchParams.vehicleType || 'auto',
         brand: searchParams.brand || '',
         model: searchParams.model || '',
@@ -82,7 +82,20 @@ export function App() {
 
   const handleSearchFromHero = (newSearchParams) => {
     setCurrentSearchParams(newSearchParams);
-    executeSearch(newSearchParams, filters);
+    // Reiniciar filtros secundarios para evitar que filtros residuales vacíen la búsqueda
+    const cleanFilters = {
+      sortBy: filters.sortBy || 'price_asc',
+      condition: 'todos',
+      freeShippingOnly: false,
+      store: 'todos',
+      partBrand: 'todos',
+      mendozaZone: 'todos',
+      sourceType: 'todos',
+      minPrice: '',
+      maxPrice: ''
+    };
+    setFilters(cleanFilters);
+    executeSearch(newSearchParams, cleanFilters);
   };
 
   const handleFilterChange = (key, value) => {
@@ -140,7 +153,7 @@ export function App() {
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-lg sm:text-xl font-black text-white">
-                Ofertas en Mendoza para <span className="text-orange-400">"{currentSearchParams.query}"</span>
+                Ofertas en Mendoza para <span className="text-orange-400">"{currentSearchParams.query || currentSearchParams.model || 'Repuestos'}"</span>
               </h2>
               <span className="px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 text-xs font-bold border border-slate-700">
                 {searchData.stats?.totalResults || 0} encontrados

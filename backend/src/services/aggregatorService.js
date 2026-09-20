@@ -10,7 +10,7 @@ export class AggregatorService {
     this.fbMarketplaceAdapter = new FacebookMarketplaceMendozaAdapter();
 
     this.cache = new Map();
-    this.cacheTTL = 1000 * 60 * 10; // 10 minutos
+    this.cacheTTL = 1000 * 60 * 10;
   }
 
   getCacheKey(params) {
@@ -19,7 +19,7 @@ export class AggregatorService {
 
   async searchParts(params) {
     const {
-      query = 'radiador',
+      query = '',
       vehicleType = 'auto',
       brand = '',
       model = '',
@@ -36,22 +36,55 @@ export class AggregatorService {
       sortBy = 'price_asc'
     } = params;
 
-    const cacheKey = this.getCacheKey({ query, vehicleType, brand, model, year, category });
+    // Analizar la intención de búsqueda
+    const parsed = titleNormalizer.parseSearchIntent(query, { brand, model, vehicleType, year });
+    const effectiveQuery = parsed.canonicalPart.canonicalName;
+    const effectiveBrand = parsed.vehicleBrand;
+    const effectiveModel = parsed.model;
+    const effectiveType = parsed.vehicleType;
+    const effectiveYear = parsed.year;
+
+    const cacheKey = this.getCacheKey({
+      effectiveQuery,
+      effectiveBrand,
+      effectiveModel,
+      effectiveType,
+      effectiveYear,
+      isVehicleOnlySearch: parsed.isVehicleOnlySearch
+    });
+
     let allItems = [];
 
-    // Verificación en caché
     const cached = this.cache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < this.cacheTTL) {
       allItems = [...cached.items];
     } else {
-      // Búsqueda en paralelo en las 3 fuentes de Mendoza:
-      // 1. Mercado Libre Mendoza
-      // 2. Casas de Repuestos físicas de Mendoza (Carril Rodríguez Peña, Godoy Cruz, Guaymallén, etc.)
-      // 3. Facebook Marketplace Mendoza
+      // Disparar búsqueda a las 3 fuentes de Mendoza
       const [mlResult, mendozaStoresResult, fbResult] = await Promise.allSettled([
-        this.mlAdapter.search({ query, vehicleType, brand, model, year, category }),
-        this.mendozaStoresAdapter.search({ query, vehicleType, brand, model, year, category }),
-        this.fbMarketplaceAdapter.search({ query, vehicleType, brand, model, year, category })
+        this.mlAdapter.search({
+          query: effectiveQuery,
+          vehicleType: effectiveType,
+          brand: effectiveBrand,
+          model: effectiveModel,
+          year: effectiveYear,
+          category
+        }),
+        this.mendozaStoresAdapter.search({
+          query: effectiveQuery,
+          vehicleType: effectiveType,
+          brand: effectiveBrand,
+          model: effectiveModel,
+          year: effectiveYear,
+          category
+        }),
+        this.fbMarketplaceAdapter.search({
+          query: effectiveQuery,
+          vehicleType: effectiveType,
+          brand: effectiveBrand,
+          model: effectiveModel,
+          year: effectiveYear,
+          category
+        })
       ]);
 
       const mlItems = mlResult.status === 'fulfilled' ? mlResult.value : [];
@@ -60,7 +93,23 @@ export class AggregatorService {
 
       allItems = [...mlItems, ...mendozaItems, ...fbItems];
 
-      // Guardar en caché
+      // Si fue una búsqueda general de un vehículo (ej: "Hilux" o "Gol"),
+      // agregamos también opciones de otra pieza clave (Pastillas de freno) para brindar un catálogo completo
+      if (parsed.isVehicleOnlySearch && allItems.length > 0) {
+        try {
+          const secondaryStoresResult = await this.mendozaStoresAdapter.search({
+            query: 'Pastillas de freno',
+            vehicleType: effectiveType,
+            brand: effectiveBrand,
+            model: effectiveModel,
+            year: effectiveYear
+          });
+          if (Array.isArray(secondaryStoresResult)) {
+            allItems = [...allItems, ...secondaryStoresResult.slice(0, 4)];
+          }
+        } catch (e) {}
+      }
+
       this.cache.set(cacheKey, {
         timestamp: Date.now(),
         items: allItems
@@ -85,9 +134,8 @@ export class AggregatorService {
       return true;
     });
 
-    // Ordenamiento matemático
+    // Ordenamiento matemático: DEL MÁS BARATO AL MÁS CARO
     if (sortBy === 'price_asc') {
-      // ESTRICTO: DEL MÁS BARATO AL MÁS CARO
       filtered.sort((a, b) => a.totalPrice - b.totalPrice);
     } else if (sortBy === 'price_desc') {
       filtered.sort((a, b) => b.totalPrice - a.totalPrice);
@@ -95,13 +143,11 @@ export class AggregatorService {
       filtered.sort((a, b) => Number(b.sellerRating) - Number(a.sellerRating));
     }
 
-    // Estadísticas de precios
     const prices = filtered.map((item) => item.totalPrice);
     const minCalculatedPrice = prices.length > 0 ? Math.min(...prices) : 0;
     const maxCalculatedPrice = prices.length > 0 ? Math.max(...prices) : 0;
     const avgPrice = prices.length > 0 ? Math.round(prices.reduce((a, b) => a + b, 0) / prices.length) : 0;
 
-    // Enriquecimiento de datos con insignias
     const enrichedResults = filtered.map((item, index) => {
       const isCheapest = item.totalPrice === minCalculatedPrice && filtered.length > 1;
       const savingsVsAvg = avgPrice > item.totalPrice ? Math.round(((avgPrice - item.totalPrice) / avgPrice) * 100) : 0;
@@ -120,7 +166,6 @@ export class AggregatorService {
       };
     });
 
-    // Extraer facetas únicas
     const availableStores = [...new Set(allItems.map((i) => ({ key: i.storeKey, name: i.storeName })))];
     const availableBrands = [...new Set(allItems.map((i) => i.partBrand))];
     const availableMendozaZones = [
@@ -136,12 +181,14 @@ export class AggregatorService {
     return {
       region: 'Mendoza, Argentina',
       query: {
-        searchedQuery: query,
-        vehicleType,
-        brand,
-        model,
-        year,
-        category
+        searchedQuery: query || effectiveQuery,
+        resolvedVehicle: {
+          brand: effectiveBrand,
+          model: effectiveModel,
+          type: effectiveType,
+          year: effectiveYear
+        },
+        canonicalPart: parsed.canonicalPart.canonicalName
       },
       stats: {
         totalResults: enrichedResults.length,

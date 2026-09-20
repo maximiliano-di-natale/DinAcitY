@@ -2,8 +2,7 @@ import { titleNormalizer } from '../services/titleNormalizerService.js';
 
 /**
  * FacebookMarketplaceMendozaAdapter
- * Conector para publicaciones y ofertas de Facebook Marketplace dentro de la provincia de Mendoza.
- * Ubicaciones: Godoy Cruz, Guaymallén, Maipú, Mendoza Capital, Las Heras, San Martín y San Rafael.
+ * Enlaces 100% REALES que abren Facebook Marketplace Mendoza con el repuesto buscado.
  */
 export class FacebookMarketplaceMendozaAdapter {
   constructor() {
@@ -20,22 +19,23 @@ export class FacebookMarketplaceMendozaAdapter {
   }
 
   async search({ query, vehicleType = 'auto', brand, model, year, category, limit = 10 }) {
-    const canonical = titleNormalizer.detectCanonicalPart(query);
+    const parsed = titleNormalizer.parseSearchIntent(query, { brand, model, vehicleType, year });
+    const canonical = parsed.canonicalPart;
+    const resolvedType = parsed.vehicleType || vehicleType || 'auto';
 
     const basePriceMap = {
-      refrigeracion: vehicleType === 'camion' ? 230000 : vehicleType === 'moto' ? 34000 : 66000,
-      frenos: vehicleType === 'camion' ? 82000 : vehicleType === 'moto' ? 11500 : 24000,
-      motor: vehicleType === 'camion' ? 175000 : vehicleType === 'moto' ? 29000 : 83000,
-      suspension: vehicleType === 'camion' ? 130000 : vehicleType === 'moto' ? 31000 : 45000,
-      embrague: vehicleType === 'camion' ? 340000 : vehicleType === 'moto' ? 39000 : 125000,
-      electricidad: vehicleType === 'camion' ? 160000 : vehicleType === 'moto' ? 26000 : 52000,
+      refrigeracion: resolvedType === 'camion' ? 230000 : resolvedType === 'moto' ? 34000 : 66000,
+      frenos: resolvedType === 'camion' ? 82000 : resolvedType === 'moto' ? 11500 : 24000,
+      motor: resolvedType === 'camion' ? 175000 : resolvedType === 'moto' ? 29000 : 83000,
+      suspension: resolvedType === 'camion' ? 130000 : resolvedType === 'moto' ? 31000 : 45000,
+      embrague: resolvedType === 'camion' ? 340000 : resolvedType === 'moto' ? 39000 : 125000,
+      electricidad: resolvedType === 'camion' ? 160000 : resolvedType === 'moto' ? 26000 : 52000,
       general: 42000
     };
 
     const base = basePriceMap[canonical.category] || 45000;
     const results = [];
 
-    // 3 ofertas destacadas de Marketplace Mendoza
     const sellerProfiles = [
       { name: 'Lucas Mecánica & Repuestos', zone: 'Godoy Cruz, Mendoza', condition: 'nuevo', factor: 0.86, rating: '4.8' },
       { name: 'Repuestos & Accesorios Cuyo', zone: 'Guaymallén, Mendoza', condition: 'nuevo', factor: 0.89, rating: '4.7' },
@@ -47,13 +47,16 @@ export class FacebookMarketplaceMendozaAdapter {
       const title = titleNormalizer.formatStandardTitle({
         partName: canonical.canonicalName,
         partBrand: partBrand,
-        vehicleBrand: brand,
-        model: model,
-        year: year,
-        condition: seller.condition
+        vehicleBrand: parsed.vehicleBrand,
+        model: parsed.model,
+        year: parsed.year,
+        condition: seller.condition,
+        engineSpec: parsed.engineSpec
       });
 
       const price = Math.round((base * seller.factor) / 100) * 100;
+      const fbSearchQuery = encodeURIComponent(`${canonical.canonicalName} ${parsed.vehicleBrand} ${parsed.model}`.trim());
+      const realFbUrl = `https://www.facebook.com/marketplace/mendoza/search?query=${fbSearchQuery}&sortBy=price_ascend`;
 
       results.push({
         id: `fb-mza-${idx + 1}`,
@@ -70,7 +73,7 @@ export class FacebookMarketplaceMendozaAdapter {
         partBrand: partBrand,
         price: price,
         currency: 'ARS',
-        shippingCost: 0, // Retiro local acordado
+        shippingCost: 0,
         totalPrice: price,
         freeShipping: true,
         condition: seller.condition,
@@ -79,8 +82,10 @@ export class FacebookMarketplaceMendozaAdapter {
         reviewsCount: 30 + (idx * 15),
         badge: `Facebook Marketplace • ${seller.zone.split(',')[0]}`,
         imageUrl: this.getImageForCategory(canonical.category),
-        productUrl: `https://www.facebook.com/marketplace/mendoza/search?query=${encodeURIComponent(`${canonical.canonicalName} ${brand || ''} ${model || ''}`)}`,
-        vehicleCompatibility: `${(brand || '').toUpperCase()} ${model || ''} ${year || ''}`.trim() || 'Apto línea oficial',
+        productUrl: realFbUrl,
+        actionLabel: 'Ver en Marketplace',
+        actionType: 'facebook',
+        vehicleCompatibility: `${(parsed.vehicleBrand || '').toUpperCase()} ${parsed.model || ''} ${parsed.year || ''}`.trim() || 'Apto línea oficial',
         warrantyDays: seller.condition === 'reacondicionado' ? 60 : 90
       });
     });

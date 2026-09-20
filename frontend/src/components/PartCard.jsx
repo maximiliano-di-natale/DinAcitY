@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExternalLink, Star, Shield, Truck, Flame, TrendingDown, MapPin, Store } from 'lucide-react';
+import { ExternalLink, Star, Shield, Truck, Flame, TrendingDown, MapPin, Store, MessageCircle } from 'lucide-react';
 
 export function PartCard({ item, onCompare }) {
   const formattedPrice = (val) => {
@@ -32,6 +32,30 @@ export function PartCard({ item, onCompare }) {
   };
 
   const sourceBadge = getSourceBadge(item.sourceType);
+
+  const getActionButton = () => {
+    if (item.actionType === 'whatsapp') {
+      return {
+        text: 'Consultar WhatsApp',
+        icon: <MessageCircle className="w-3.5 h-3.5" />,
+        className: 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/25'
+      };
+    }
+    if (item.actionType === 'facebook') {
+      return {
+        text: 'Ver en Marketplace',
+        icon: <ExternalLink className="w-3.5 h-3.5" />,
+        className: 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-600/25'
+      };
+    }
+    return {
+      text: 'Ver en Mercado Libre',
+      icon: <ExternalLink className="w-3.5 h-3.5" />,
+      className: 'bg-orange-500 hover:bg-orange-600 text-white shadow-orange-500/25'
+    };
+  };
+
+  const actionBtn = getActionButton();
 
   return (
     <div
@@ -148,15 +172,15 @@ export function PartCard({ item, onCompare }) {
         )}
 
         <div className="space-y-2 mt-2">
-          {/* Main Action CTA: Direct store link */}
+          {/* Main Action CTA: Direct real link (Mercado Libre, Marketplace o WhatsApp Mendoza) */}
           <a
             href={item.productUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full py-2.5 px-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-black text-xs sm:text-sm shadow-md shadow-orange-500/20 transition flex items-center justify-center gap-1.5 transform active:scale-95"
+            className={`w-full py-2.5 px-3 rounded-xl font-black text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-1.5 transform active:scale-95 ${actionBtn.className}`}
           >
-            <span>Ver Oferta</span>
-            <ExternalLink className="w-3.5 h-3.5" />
+            <span>{actionBtn.text}</span>
+            {actionBtn.icon}
           </a>
 
           {/* Compare Button */}

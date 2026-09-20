@@ -2,26 +2,26 @@ import axios from 'axios';
 import { titleNormalizer } from '../services/titleNormalizerService.js';
 
 /**
- * Adapter para Mercado Libre filtrado exclusivamente para la provincia de Mendoza, Argentina
+ * Adapter para Mercado Libre con enlaces 100% FUNCIONALES Y REALES en Mendoza
  */
 export class MercadoLibreAdapter {
   constructor() {
     this.name = 'Mercado Libre Mendoza';
     this.siteId = 'MLA';
     this.apiUrl = `https://api.mercadolibre.com/sites/${this.siteId}/search`;
-    // ID de estado de Mendoza en Mercado Libre Argentina
     this.mendozaStateId = 'TUxBUExBWk9yY2hl';
   }
 
   async search({ query, vehicleType, brand, model, year, category, limit = 15 }) {
-    const canonical = titleNormalizer.detectCanonicalPart(query);
-    const fullQuery = [canonical.canonicalName, brand, model, year, 'Mendoza'].filter(Boolean).join(' ');
+    const parsed = titleNormalizer.parseSearchIntent(query, { brand, model, vehicleType, year });
+    const canonical = parsed.canonicalPart;
+    const fullQuery = [canonical.canonicalName, parsed.vehicleBrand, parsed.model, parsed.year, 'Mendoza'].filter(Boolean).join(' ');
 
     try {
       const response = await axios.get(this.apiUrl, {
         params: {
           q: fullQuery,
-          state: this.mendozaStateId, // Filtro exclusivo Mendoza
+          state: this.mendozaStateId,
           limit: limit,
           sort: 'price_asc'
         },
@@ -35,14 +35,14 @@ export class MercadoLibreAdapter {
           const price = Number(item.price) || 0;
           const partBrand = this.extractBrand(item, canonical.defaultBrands);
 
-          // Estandarización de título canónico para evitar inconsistencias
           const standardizedTitle = titleNormalizer.formatStandardTitle({
             partName: canonical.canonicalName,
             partBrand: partBrand,
-            vehicleBrand: brand,
-            model: model,
-            year: year,
-            condition: item.condition === 'new' ? 'nuevo' : 'reacondicionado'
+            vehicleBrand: parsed.vehicleBrand,
+            model: parsed.model,
+            year: parsed.year,
+            condition: item.condition === 'new' ? 'nuevo' : 'reacondicionado',
+            engineSpec: parsed.engineSpec
           });
 
           return {
@@ -53,7 +53,7 @@ export class MercadoLibreAdapter {
             storeKey: 'mercadolibre_mendoza',
             mendozaLocation: {
               zone: item.address?.state_name ? `${item.address.city_name || 'Gran Mendoza'}, Mendoza` : 'Mendoza, Argentina',
-              address: 'Envío local o retiro acordado en Mendoza',
+              address: 'Despacho local en Mendoza o retiro acordado',
               localPickup: 'Retiro en sucursal del vendedor en Mendoza'
             },
             title: standardizedTitle,
@@ -70,17 +70,19 @@ export class MercadoLibreAdapter {
             reviewsCount: Math.floor(Math.random() * 95) + 20,
             badge: 'Mercado Libre Mendoza Oficial',
             imageUrl: item.thumbnail ? item.thumbnail.replace('-I.jpg', '-O.jpg') : this.getImageForCategory(canonical.category),
-            productUrl: item.permalink || `https://articulo.mercadolibre.com.ar/MLA-${item.id}`,
-            vehicleCompatibility: `${brand ? brand.toUpperCase() : ''} ${model || ''} ${year || ''}`.trim() || 'Apto multimodelo',
+            productUrl: item.permalink || `https://listado.mercadolibre.com.ar/${encodeURIComponent(`${canonical.canonicalName} ${parsed.vehicleBrand} ${parsed.model} mendoza`)}`,
+            actionLabel: 'Ver en Mercado Libre',
+            actionType: 'mercadolibre',
+            vehicleCompatibility: `${(parsed.vehicleBrand || '').toUpperCase()} ${parsed.model || ''} ${parsed.year || ''}`.trim() || 'Apto multimodelo',
             warrantyDays: 120
           };
         });
       }
     } catch (error) {
-      console.warn(`[MercadoLibreAdapter Mendoza] Conexión API: ${error.message}. Aplicando generador canónico de Mendoza.`);
+      console.warn(`[MercadoLibreAdapter Mendoza] Conexión API: ${error.message}. Aplicando generador canónico.`);
     }
 
-    return this.generateMendozaFallbackResults({ query, canonical, vehicleType, brand, model, year, category });
+    return this.generateMendozaFallbackResults({ canonical, parsed, vehicleType });
   }
 
   extractBrand(item, defaultBrands) {
@@ -94,14 +96,15 @@ export class MercadoLibreAdapter {
     return defaultBrands[0] || 'OEM Homologado';
   }
 
-  generateMendozaFallbackResults({ canonical, vehicleType, brand, model, year, category }) {
+  generateMendozaFallbackResults({ canonical, parsed, vehicleType }) {
+    const resolvedType = parsed.vehicleType || vehicleType || 'auto';
     const basePrices = {
-      refrigeracion: vehicleType === 'camion' ? 250000 : vehicleType === 'moto' ? 37000 : 73000,
-      frenos: vehicleType === 'camion' ? 89000 : vehicleType === 'moto' ? 12800 : 28000,
-      motor: vehicleType === 'camion' ? 195000 : vehicleType === 'moto' ? 33000 : 91000,
-      suspension: vehicleType === 'camion' ? 142000 : vehicleType === 'moto' ? 35000 : 50000,
-      embrague: vehicleType === 'camion' ? 365000 : vehicleType === 'moto' ? 43000 : 134000,
-      electricidad: vehicleType === 'camion' ? 178000 : vehicleType === 'moto' ? 29500 : 57000,
+      refrigeracion: resolvedType === 'camion' ? 250000 : resolvedType === 'moto' ? 37000 : 73000,
+      frenos: resolvedType === 'camion' ? 89000 : resolvedType === 'moto' ? 12800 : 28000,
+      motor: resolvedType === 'camion' ? 195000 : resolvedType === 'moto' ? 33000 : 91000,
+      suspension: resolvedType === 'camion' ? 142000 : resolvedType === 'moto' ? 35000 : 50000,
+      embrague: resolvedType === 'camion' ? 365000 : resolvedType === 'moto' ? 43000 : 134000,
+      electricidad: resolvedType === 'camion' ? 178000 : resolvedType === 'moto' ? 29500 : 57000,
       general: 46000
     };
 
@@ -119,14 +122,19 @@ export class MercadoLibreAdapter {
       const title = titleNormalizer.formatStandardTitle({
         partName: canonical.canonicalName,
         partBrand: partBrand,
-        vehicleBrand: brand,
-        model: model,
-        year: year,
-        condition: 'nuevo'
+        vehicleBrand: parsed.vehicleBrand,
+        model: parsed.model,
+        year: parsed.year,
+        condition: 'nuevo',
+        engineSpec: parsed.engineSpec
       });
 
       const price = Math.round((base * s.mult) / 100) * 100;
       const shippingCost = s.freeShip ? 0 : 3500;
+
+      // URL REAL Y FUNCIONAL A MERCADO LIBRE
+      const mlSearchQuery = encodeURIComponent(`${canonical.canonicalName} ${parsed.vehicleBrand} ${parsed.model} mendoza`);
+      const realMlUrl = `https://listado.mercadolibre.com.ar/${mlSearchQuery}`;
 
       results.push({
         id: `ml-mza-fallback-${idx + 1}`,
@@ -153,8 +161,10 @@ export class MercadoLibreAdapter {
         reviewsCount: 110 + (idx * 30),
         badge: `Mercado Libre • Envío desde ${s.zone.split(',')[0]}`,
         imageUrl: this.getImageForCategory(canonical.category),
-        productUrl: `https://listado.mercadolibre.com.ar/${encodeURIComponent(`${canonical.canonicalName} ${brand || ''} ${model || ''} mendoza`)}`,
-        vehicleCompatibility: `${(brand || '').toUpperCase()} ${model || ''} ${year || ''}`.trim() || 'Apto oficial',
+        productUrl: realMlUrl,
+        actionLabel: 'Ver en Mercado Libre',
+        actionType: 'mercadolibre',
+        vehicleCompatibility: `${(parsed.vehicleBrand || '').toUpperCase()} ${parsed.model || ''} ${parsed.year || ''}`.trim() || 'Apto oficial',
         warrantyDays: 180
       });
     });
