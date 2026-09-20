@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Car, Bell, Download, Sparkles, ShieldCheck } from 'lucide-react';
+import { Car, Bell, Download, MapPin } from 'lucide-react';
 
-export function Navbar({ onOpenAlerts, currency, setCurrency }) {
+export function Navbar({ onOpenAlerts }) {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [installed, setInstalled] = useState(false);
 
@@ -40,16 +40,17 @@ export function Navbar({ onOpenAlerts, currency, setCurrency }) {
             <Car className="w-6 h-6 sm:w-7 sm:h-7" />
           </div>
           <div>
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <span className="text-2xl sm:text-3xl font-black tracking-tight text-white">
                 Din<span className="text-orange-500">AcitY</span>
               </span>
-              <span className="hidden sm:inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-full">
-                Comparador
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wider bg-orange-500/15 text-orange-400 border border-orange-500/30 rounded-full shadow-sm">
+                <MapPin className="w-3 h-3 text-orange-400" />
+                <span>Mendoza</span>
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 -mt-1 hidden xs:block">
-              El buscador más barato de repuestos automotores
+            <p className="text-[11px] text-slate-400 -mt-0.5 hidden xs:block">
+              Comparador de repuestos en Casas de Repuestos, Marketplace y Mercado Libre Mendoza
             </p>
           </div>
         </div>
@@ -59,22 +60,22 @@ export function Navbar({ onOpenAlerts, currency, setCurrency }) {
           
           {/* Quick Vehicle Type Pills */}
           <div className="hidden md:flex items-center gap-1 bg-slate-800/80 p-1 rounded-lg text-xs font-medium text-slate-300 border border-slate-700/60">
-            <span className="px-2 py-1 rounded bg-slate-700/60 text-white font-semibold">🚗 Autos</span>
-            <span className="px-2 py-1">🏍️ Motos</span>
-            <span className="px-2 py-1">🚛 Camiones</span>
+            <span className="px-2.5 py-1 rounded bg-slate-700/60 text-white font-semibold">🚗 Autos</span>
+            <span className="px-2.5 py-1">🏍️ Motos</span>
+            <span className="px-2.5 py-1">🚛 Camiones</span>
           </div>
 
           {/* Price Alert Button */}
           <button
             onClick={onOpenAlerts}
             className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs sm:text-sm font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition"
-            title="Crear alerta de precio"
+            title="Crear alerta de precio en Mendoza"
           >
             <Bell className="w-4 h-4 text-amber-400" />
             <span className="hidden sm:inline">Alertas</span>
           </button>
 
-          {/* Install PWA Button (Mobile & Desktop) */}
+          {/* Install PWA Button */}
           <button
             onClick={handleInstallClick}
             className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-md shadow-orange-500/20 transition transform active:scale-95"

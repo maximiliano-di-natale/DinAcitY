@@ -1,5 +1,5 @@
 import React from 'react';
-import { Filter, RotateCcw, Truck, Check, X } from 'lucide-react';
+import { Filter, RotateCcw, Truck, MapPin, Store, X } from 'lucide-react';
 
 export function FilterSidebar({
   filters,
@@ -16,7 +16,7 @@ export function FilterSidebar({
       <div className="flex items-center justify-between pb-3 border-b border-slate-750">
         <div className="flex items-center gap-2 text-white font-bold text-base">
           <Filter className="w-4 h-4 text-orange-400" />
-          <span>Filtros de Búsqueda</span>
+          <span>Filtros en Mendoza</span>
         </div>
         <button
           onClick={onResetFilters}
@@ -44,7 +44,44 @@ export function FilterSidebar({
         </select>
       </div>
 
-      {/* Envío Gratis */}
+      {/* Fuente en Mendoza */}
+      <div>
+        <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
+          Origen / Tipo de Fuente
+        </label>
+        <select
+          value={filters.sourceType || 'todos'}
+          onChange={(e) => onChangeFilter('sourceType', e.target.value)}
+          className="w-full bg-slate-900 border border-slate-700 text-white text-sm rounded-xl px-3 py-2.5 focus:outline-none focus:border-orange-500 transition"
+        >
+          <option value="todos">Todas las fuentes en Mendoza</option>
+          <option value="casa_repuestos_mendoza">Casas de Repuestos en Mendoza</option>
+          <option value="facebook_marketplace_mendoza">Facebook Marketplace Mendoza</option>
+          <option value="mercadolibre_mendoza">Mercado Libre Mendoza</option>
+        </select>
+      </div>
+
+      {/* Zona o Departamento de Mendoza */}
+      <div>
+        <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1">
+          <MapPin className="w-3.5 h-3.5 text-orange-400" />
+          <span>Zona / Departamento Mendoza</span>
+        </label>
+        <select
+          value={filters.mendozaZone || 'todos'}
+          onChange={(e) => onChangeFilter('mendozaZone', e.target.value)}
+          className="w-full bg-slate-900 border border-slate-700 text-white text-sm rounded-xl px-3 py-2.5 focus:outline-none focus:border-orange-500 transition"
+        >
+          <option value="todos">Todo Gran Mendoza y Departamentos</option>
+          {filtersMeta?.mendozaZones?.map((z) => (
+            <option key={z} value={z}>
+              {z}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Retiro Gratis / Envío Gratis */}
       <div className="bg-slate-900/60 p-3.5 rounded-xl border border-slate-750">
         <label className="flex items-center gap-3 cursor-pointer select-none">
           <input
@@ -53,9 +90,9 @@ export function FilterSidebar({
             onChange={(e) => onChangeFilter('freeShippingOnly', e.target.checked)}
             className="w-4 h-4 rounded border-slate-700 text-orange-500 focus:ring-orange-500 bg-slate-800"
           />
-          <div className="flex items-center gap-2 text-sm font-semibold text-slate-200">
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-200">
             <Truck className="w-4 h-4 text-emerald-400" />
-            <span>Solo con Envío Gratis</span>
+            <span>Retiro gratis en mostrador / Envío gratis</span>
           </div>
         </label>
       </div>
@@ -87,36 +124,17 @@ export function FilterSidebar({
         </div>
       </div>
 
-      {/* Tiendas / Plataformas */}
-      <div>
-        <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
-          Tienda o Marketplace
-        </label>
-        <select
-          value={filters.store || 'todos'}
-          onChange={(e) => onChangeFilter('store', e.target.value)}
-          className="w-full bg-slate-900 border border-slate-700 text-white text-sm rounded-xl px-3 py-2.5 focus:outline-none focus:border-orange-500 transition"
-        >
-          <option value="todos">Todas las tiendas agregadas</option>
-          {filtersMeta?.stores?.map((st) => (
-            <option key={st.key} value={st.key}>
-              {st.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
       {/* Marca del Repuesto */}
       <div>
         <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
-          Marca del Repuesto
+          Marca de Fabricante
         </label>
         <select
           value={filters.partBrand || 'todos'}
           onChange={(e) => onChangeFilter('partBrand', e.target.value)}
           className="w-full bg-slate-900 border border-slate-700 text-white text-sm rounded-xl px-3 py-2.5 focus:outline-none focus:border-orange-500 transition"
         >
-          <option value="todos">Todas las marcas de piezas</option>
+          <option value="todos">Todas las marcas</option>
           {filtersMeta?.brands?.map((br) => (
             <option key={br} value={br}>
               {br}

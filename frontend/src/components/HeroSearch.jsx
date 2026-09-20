@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Car, Bike, Truck, Search, Sparkles, SlidersHorizontal, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { Car, Bike, Truck, Search, Sparkles, MapPin } from 'lucide-react';
 
 export function HeroSearch({ taxonomy, onSearch, loading }) {
   const [vehicleType, setVehicleType] = useState('auto');
@@ -8,7 +8,6 @@ export function HeroSearch({ taxonomy, onSearch, loading }) {
   const [selectedYear, setSelectedYear] = useState('');
   const [query, setQuery] = useState('Radiador');
 
-  // Reset model when brand changes
   useEffect(() => {
     setSelectedModel('');
   }, [selectedBrand, vehicleType]);
@@ -43,10 +42,10 @@ export function HeroSearch({ taxonomy, onSearch, loading }) {
 
   const quickParts = [
     { label: 'Radiadores', query: 'Radiador de agua' },
-    { label: 'Termostatos', query: 'Termostato' },
+    { label: 'Termostatos', query: 'Termostato con caja' },
     { label: 'Electroventiladores', query: 'Electroventilador' },
     { label: 'Pastillas de Freno', query: 'Pastillas de freno' },
-    { label: 'Kits Distribución', query: 'Kit distribucion' },
+    { label: 'Kits Distribución', query: 'Kit de distribucion' },
     { label: 'Embragues', query: 'Kit embrague' },
     { label: 'Amortiguadores', query: 'Amortiguadores' }
   ];
@@ -61,19 +60,19 @@ export function HeroSearch({ taxonomy, onSearch, loading }) {
         
         {/* Title */}
         <div className="text-center mb-6 sm:mb-8">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs sm:text-sm font-bold mb-3">
-            <Sparkles className="w-4 h-4" />
-            <span>Compara precios en tiempo real • Autos, Motos y Camiones</span>
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/25 text-orange-400 text-xs sm:text-sm font-bold mb-3 shadow-sm">
+            <MapPin className="w-4 h-4 text-orange-400" />
+            <span>Exclusivo Mendoza • Casas de Repuestos, Facebook Marketplace y Mercado Libre</span>
           </div>
           <h1 className="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight">
-            El repuesto que buscás, al <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-300">precio más barato</span>
+            Repuestos en Mendoza, al <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-300">precio más barato</span>
           </h1>
           <p className="mt-2 text-sm sm:text-base text-slate-400 max-w-2xl mx-auto">
-            Rastreamos en Mercado Libre y tiendas especializadas de autopartes para que elijas siempre la mejor opción y ahorres dinero.
+            Compará en vivo en las casas de repuestos del Carril Rodríguez Peña, Godoy Cruz, Guaymallén, Capital y vendedores locales. Títulos homologados y exactos.
           </p>
         </div>
 
-        {/* Main Search Container (Turismocity Style) */}
+        {/* Main Search Container */}
         <div className="bg-slate-800/90 border border-slate-700/80 rounded-2xl shadow-2xl p-4 sm:p-6 backdrop-blur-sm">
           
           {/* Vehicle Category Tabs */}
@@ -191,7 +190,7 @@ export function HeroSearch({ taxonomy, onSearch, loading }) {
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="¿Qué repuesto buscas? Ej: Radiador, Termostato, Electroventilador, Frenos..."
+                  placeholder="Ej: Radiador de agua, Termostato, Electroventilador, Pastillas de freno..."
                   className="w-full pl-11 pr-4 py-3 sm:py-3.5 bg-slate-900 border border-slate-700 text-white placeholder-slate-400 text-sm sm:text-base rounded-xl focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition shadow-inner"
                   required
                 />
@@ -205,21 +204,21 @@ export function HeroSearch({ taxonomy, onSearch, loading }) {
                 {loading ? (
                   <>
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    <span>Comparando tiendas...</span>
+                    <span>Comparando en Mendoza...</span>
                   </>
                 ) : (
                   <>
                     <Search className="w-5 h-5" />
-                    <span>BUSCAR EL MÁS BARATO</span>
+                    <span>BUSCAR EN MENDOZA</span>
                   </>
                 )}
               </button>
             </div>
 
-            {/* Quick Chips for immediate search */}
+            {/* Quick Chips */}
             <div className="pt-2 flex items-center gap-1.5 flex-wrap">
               <span className="text-xs text-slate-400 font-semibold flex items-center gap-1 mr-1">
-                Búsquedas populares:
+                Repuestos frecuentes en Mendoza:
               </span>
               {quickParts.map((item) => (
                 <button

@@ -5,7 +5,7 @@ import { PartCard } from './components/PartCard.jsx';
 import { FilterSidebar } from './components/FilterSidebar.jsx';
 import { PriceComparisonModal } from './components/PriceComparisonModal.jsx';
 import { PriceAlertModal } from './components/PriceAlertModal.jsx';
-import { Filter, Flame, SlidersHorizontal, Sparkles, AlertCircle } from 'lucide-react';
+import { Flame, SlidersHorizontal, Sparkles, AlertCircle, MapPin, Store } from 'lucide-react';
 
 export function App() {
   const [taxonomy, setTaxonomy] = useState(null);
@@ -18,7 +18,7 @@ export function App() {
   });
 
   const [currentSearchParams, setCurrentSearchParams] = useState({
-    query: 'Radiador',
+    query: 'Radiador de agua',
     vehicleType: 'auto',
     brand: 'volkswagen',
     model: 'Gol Trend',
@@ -31,6 +31,8 @@ export function App() {
     freeShippingOnly: false,
     store: 'todos',
     partBrand: 'todos',
+    mendozaZone: 'todos',
+    sourceType: 'todos',
     minPrice: '',
     maxPrice: ''
   });
@@ -39,14 +41,12 @@ export function App() {
   const [isAlertsOpen, setIsAlertsOpen] = useState(false);
   const [comparingItem, setComparingItem] = useState(null);
 
-  // Cargar taxonomía inicial
   useEffect(() => {
     fetch('/api/vehicles/taxonomy')
       .then((res) => res.json())
       .then((data) => setTaxonomy(data))
       .catch((err) => console.error('Error cargando taxonomía:', err));
 
-    // Búsqueda inicial automática
     executeSearch(currentSearchParams, filters);
   }, []);
 
@@ -64,6 +64,8 @@ export function App() {
         freeShippingOnly: currentFilters?.freeShippingOnly ? 'true' : 'false',
         store: currentFilters?.store || 'todos',
         partBrand: currentFilters?.partBrand || 'todos',
+        mendozaZone: currentFilters?.mendozaZone || 'todos',
+        sourceType: currentFilters?.sourceType || 'todos',
         minPrice: currentFilters?.minPrice || '',
         maxPrice: currentFilters?.maxPrice || ''
       });
@@ -72,7 +74,7 @@ export function App() {
       const data = await response.json();
       setSearchData(data);
     } catch (error) {
-      console.error('Error buscando repuestos:', error);
+      console.error('Error buscando repuestos en Mendoza:', error);
     } finally {
       setLoading(false);
     }
@@ -96,6 +98,8 @@ export function App() {
       freeShippingOnly: false,
       store: 'todos',
       partBrand: 'todos',
+      mendozaZone: 'todos',
+      sourceType: 'todos',
       minPrice: '',
       maxPrice: ''
     };
@@ -112,13 +116,15 @@ export function App() {
     }).format(val);
   };
 
+  const mendozaSources = searchData.stats?.mendozaSources || {};
+
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans">
       
       {/* Header */}
       <Navbar onOpenAlerts={() => setIsAlertsOpen(true)} />
 
-      {/* Hero Search Box (Estilo TurismoCity) */}
+      {/* Hero Search Box con foco en Mendoza */}
       <HeroSearch
         taxonomy={taxonomy}
         onSearch={handleSearchFromHero}
@@ -132,19 +138,32 @@ export function App() {
         <div className="bg-slate-850 border border-slate-750 rounded-2xl p-4 sm:p-5 mb-6 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
           
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-lg sm:text-xl font-black text-white">
-                Resultados para <span className="text-orange-400">"{currentSearchParams.query}"</span>
+                Ofertas en Mendoza para <span className="text-orange-400">"{currentSearchParams.query}"</span>
               </h2>
               <span className="px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 text-xs font-bold border border-slate-700">
-                {searchData.stats?.totalResults || 0} ofertas
+                {searchData.stats?.totalResults || 0} encontrados
               </span>
             </div>
 
-            <p className="text-xs sm:text-sm text-slate-400 mt-1">
-              Ordenados estrictamente <span className="text-emerald-400 font-semibold">del más barato al más caro</span>
-              {currentSearchParams.brand && ` • Para ${currentSearchParams.brand.toUpperCase()} ${currentSearchParams.model}`}
-            </p>
+            <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-slate-400">
+              <span className="flex items-center gap-1 text-emerald-400 font-semibold">
+                ✓ Ordenados del más barato al más caro
+              </span>
+              <span>•</span>
+              <span className="text-slate-300">
+                🏢 {mendozaSources.casasRepuestosMendoza || 0} en Casas de Repuestos
+              </span>
+              <span>•</span>
+              <span className="text-slate-300">
+                💬 {mendozaSources.facebookMarketplaceMendoza || 0} en Marketplace MZA
+              </span>
+              <span>•</span>
+              <span className="text-slate-300">
+                📦 {mendozaSources.mercadoLibreMendoza || 0} en Mercado Libre MZA
+              </span>
+            </div>
           </div>
 
           {/* Stats Badges */}
@@ -153,7 +172,7 @@ export function App() {
               <div className="px-3.5 py-2 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center gap-2">
                 <Flame className="w-4 h-4 text-emerald-400 fill-emerald-400" />
                 <div>
-                  <span className="block text-[10px] text-emerald-400 uppercase font-black">Mejor Precio</span>
+                  <span className="block text-[10px] text-emerald-400 uppercase font-black">Más Barato en MZA</span>
                   <span className="text-sm font-black text-white">{formattedMoney(searchData.stats.minPrice)}</span>
                 </div>
               </div>
@@ -175,7 +194,7 @@ export function App() {
               className="lg:hidden px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-white font-bold text-xs border border-slate-700 flex items-center gap-2"
             >
               <SlidersHorizontal className="w-4 h-4 text-orange-400" />
-              <span>Filtros</span>
+              <span>Filtros MZA</span>
             </button>
           </div>
 
@@ -201,20 +220,20 @@ export function App() {
               <div className="py-20 text-center space-y-4">
                 <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto" />
                 <p className="text-slate-300 font-bold text-base">
-                  Rastreando en tiendas de repuestos y comparando precios...
+                  Rastreando en casas de repuestos de Mendoza, Marketplace y Mercado Libre...
                 </p>
                 <p className="text-xs text-slate-500">
-                  Ordenando del más barato al más caro
+                  Normalizando títulos y clasificando del más barato al más caro
                 </p>
               </div>
             ) : searchData.results?.length === 0 ? (
               <div className="bg-slate-850 border border-slate-750 rounded-2xl p-10 text-center space-y-3">
                 <AlertCircle className="w-10 h-10 text-orange-400 mx-auto" />
                 <h3 className="text-lg font-black text-white">
-                  No se encontraron ofertas con estos filtros
+                  No se encontraron ofertas en Mendoza con estos filtros
                 </h3>
                 <p className="text-xs text-slate-400 max-w-md mx-auto">
-                  Prueba modificando el rango de precios o eliminando filtros para ver más opciones disponibles.
+                  Prueba modificando la zona de Mendoza, el rango de precios o eliminando filtros para ver más opciones disponibles.
                 </p>
                 <button
                   onClick={handleResetFilters}
@@ -261,22 +280,27 @@ export function App() {
               <span className="text-xl font-black text-white">
                 Din<span className="text-orange-500">AcitY</span>
               </span>
-              <span className="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded">v1.0.0</span>
+              <span className="text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30 px-2 py-0.5 rounded font-bold">
+                Edición Mendoza, Argentina
+              </span>
             </div>
             <p className="text-xs text-slate-400 mt-1 max-w-sm">
-              Plataforma y app comparadora de precios de repuestos para autos, motos y camiones. Ahorra en cada reparación.
+              Comparador de precios de repuestos para autos, motos y camiones en Mendoza. Casas de repuestos, Facebook Marketplace y Mercado Libre.
             </p>
           </div>
 
           <div className="flex flex-wrap justify-center gap-6 text-xs text-slate-400 font-medium">
-            <span>🚗 Autos y Utilitarios</span>
-            <span>🏍️ Motos y Scooters</span>
-            <span>🚛 Camiones y Pesados</span>
-            <span>⚡ Alertas en tiempo real</span>
+            <span>📍 Carril Rodríguez Peña</span>
+            <span>📍 Godoy Cruz</span>
+            <span>📍 Guaymallén</span>
+            <span>📍 Maipú</span>
+            <span>📍 Capital</span>
+            <span>📍 San Martín</span>
+            <span>📍 San Rafael</span>
           </div>
 
           <div className="text-xs text-slate-500">
-            © 2026 DinAcitY. Desarrollado para Maximiliano Di Natale.
+            © 2026 DinAcitY Mendoza. Desarrollado para Maximiliano Di Natale.
           </div>
         </div>
       </footer>
