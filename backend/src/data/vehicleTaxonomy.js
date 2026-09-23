@@ -249,6 +249,27 @@ export const PART_CATEGORIES = [
     description: 'Alternadores, motores de arranque, ópticas y faros',
     icon: 'Zap',
     popularItems: ['Alternador', 'Motor de Arranque', 'Óptica Delantera Principal', 'Faro Trasero']
+  },
+  {
+    id: 'baterias',
+    name: 'Baterías y Encendido',
+    description: 'Baterías de 12V 65Ah, 75Ah, bobinas y bujías',
+    icon: 'BatteryCharging',
+    popularItems: ['Batería 12V 65Ah Moura', 'Batería 12V 75Ah Willard', 'Bobina de Encendido', 'Batería de Moto 12V 12Ah']
+  },
+  {
+    id: 'filtros',
+    name: 'Filtros y Lubricantes',
+    description: 'Filtros de aceite, aire, combustible, habitáculo y aceites sintéticos',
+    icon: 'Droplets',
+    popularItems: ['Filtro de Aceite', 'Filtro de Aire', 'Filtro de Combustible', 'Aceite Sintético 5W30 4L']
+  },
+  {
+    id: 'carroceria',
+    name: 'Carrocería y Accesorios',
+    description: 'Paragolpes, espejos retrovisores, parrillas y guardabarros',
+    icon: 'Shield',
+    popularItems: ['Paragolpe Delantero', 'Espejo Retrovisor Eléctrico', 'Parrilla Delantera', 'Guardabarros']
   }
 ];
 

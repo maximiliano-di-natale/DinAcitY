@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import { VEHICLE_TAXONOMY, PART_CATEGORIES, YEARS_LIST } from './data/vehicleTaxonomy.js';
 import { AggregatorService } from './services/aggregatorService.js';
+import { AuthService } from './services/authService.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -10,6 +11,7 @@ app.use(cors());
 app.use(express.json());
 
 const aggregatorService = new AggregatorService();
+const authService = new AuthService();
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -58,6 +60,72 @@ app.get('/api/parts/featured', async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ error: 'Error al obtener ofertas destacadas', message: error.message });
+  }
+});
+
+// ==========================================
+// Rutas de Autenticación Segura de Usuarios
+// ==========================================
+
+// Registro Seguro
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { nombre, apellido, direccion, email, password } = req.body;
+    const result = await authService.register({ nombre, apellido, direccion, email, password });
+    res.status(201).json(result);
+  } catch (error) {
+    console.warn('Fallo en registro:', error.message);
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Inicio de Sesión
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const result = await authService.login({ email, password });
+    res.json(result);
+  } catch (error) {
+    console.warn('Fallo en login:', error.message);
+    res.status(401).json({ error: error.message });
+  }
+});
+
+// Obtener Usuario Autenticado actual
+app.get('/api/auth/me', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Token no proporcionado' });
+    }
+    const token = authHeader.split(' ')[1];
+    const user = await authService.verifyToken(token);
+    if (!user) {
+      return res.status(401).json({ error: 'Token inválido o expirado' });
+    }
+    res.json({ user });
+  } catch (error) {
+    res.status(401).json({ error: 'Error de autenticación', message: error.message });
+  }
+});
+
+// Actualizar Perfil / Dirección en Mendoza
+app.put('/api/auth/profile', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Token no proporcionado' });
+    }
+    const token = authHeader.split(' ')[1];
+    const decodedUser = await authService.verifyToken(token);
+    if (!decodedUser) {
+      return res.status(401).json({ error: 'No autorizado' });
+    }
+    const { nombre, apellido, direccion } = req.body;
+    const result = await authService.updateProfile(decodedUser.id, { nombre, apellido, direccion });
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
   }
 });
 

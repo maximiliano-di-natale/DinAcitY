@@ -5,6 +5,7 @@ import { PartCard } from './components/PartCard.jsx';
 import { FilterSidebar } from './components/FilterSidebar.jsx';
 import { PriceComparisonModal } from './components/PriceComparisonModal.jsx';
 import { PriceAlertModal } from './components/PriceAlertModal.jsx';
+import { AuthModal } from './components/AuthModal.jsx';
 import { Flame, SlidersHorizontal, Sparkles, AlertCircle, MapPin, Store } from 'lucide-react';
 
 export function App() {
@@ -16,6 +17,19 @@ export function App() {
     filtersMeta: {},
     query: {}
   });
+
+  // Estado de Autenticación de Usuario Seguro
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('dinacity_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [token, setToken] = useState(() => localStorage.getItem('dinacity_token') || null);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [authMode, setAuthMode] = useState('register');
 
   const [currentSearchParams, setCurrentSearchParams] = useState({
     query: 'Toyota Hilux',
@@ -49,6 +63,39 @@ export function App() {
 
     executeSearch(currentSearchParams, filters);
   }, []);
+
+  // Verificar sesión persistida si existe token
+  useEffect(() => {
+    if (token) {
+      fetch('/api/auth/me', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data) => {
+          if (data?.user) {
+            setCurrentUser(data.user);
+            localStorage.setItem('dinacity_user', JSON.stringify(data.user));
+          } else {
+            handleLogout();
+          }
+        })
+        .catch(() => {});
+    }
+  }, [token]);
+
+  const handleAuthSuccess = (user, authToken) => {
+    setCurrentUser(user);
+    setToken(authToken);
+    localStorage.setItem('dinacity_user', JSON.stringify(user));
+    localStorage.setItem('dinacity_token', authToken);
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setToken(null);
+    localStorage.removeItem('dinacity_user');
+    localStorage.removeItem('dinacity_token');
+  };
 
   const executeSearch = async (searchParams, currentFilters) => {
     setLoading(true);
@@ -135,6 +182,12 @@ export function App() {
       
       {/* Header en Rojo Institucional y Barra integrada estilo Mercado Libre */}
       <Navbar
+        user={currentUser}
+        onOpenAuth={(mode) => {
+          setAuthMode(mode || 'register');
+          setIsAuthOpen(true);
+        }}
+        onLogout={handleLogout}
         onOpenAlerts={() => setIsAlertsOpen(true)}
         onSearch={handleSearchFromHero}
         currentQuery={currentSearchParams.query}
@@ -286,6 +339,14 @@ export function App() {
         isOpen={isAlertsOpen}
         onClose={() => setIsAlertsOpen(false)}
         currentSearch={currentSearchParams}
+      />
+
+      {/* Modal Seguro de Registro y Login de Usuarios */}
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        initialMode={authMode}
+        onAuthSuccess={handleAuthSuccess}
       />
 
       {/* Footer en Azul Marino institucional con detalles en Rojo */}
