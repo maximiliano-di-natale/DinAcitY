@@ -211,9 +211,23 @@ export const PART_CATEGORIES = [
   {
     id: 'refrigeracion',
     name: 'Refrigeración',
-    description: 'Radiadores de agua, termostatos, electroventiladores y bombas de agua',
+    description: 'Radiadores de agua, radiadores de aire, termostatos, electroventiladores y bombas de agua',
     icon: 'ThermometerSnowflake',
-    popularItems: ['Radiador de Agua de Motor', 'Termostato con Caja y Pipeta', 'Electroventilador Completo', 'Bomba de Agua']
+    popularItems: ['Radiador de Agua de Motor', 'Radiador de Aire Intercooler', 'Termostato con Caja y Pipeta', 'Electroventilador Completo', 'Bomba de Agua']
+  },
+  {
+    id: 'calefaccion',
+    name: 'Calefacción',
+    description: 'Radiadores de calefacción y mangueras de calefacción',
+    icon: 'Flame',
+    popularItems: ['Radiador de Calefacción', 'Manguera de Calefacción']
+  },
+  {
+    id: 'mangueras',
+    name: 'Mangueras',
+    description: 'Mangueras de radiador, refrigeración y calefacción',
+    icon: 'Pipette',
+    popularItems: ['Juego de Mangueras de Radiador', 'Manguera Superior', 'Manguera Inferior']
   },
   {
     id: 'frenos',

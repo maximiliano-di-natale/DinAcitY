@@ -20,6 +20,7 @@ export class MercadoLibreAdapter {
     if (vehicleType === 'camion') {
       const camionMap = {
         refrigeracion: 460000,
+        calefaccion: 180000,
         frenos: 135000,
         motor: 340000,
         embrague: 680000,
@@ -33,6 +34,7 @@ export class MercadoLibreAdapter {
     if (vehicleType === 'moto') {
       const motoMap = {
         refrigeracion: 54000,
+        calefaccion: 32000,
         frenos: 22000,
         motor: 42000,
         embrague: 46000,
@@ -47,6 +49,7 @@ export class MercadoLibreAdapter {
     if (isPickup) {
       const pickupMap = {
         refrigeracion: 215000, // Radiadores Hilux/Amarok/Ranger reales: $185.000 a $290.000
+        calefaccion: 89000,
         frenos: 56000,         // Pastillas pickup: $48.000 a $78.000
         motor: 210000,        // Distribución / correas pickup
         embrague: 350000,     // Embrague pickup: $280.000 a $490.000
@@ -60,6 +63,7 @@ export class MercadoLibreAdapter {
     if (isHeavyCar) {
       const heavyMap = {
         refrigeracion: 135000,
+        calefaccion: 68000,
         frenos: 48000,
         motor: 165000,
         embrague: 260000,
@@ -73,6 +77,7 @@ export class MercadoLibreAdapter {
     // Autos populares (Gol Trend, Corsa, Palio, Uno, Cronos, 208, Sandero)
     const autoMap = {
       refrigeracion: 94000,  // Radiador Gol Trend real: $82.000 a $135.000
+      calefaccion: 45000,    // Calefactor o mangueras Gol
       frenos: 38000,         // Pastillas Gol/Corsa: $32.000 a $55.000
       motor: 115000,        // Kit Distribución Gol Trend: $95.000 a $160.000
       embrague: 195000,     // Kit Embrague Gol: $170.000 a $290.000

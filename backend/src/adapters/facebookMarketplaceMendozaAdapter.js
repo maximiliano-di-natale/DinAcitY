@@ -23,23 +23,23 @@ export class FacebookMarketplaceMendozaAdapter {
     const isPickup = m.includes('hilux') || m.includes('ranger') || m.includes('amarok') || m.includes('s10') || m.includes('frontier');
 
     if (vehicleType === 'camion') {
-      const map = { refrigeracion: 395000, frenos: 115000, motor: 290000, embrague: 590000, suspension: 240000, electricidad: 195000, general: 80000 };
+      const map = { refrigeracion: 395000, calefaccion: 155000, frenos: 115000, motor: 290000, embrague: 590000, suspension: 240000, electricidad: 195000, general: 80000 };
       return map[category] || 130000;
     }
 
     if (vehicleType === 'moto') {
-      const map = { refrigeracion: 46000, frenos: 18000, motor: 35000, embrague: 38000, suspension: 40000, electricidad: 29000, general: 20000 };
+      const map = { refrigeracion: 46000, calefaccion: 28000, frenos: 18000, motor: 35000, embrague: 38000, suspension: 40000, electricidad: 29000, general: 20000 };
       return map[category] || 25000;
     }
 
     if (isPickup) {
       // Precios Marketplace Mendoza para Hilux / Ranger / Amarok
-      const map = { refrigeracion: 185000, frenos: 48000, motor: 180000, embrague: 295000, suspension: 165000, electricidad: 140000, general: 55000 };
+      const map = { refrigeracion: 185000, calefaccion: 78000, frenos: 48000, motor: 180000, embrague: 295000, suspension: 165000, electricidad: 140000, general: 55000 };
       return map[category] || 95000;
     }
 
     // Autos populares (Gol Trend, Corsa, Palio, etc.)
-    const map = { refrigeracion: 82000, frenos: 32000, motor: 98000, embrague: 165000, suspension: 98000, electricidad: 74000, general: 35000 };
+    const map = { refrigeracion: 82000, calefaccion: 39000, frenos: 32000, motor: 98000, embrague: 165000, suspension: 98000, electricidad: 74000, general: 35000 };
     return map[category] || 55000;
   }
 

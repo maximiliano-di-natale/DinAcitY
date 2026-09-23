@@ -9,17 +9,19 @@ import {
   ChevronDown,
   User,
   LogOut,
-  Sparkles,
   ShoppingBag,
   Heart,
-  ThermometerSnowflake,
+  Droplets,
+  Wind,
+  Fan,
+  Thermometer,
+  Waves,
+  Flame,
+  Activity,
   Disc,
   Gauge,
   Cog,
-  Activity,
   BatteryCharging,
-  Droplets,
-  Zap,
   Shield
 } from 'lucide-react';
 
@@ -34,10 +36,14 @@ export function Navbar({
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [installed, setInstalled] = useState(false);
   const [navSearch, setNavSearch] = useState(currentQuery || '');
-  const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
+  
+  // Dropdown states
+  const [isRefrigeracionOpen, setIsRefrigeracionOpen] = useState(false);
+  const [isCalefaccionOpen, setIsCalefaccionOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
-  const categoryMenuRef = useRef(null);
+  const refrigeracionRef = useRef(null);
+  const calefaccionRef = useRef(null);
   const userMenuRef = useRef(null);
 
   useEffect(() => {
@@ -47,8 +53,11 @@ export function Navbar({
   // Click outside to close menus
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (categoryMenuRef.current && !categoryMenuRef.current.contains(event.target)) {
-        setIsCategoryMenuOpen(false);
+      if (refrigeracionRef.current && !refrigeracionRef.current.contains(event.target)) {
+        setIsRefrigeracionOpen(false);
+      }
+      if (calefaccionRef.current && !calefaccionRef.current.contains(event.target)) {
+        setIsCalefaccionOpen(false);
       }
       if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
         setIsUserMenuOpen(false);
@@ -91,7 +100,8 @@ export function Navbar({
   };
 
   const handleCategoryClick = (categoryQuery) => {
-    setIsCategoryMenuOpen(false);
+    setIsRefrigeracionOpen(false);
+    setIsCalefaccionOpen(false);
     setNavSearch(categoryQuery);
     if (onSearch) {
       onSearch({ query: categoryQuery });
@@ -106,75 +116,67 @@ export function Navbar({
     return first + (last || '');
   };
 
-  const categoriesList = [
+  // Sub-opciones de Refrigeración
+  const refrigeracionOptions = [
     {
-      id: 'frenos',
-      name: 'Frenos',
-      query: 'Pastillas de freno',
-      desc: 'Pastillas, discos ventilados, cintas y bombas',
-      icon: Disc
-    },
-    {
-      id: 'refrigeracion',
-      name: 'Refrigeración',
+      id: 'ref-agua',
+      name: 'Radiadores de agua',
       query: 'Radiador de agua',
-      desc: 'Radiadores, termostatos, electroventiladores, bombas de agua',
-      icon: ThermometerSnowflake
-    },
-    {
-      id: 'motor',
-      name: 'Motor y Distribución',
-      query: 'Kit distribucion',
-      desc: 'Kits de distribución, correas tensoras, bujías y juntas',
-      icon: Gauge
-    },
-    {
-      id: 'embragues',
-      name: 'Embragues y Transmisión',
-      query: 'Kit embrague',
-      desc: 'Kits completos (placa, disco y crapodina) y bombines',
-      icon: Cog
-    },
-    {
-      id: 'suspension',
-      name: 'Suspensión y Dirección',
-      query: 'Amortiguadores',
-      desc: 'Amortiguadores delanteros/traseros, extremos y rótulas',
-      icon: Activity
-    },
-    {
-      id: 'baterias',
-      name: 'Baterías y Encendido',
-      query: 'Bateria',
-      desc: 'Baterías 12V (Moura, Willard), bobinas de encendido',
-      icon: BatteryCharging
-    },
-    {
-      id: 'filtros',
-      name: 'Filtros y Lubricantes',
-      query: 'Filtro de aceite',
-      desc: 'Filtros de aceite, aire, nafta, habitáculo y aceites',
+      desc: 'Radiadores de refrigeración de motor de autos, camionetas y camiones',
       icon: Droplets
     },
     {
-      id: 'electricidad',
-      name: 'Electricidad e Iluminación',
-      query: 'Optica delantera',
-      desc: 'Ópticas, alternadores, motores de arranque y faros',
-      icon: Zap
+      id: 'ref-aire',
+      name: 'Radiadores de aire',
+      query: 'Radiador de aire intercooler',
+      desc: 'Intercoolers y radiadores de aire del turbo',
+      icon: Wind
     },
     {
-      id: 'carroceria',
-      name: 'Carrocería y Accesorios',
-      query: 'Paragolpe delantero',
-      desc: 'Paragolpes, espejos retrovisores, parrillas y guardabarros',
-      icon: Shield
+      id: 'ref-vent',
+      name: 'Ventiladores',
+      query: 'Electroventilador',
+      desc: 'Electroventiladores completos, motores y deflectores',
+      icon: Fan
+    },
+    {
+      id: 'ref-term',
+      name: 'Termostatos',
+      query: 'Termostato con caja',
+      desc: 'Termostatos con pipeta, cuerpo y caja plástica/aluminio',
+      icon: Thermometer
+    },
+    {
+      id: 'ref-bomba',
+      name: 'Bomba de agua',
+      query: 'Bomba de agua',
+      desc: 'Bombas de agua de refrigeración automotor',
+      icon: Waves
     }
   ];
 
-  const quickLinks = [
+  // Sub-opciones de Calefacción
+  const calefaccionOptions = [
+    {
+      id: 'cal-rad',
+      name: 'Radiadores de calefacción',
+      query: 'Radiador de calefaccion',
+      desc: 'Paneles y radiadores del calefactor de habitáculo',
+      icon: Flame
+    },
+    {
+      id: 'cal-mang',
+      name: 'Mangueras de calefacción',
+      query: 'Manguera de calefaccion',
+      desc: 'Mangueras de entrada, salida y paso de agua de calefactor',
+      icon: Activity
+    }
+  ];
+
+  // Accesos directos adicionales
+  const otherLinks = [
     { label: 'Frenos', query: 'Pastillas de freno' },
-    { label: 'Refrigeración', query: 'Radiador' },
+    { label: 'Mangueras', query: 'Mangueras' },
     { label: 'Motor', query: 'Kit distribucion' },
     { label: 'Embragues', query: 'Kit embrague' },
     { label: 'Suspensión', query: 'Amortiguadores' },
@@ -261,9 +263,9 @@ export function Navbar({
         </div>
       </div>
 
-      {/* Sub-Header Row (Mercado Libre Line 2 - Identical to user photo) */}
+      {/* Sub-Header Row (Mercado Libre Line 2) */}
       <div className="bg-red-700 border-t border-red-500/30 text-xs text-white">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-1.5 flex items-center justify-between gap-3 overflow-x-auto">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-1.5 flex items-center justify-between gap-3 overflow-x-auto md:overflow-visible">
           
           {/* Left: Location Pin ("Enviar a Maximiliano / Calle San Isidro 2341") */}
           <div
@@ -284,7 +286,7 @@ export function Navbar({
                   <span className="text-red-200 block text-[10px]">
                     Enviar a <span className="text-white font-bold">{user.nombre}</span>
                   </span>
-                  <span className="font-semibold text-white block max-w-[170px] sm:max-w-[220px] truncate" title={user.direccion}>
+                  <span className="font-semibold text-white block max-w-[150px] sm:max-w-[200px] truncate" title={user.direccion}>
                     {user.direccion}
                   </span>
                 </>
@@ -299,68 +301,198 @@ export function Navbar({
             </div>
           </div>
 
-          {/* Center: "Categorías ⌵" Dropdown + Horizontal Quick Links */}
-          <div className="flex items-center gap-1 sm:gap-2.5 text-xs shrink-0">
+          {/* Center Links & Dropdowns (Frenos, Refrigeración ⌵, Calefacción ⌵, Mangueras, Motor...) */}
+          <div className="flex items-center gap-1 sm:gap-2 text-xs shrink-0">
             
-            {/* Categorías Dropdown */}
-            <div className="relative" ref={categoryMenuRef}>
+            {/* Frenos */}
+            <button
+              onClick={() => handleCategoryClick('Pastillas de freno')}
+              className="px-2 py-1 rounded hover:bg-white/15 text-white whitespace-nowrap transition cursor-pointer font-semibold text-[11px] sm:text-xs"
+            >
+              Frenos
+            </button>
+
+            {/* Refrigeración con Menú Desplegable Múltiple */}
+            <div className="relative" ref={refrigeracionRef}>
               <button
                 type="button"
-                onClick={() => setIsCategoryMenuOpen(!isCategoryMenuOpen)}
-                className="flex items-center gap-1 px-2.5 py-1 rounded bg-red-800/80 hover:bg-red-800 text-white font-bold transition border border-red-500/30 shadow-xs"
+                onClick={() => {
+                  setIsRefrigeracionOpen(!isRefrigeracionOpen);
+                  setIsCalefaccionOpen(false);
+                }}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded font-bold text-[11px] sm:text-xs transition ${
+                  isRefrigeracionOpen
+                    ? 'bg-white text-red-700 shadow-sm'
+                    : 'text-white hover:bg-white/15'
+                }`}
               >
-                <span>Categorías</span>
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isCategoryMenuOpen ? 'rotate-180' : ''}`} />
+                <span>Refrigeración</span>
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isRefrigeracionOpen ? 'rotate-180' : ''}`} />
               </button>
 
-              {/* Categorías Floating Menu */}
-              {isCategoryMenuOpen && (
+              {/* Menú Desplegable Múltiple de Refrigeración */}
+              {isRefrigeracionOpen && (
                 <div className="absolute left-0 top-full mt-1.5 w-72 sm:w-80 bg-white text-gray-800 rounded-xl shadow-2xl border border-gray-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
                   <div className="px-3.5 py-1.5 border-b border-gray-100 flex items-center justify-between text-xs text-gray-500 font-bold">
-                    <span>Repuestos Automotores en Mendoza</span>
-                    <span className="text-red-600 text-[10px] font-black uppercase">Mercado Libre / Casas MZA</span>
+                    <span className="text-blue-900 font-black">Sistema de Refrigeración</span>
+                    <span className="text-red-600 text-[10px] font-black uppercase">Mendoza</span>
                   </div>
 
-                  <div className="py-1 max-h-96 overflow-y-auto">
-                    {categoriesList.map((cat) => {
-                      const IconComponent = cat.icon;
+                  <div className="py-1">
+                    {refrigeracionOptions.map((opt) => {
+                      const IconComponent = opt.icon;
                       return (
                         <button
-                          key={cat.id}
-                          onClick={() => handleCategoryClick(cat.query)}
+                          key={opt.id}
+                          onClick={() => handleCategoryClick(opt.query)}
                           className="w-full text-left px-3.5 py-2 hover:bg-red-50 flex items-start gap-2.5 transition group"
                         >
-                          <div className="p-1.5 rounded-lg bg-gray-100 group-hover:bg-red-600 group-hover:text-white text-gray-700 transition mt-0.5">
+                          <div className="p-1.5 rounded-lg bg-blue-50 text-blue-700 group-hover:bg-red-600 group-hover:text-white transition mt-0.5">
                             <IconComponent className="w-4 h-4" />
                           </div>
                           <div>
                             <span className="block text-xs font-bold text-gray-900 group-hover:text-red-600">
-                              {cat.name}
+                              {opt.name}
                             </span>
                             <span className="block text-[10px] text-gray-500 line-clamp-1">
-                              {cat.desc}
+                              {opt.desc}
                             </span>
                           </div>
                         </button>
                       );
                     })}
                   </div>
+
+                  <div className="border-t border-gray-100 pt-1.5 px-3">
+                    <button
+                      onClick={() => handleCategoryClick('Refrigeracion')}
+                      className="w-full text-center py-1 text-[11px] font-black text-blue-700 hover:text-blue-900 hover:underline"
+                    >
+                      Ver todo en Refrigeración →
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
 
-            {/* Horizontal Quick Links (Frenos, Refrigeración, Motor, etc.) */}
-            <div className="hidden lg:flex items-center gap-1.5 text-[11px] font-medium text-white/90">
-              {quickLinks.map((link) => (
-                <button
-                  key={link.label}
-                  onClick={() => handleCategoryClick(link.query)}
-                  className="px-2 py-1 rounded hover:bg-white/15 text-white whitespace-nowrap transition cursor-pointer font-semibold"
-                >
-                  {link.label}
-                </button>
-              ))}
+            {/* Calefacción con Menú Desplegable Múltiple */}
+            <div className="relative" ref={calefaccionRef}>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsCalefaccionOpen(!isCalefaccionOpen);
+                  setIsRefrigeracionOpen(false);
+                }}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded font-bold text-[11px] sm:text-xs transition ${
+                  isCalefaccionOpen
+                    ? 'bg-white text-red-700 shadow-sm'
+                    : 'text-white hover:bg-white/15'
+                }`}
+              >
+                <span>Calefacción</span>
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isCalefaccionOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Menú Desplegable Múltiple de Calefacción */}
+              {isCalefaccionOpen && (
+                <div className="absolute left-0 top-full mt-1.5 w-72 sm:w-80 bg-white text-gray-800 rounded-xl shadow-2xl border border-gray-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="px-3.5 py-1.5 border-b border-gray-100 flex items-center justify-between text-xs text-gray-500 font-bold">
+                    <span className="text-red-700 font-black">Sistema de Calefacción</span>
+                    <span className="text-red-600 text-[10px] font-black uppercase">Mendoza</span>
+                  </div>
+
+                  <div className="py-1">
+                    {calefaccionOptions.map((opt) => {
+                      const IconComponent = opt.icon;
+                      return (
+                        <button
+                          key={opt.id}
+                          onClick={() => handleCategoryClick(opt.query)}
+                          className="w-full text-left px-3.5 py-2 hover:bg-red-50 flex items-start gap-2.5 transition group"
+                        >
+                          <div className="p-1.5 rounded-lg bg-red-50 text-red-600 group-hover:bg-red-600 group-hover:text-white transition mt-0.5">
+                            <IconComponent className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <span className="block text-xs font-bold text-gray-900 group-hover:text-red-600">
+                              {opt.name}
+                            </span>
+                            <span className="block text-[10px] text-gray-500 line-clamp-1">
+                              {opt.desc}
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="border-t border-gray-100 pt-1.5 px-3">
+                    <button
+                      onClick={() => handleCategoryClick('Calefaccion')}
+                      className="w-full text-center py-1 text-[11px] font-black text-red-600 hover:text-red-800 hover:underline"
+                    >
+                      Ver todo en Calefacción →
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
+
+            {/* Mangueras directo */}
+            <button
+              onClick={() => handleCategoryClick('Mangueras')}
+              className="px-2 py-1 rounded hover:bg-white/15 text-white whitespace-nowrap transition cursor-pointer font-semibold text-[11px] sm:text-xs"
+            >
+              Mangueras
+            </button>
+
+            {/* Motor */}
+            <button
+              onClick={() => handleCategoryClick('Kit distribucion')}
+              className="px-2 py-1 rounded hover:bg-white/15 text-white whitespace-nowrap transition cursor-pointer font-semibold text-[11px] sm:text-xs"
+            >
+              Motor
+            </button>
+
+            {/* Embragues */}
+            <button
+              onClick={() => handleCategoryClick('Kit embrague')}
+              className="hidden sm:inline-block px-2 py-1 rounded hover:bg-white/15 text-white whitespace-nowrap transition cursor-pointer font-semibold text-[11px] sm:text-xs"
+            >
+              Embragues
+            </button>
+
+            {/* Suspensión */}
+            <button
+              onClick={() => handleCategoryClick('Amortiguadores')}
+              className="hidden md:inline-block px-2 py-1 rounded hover:bg-white/15 text-white whitespace-nowrap transition cursor-pointer font-semibold text-[11px] sm:text-xs"
+            >
+              Suspensión
+            </button>
+
+            {/* Baterías */}
+            <button
+              onClick={() => handleCategoryClick('Bateria 12V')}
+              className="hidden lg:inline-block px-2 py-1 rounded hover:bg-white/15 text-white whitespace-nowrap transition cursor-pointer font-semibold text-[11px] sm:text-xs"
+            >
+              Baterías
+            </button>
+
+            {/* Filtros */}
+            <button
+              onClick={() => handleCategoryClick('Filtro aceite')}
+              className="hidden lg:inline-block px-2 py-1 rounded hover:bg-white/15 text-white whitespace-nowrap transition cursor-pointer font-semibold text-[11px] sm:text-xs"
+            >
+              Filtros
+            </button>
+
+            {/* Ofertas Mendoza */}
+            <button
+              onClick={() => handleCategoryClick('Repuestos')}
+              className="hidden xl:inline-block px-2 py-1 rounded bg-yellow-400 text-gray-900 whitespace-nowrap transition cursor-pointer font-black text-[11px] shadow-xs hover:bg-yellow-300"
+            >
+              Ofertas Mendoza
+            </button>
 
           </div>
 

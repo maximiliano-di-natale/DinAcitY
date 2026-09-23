@@ -8,6 +8,36 @@ export class TitleNormalizerService {
   constructor() {
     this.canonicalParts = [
       {
+        tokens: ['radiador calefaccion', 'radiador de calefaccion', 'calefactor'],
+        canonicalName: 'Radiador de Calefacción del Habitáculo',
+        category: 'calefaccion',
+        defaultBrands: ['Valeo', 'Mahle', 'Behr', 'Denso', 'Magneti Marelli']
+      },
+      {
+        tokens: ['manguera calefaccion', 'manguera de calefaccion', 'mangueras calefaccion'],
+        canonicalName: 'Manguera de Calefacción Entrada / Salida',
+        category: 'calefaccion',
+        defaultBrands: ['Cauplas', 'Gates', 'Continental', 'Yaco']
+      },
+      {
+        tokens: ['radiador aire', 'radiador de aire', 'intercooler'],
+        canonicalName: 'Radiador Intercooler de Aire',
+        category: 'refrigeracion',
+        defaultBrands: ['Valeo', 'Mahle', 'Nissens', 'Behr']
+      },
+      {
+        tokens: ['manguera', 'mangueras', 'manguera radiador', 'manguera refrigeracion'],
+        canonicalName: 'Juego de Mangueras de Circuito de Agua / Radiador',
+        category: 'refrigeracion',
+        defaultBrands: ['Cauplas', 'Gates', 'Continental', 'Yaco']
+      },
+      {
+        tokens: ['calefaccion', 'sistema calefaccion'],
+        canonicalName: 'Sistema de Calefacción y Climatización',
+        category: 'calefaccion',
+        defaultBrands: ['Valeo', 'Mahle', 'Behr']
+      },
+      {
         tokens: ['radiador', 'enfriador', 'refrigeracion', 'panel radiador'],
         canonicalName: 'Radiador de Agua de Motor',
         category: 'refrigeracion',
@@ -182,7 +212,11 @@ export class TitleNormalizerService {
    * Analizador inteligente: extrae repuesto canónico, marca y modelo del texto libre
    */
   parseSearchIntent(query, explicitVehicle = {}) {
-    const raw = (query || '').toLowerCase().trim();
+    const raw = (query || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim();
     let detectedPart = null;
     let detectedVehicle = null;
 
@@ -226,7 +260,11 @@ export class TitleNormalizerService {
   }
 
   detectCanonicalPart(query) {
-    const q = (query || '').toLowerCase().trim();
+    const q = (query || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim();
     for (const part of this.canonicalParts) {
       if (part.tokens.some((token) => q.includes(token))) {
         return part;
