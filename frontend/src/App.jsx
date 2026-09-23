@@ -82,7 +82,6 @@ export function App() {
 
   const handleSearchFromHero = (newSearchParams) => {
     setCurrentSearchParams(newSearchParams);
-    // Reiniciar filtros secundarios para evitar que filtros residuales vacíen la búsqueda
     const cleanFilters = {
       sortBy: filters.sortBy || 'price_asc',
       condition: 'todos',
@@ -132,12 +131,16 @@ export function App() {
   const mendozaSources = searchData.stats?.mendozaSources || {};
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#ebebeb] text-[#333333] flex flex-col font-sans">
       
-      {/* Header */}
-      <Navbar onOpenAlerts={() => setIsAlertsOpen(true)} />
+      {/* Header en Rojo Institucional y Barra integrada estilo Mercado Libre */}
+      <Navbar
+        onOpenAlerts={() => setIsAlertsOpen(true)}
+        onSearch={handleSearchFromHero}
+        currentQuery={currentSearchParams.query}
+      />
 
-      {/* Hero Search Box con foco en Mendoza */}
+      {/* Hero Search Box con tarjeta blanca y selectores */}
       <HeroSearch
         taxonomy={taxonomy}
         onSearch={handleSearchFromHero}
@@ -145,58 +148,58 @@ export function App() {
       />
 
       {/* Main Content Area */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 w-full flex-1">
         
-        {/* Results Overview Bar */}
-        <div className="bg-slate-850 border border-slate-750 rounded-2xl p-4 sm:p-5 mb-6 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
+        {/* Results Overview Bar (Mercado Libre Style) */}
+        <div className="bg-white border border-gray-200 rounded-lg p-3.5 sm:p-4 mb-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
           
           <div>
             <div className="flex flex-wrap items-center gap-2">
-              <h2 className="text-lg sm:text-xl font-black text-white">
-                Ofertas en Mendoza para <span className="text-orange-400">"{currentSearchParams.query || currentSearchParams.model || 'Repuestos'}"</span>
+              <h2 className="text-base sm:text-lg font-bold text-gray-900">
+                Repuestos en Mendoza para <span className="text-red-600">"{currentSearchParams.query || currentSearchParams.model || 'Repuestos'}"</span>
               </h2>
-              <span className="px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 text-xs font-bold border border-slate-700">
-                {searchData.stats?.totalResults || 0} encontrados
+              <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 text-xs font-bold border border-gray-200">
+                {searchData.stats?.totalResults || 0} resultados
               </span>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 mt-1.5 text-xs text-slate-400">
-              <span className="flex items-center gap-1 text-emerald-400 font-semibold">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-1 text-xs text-gray-500">
+              <span className="text-emerald-700 font-bold flex items-center gap-1">
                 ✓ Ordenados del más barato al más caro
               </span>
               <span>•</span>
-              <span className="text-slate-300">
+              <span className="text-gray-700">
                 🏢 {mendozaSources.casasRepuestosMendoza || 0} en Casas de Repuestos
               </span>
               <span>•</span>
-              <span className="text-slate-300">
+              <span className="text-gray-700">
                 💬 {mendozaSources.facebookMarketplaceMendoza || 0} en Marketplace MZA
               </span>
               <span>•</span>
-              <span className="text-slate-300">
+              <span className="text-gray-700">
                 📦 {mendozaSources.mercadoLibreMendoza || 0} en Mercado Libre MZA
               </span>
             </div>
           </div>
 
-          {/* Stats Badges */}
-          <div className="flex flex-wrap items-center gap-3">
+          {/* Stats Badges (Rojo y Azul) */}
+          <div className="flex flex-wrap items-center gap-2">
             {searchData.stats?.minPrice > 0 && (
-              <div className="px-3.5 py-2 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center gap-2">
-                <Flame className="w-4 h-4 text-emerald-400 fill-emerald-400" />
+              <div className="px-3 py-1.5 rounded-md bg-red-50 border border-red-200 text-red-800 text-xs font-semibold flex items-center gap-1.5 shadow-xs">
+                <Flame className="w-4 h-4 text-red-600 fill-red-600" />
                 <div>
-                  <span className="block text-[10px] text-emerald-400 uppercase font-black">Más Barato en MZA</span>
-                  <span className="text-sm font-black text-white">{formattedMoney(searchData.stats.minPrice)}</span>
+                  <span className="block text-[10px] text-red-600 uppercase font-black">Más Barato en MZA</span>
+                  <span className="text-sm font-black text-gray-900">{formattedMoney(searchData.stats.minPrice)}</span>
                 </div>
               </div>
             )}
 
             {searchData.stats?.maxSavingsPossible > 0 && (
-              <div className="px-3.5 py-2 rounded-xl bg-orange-950/30 border border-orange-500/30 text-orange-300 text-xs font-semibold hidden sm:flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-orange-400" />
+              <div className="px-3 py-1.5 rounded-md bg-blue-50 border border-blue-200 text-blue-800 text-xs font-semibold hidden sm:flex items-center gap-1.5 shadow-xs">
+                <Sparkles className="w-4 h-4 text-blue-600" />
                 <div>
-                  <span className="block text-[10px] text-orange-400 uppercase font-black">Ahorro Máximo</span>
-                  <span className="text-sm font-black text-white">Hasta {formattedMoney(searchData.stats.maxSavingsPossible)}</span>
+                  <span className="block text-[10px] text-blue-600 uppercase font-black">Ahorro Máximo</span>
+                  <span className="text-sm font-black text-gray-900">Hasta {formattedMoney(searchData.stats.maxSavingsPossible)}</span>
                 </div>
               </div>
             )}
@@ -204,17 +207,17 @@ export function App() {
             {/* Mobile Filter Toggle */}
             <button
               onClick={() => setIsMobileFiltersOpen(true)}
-              className="lg:hidden px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-750 text-white font-bold text-xs border border-slate-700 flex items-center gap-2"
+              className="lg:hidden px-3 py-2 rounded-md bg-white hover:bg-gray-50 text-gray-800 font-bold text-xs border border-gray-300 flex items-center gap-1.5 shadow-sm"
             >
-              <SlidersHorizontal className="w-4 h-4 text-orange-400" />
-              <span>Filtros MZA</span>
+              <SlidersHorizontal className="w-3.5 h-3.5 text-red-600" />
+              <span>Filtros</span>
             </button>
           </div>
 
         </div>
 
         {/* Layout with Sidebar and Cards */}
-        <div className="flex flex-col lg:flex-row gap-6 items-start">
+        <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 items-start">
           
           {/* Sidebar */}
           <FilterSidebar
@@ -227,30 +230,30 @@ export function App() {
           />
 
           {/* Cards List */}
-          <div className="flex-1 w-full space-y-4">
+          <div className="flex-1 w-full space-y-3">
             
             {loading ? (
-              <div className="py-20 text-center space-y-4">
-                <div className="w-12 h-12 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto" />
-                <p className="text-slate-300 font-bold text-base">
+              <div className="bg-white rounded-lg border border-gray-200 p-12 text-center space-y-3 shadow-sm">
+                <div className="w-10 h-10 border-4 border-red-600 border-t-transparent rounded-full animate-spin mx-auto" />
+                <p className="text-gray-800 font-bold text-sm sm:text-base">
                   Rastreando en casas de repuestos de Mendoza, Marketplace y Mercado Libre...
                 </p>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-gray-500">
                   Normalizando títulos y clasificando del más barato al más caro
                 </p>
               </div>
             ) : searchData.results?.length === 0 ? (
-              <div className="bg-slate-850 border border-slate-750 rounded-2xl p-10 text-center space-y-3">
-                <AlertCircle className="w-10 h-10 text-orange-400 mx-auto" />
-                <h3 className="text-lg font-black text-white">
+              <div className="bg-white border border-gray-200 rounded-lg p-10 text-center space-y-3 shadow-sm">
+                <AlertCircle className="w-10 h-10 text-red-600 mx-auto" />
+                <h3 className="text-base sm:text-lg font-bold text-gray-900">
                   No se encontraron ofertas en Mendoza con estos filtros
                 </h3>
-                <p className="text-xs text-slate-400 max-w-md mx-auto">
+                <p className="text-xs text-gray-500 max-w-md mx-auto">
                   Prueba modificando la zona de Mendoza, el rango de precios o eliminando filtros para ver más opciones disponibles.
                 </p>
                 <button
                   onClick={handleResetFilters}
-                  className="px-4 py-2 bg-orange-500 text-white text-xs font-bold rounded-xl"
+                  className="px-4 py-2 bg-red-600 text-white text-xs font-bold rounded-md shadow-sm hover:bg-red-700"
                 >
                   Restablecer filtros
                 </button>
@@ -285,24 +288,25 @@ export function App() {
         currentSearch={currentSearchParams}
       />
 
-      {/* Footer */}
-      <footer className="mt-16 bg-slate-950 border-t border-slate-800/80 py-10 px-4 sm:px-6">
+      {/* Footer en Azul Marino institucional con detalles en Rojo */}
+      <footer className="mt-12 bg-blue-950 text-white border-t-4 border-red-600 py-8 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
           <div>
             <div className="flex items-center justify-center md:justify-start gap-2">
               <span className="text-xl font-black text-white">
-                Din<span className="text-orange-500">AcitY</span>
+                <span className="bg-blue-800 text-white px-1.5 py-0.5 rounded">Din</span>
+                <span className="text-red-500 ml-1">AcitY</span>
               </span>
-              <span className="text-xs bg-orange-500/20 text-orange-400 border border-orange-500/30 px-2 py-0.5 rounded font-bold">
+              <span className="text-xs bg-red-600/30 text-red-300 border border-red-500/40 px-2 py-0.5 rounded font-bold">
                 Edición Mendoza, Argentina
               </span>
             </div>
-            <p className="text-xs text-slate-400 mt-1 max-w-sm">
-              Comparador de precios de repuestos para autos, motos y camiones en Mendoza. Casas de repuestos, Facebook Marketplace y Mercado Libre.
+            <p className="text-xs text-blue-200 mt-1 max-w-sm">
+              Comparador de precios de repuestos para autos, motos y camiones en Mendoza. Formato Mercado Libre, casas de repuestos del Carril Rodríguez Peña y WhatsApp directo.
             </p>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-6 text-xs text-slate-400 font-medium">
+          <div className="flex flex-wrap justify-center gap-4 text-xs text-blue-200 font-medium">
             <span>📍 Carril Rodríguez Peña</span>
             <span>📍 Godoy Cruz</span>
             <span>📍 Guaymallén</span>
@@ -312,7 +316,7 @@ export function App() {
             <span>📍 San Rafael</span>
           </div>
 
-          <div className="text-xs text-slate-500">
+          <div className="text-xs text-blue-400">
             © 2026 DinAcitY Mendoza. Desarrollado para Maximiliano Di Natale.
           </div>
         </div>

@@ -10,17 +10,17 @@ export function FilterSidebar({
   onCloseMobile
 }) {
   const content = (
-    <div className="space-y-6">
+    <div className="space-y-5 text-gray-800">
       
       {/* Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-slate-750">
-        <div className="flex items-center gap-2 text-white font-bold text-base">
-          <Filter className="w-4 h-4 text-orange-400" />
+      <div className="flex items-center justify-between pb-3 border-b border-gray-200">
+        <div className="flex items-center gap-2 text-gray-900 font-extrabold text-sm sm:text-base">
+          <Filter className="w-4 h-4 text-red-600" />
           <span>Filtros en Mendoza</span>
         </div>
         <button
           onClick={onResetFilters}
-          className="flex items-center gap-1 text-xs text-slate-400 hover:text-orange-400 transition"
+          className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-semibold transition"
           title="Restablecer todos los filtros"
         >
           <RotateCcw className="w-3.5 h-3.5" />
@@ -30,13 +30,13 @@ export function FilterSidebar({
 
       {/* Ordenar Por */}
       <div>
-        <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
+        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
           Ordenar por
         </label>
         <select
           value={filters.sortBy || 'price_asc'}
           onChange={(e) => onChangeFilter('sortBy', e.target.value)}
-          className="w-full bg-slate-900 border border-slate-700 text-white text-sm rounded-xl px-3 py-2.5 focus:outline-none focus:border-orange-500 transition"
+          className="w-full bg-white border border-gray-300 text-gray-800 text-xs sm:text-sm rounded-md px-2.5 py-2 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition"
         >
           <option value="price_asc">🔥 Menor precio (Más barato primero)</option>
           <option value="price_desc">Mayor precio</option>
@@ -46,16 +46,16 @@ export function FilterSidebar({
 
       {/* Fuente en Mendoza */}
       <div>
-        <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
+        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
           Origen / Tipo de Fuente
         </label>
         <select
           value={filters.sourceType || 'todos'}
           onChange={(e) => onChangeFilter('sourceType', e.target.value)}
-          className="w-full bg-slate-900 border border-slate-700 text-white text-sm rounded-xl px-3 py-2.5 focus:outline-none focus:border-orange-500 transition"
+          className="w-full bg-white border border-gray-300 text-gray-800 text-xs sm:text-sm rounded-md px-2.5 py-2 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition"
         >
           <option value="todos">Todas las fuentes en Mendoza</option>
-          <option value="casa_repuestos_mendoza">Casas de Repuestos en Mendoza</option>
+          <option value="casa_repuestos_mendoza">Casas de Repuestos (WhatsApp Mendoza)</option>
           <option value="facebook_marketplace_mendoza">Facebook Marketplace Mendoza</option>
           <option value="mercadolibre_mendoza">Mercado Libre Mendoza</option>
         </select>
@@ -63,14 +63,14 @@ export function FilterSidebar({
 
       {/* Zona o Departamento de Mendoza */}
       <div>
-        <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2 flex items-center gap-1">
-          <MapPin className="w-3.5 h-3.5 text-orange-400" />
+        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+          <MapPin className="w-3.5 h-3.5 text-red-600" />
           <span>Zona / Departamento Mendoza</span>
         </label>
         <select
           value={filters.mendozaZone || 'todos'}
           onChange={(e) => onChangeFilter('mendozaZone', e.target.value)}
-          className="w-full bg-slate-900 border border-slate-700 text-white text-sm rounded-xl px-3 py-2.5 focus:outline-none focus:border-orange-500 transition"
+          className="w-full bg-white border border-gray-300 text-gray-800 text-xs sm:text-sm rounded-md px-2.5 py-2 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition"
         >
           <option value="todos">Todo Gran Mendoza y Departamentos</option>
           {filtersMeta?.mendozaZones?.map((z) => (
@@ -82,27 +82,27 @@ export function FilterSidebar({
       </div>
 
       {/* Retiro Gratis / Envío Gratis */}
-      <div className="bg-slate-900/60 p-3.5 rounded-xl border border-slate-750">
-        <label className="flex items-center gap-3 cursor-pointer select-none">
+      <div className="bg-gray-50 p-3 rounded-md border border-gray-200">
+        <label className="flex items-center gap-2.5 cursor-pointer select-none">
           <input
             type="checkbox"
             checked={Boolean(filters.freeShippingOnly)}
             onChange={(e) => onChangeFilter('freeShippingOnly', e.target.checked)}
-            className="w-4 h-4 rounded border-slate-700 text-orange-500 focus:ring-orange-500 bg-slate-800"
+            className="w-4 h-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
           />
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-200">
-            <Truck className="w-4 h-4 text-emerald-400" />
-            <span>Retiro gratis en mostrador / Envío gratis</span>
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-gray-800">
+            <Truck className="w-4 h-4 text-emerald-600" />
+            <span>Retiro gratis en local / Envío gratis</span>
           </div>
         </label>
       </div>
 
       {/* Condición de la pieza */}
       <div>
-        <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
+        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
           Estado del Repuesto
         </label>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 gap-1.5">
           {[
             { id: 'todos', label: 'Todos' },
             { id: 'nuevo', label: 'Nuevo' },
@@ -112,10 +112,10 @@ export function FilterSidebar({
               key={cond.id}
               type="button"
               onClick={() => onChangeFilter('condition', cond.id)}
-              className={`py-2 px-2 rounded-lg text-xs font-bold transition ${
+              className={`py-1.5 px-2 rounded-md text-xs font-bold transition ${
                 (filters.condition || 'todos') === cond.id
-                  ? 'bg-orange-500 text-white shadow-md'
-                  : 'bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-700'
+                  ? 'bg-red-600 text-white shadow-sm'
+                  : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
               }`}
             >
               {cond.label}
@@ -126,13 +126,13 @@ export function FilterSidebar({
 
       {/* Marca del Repuesto */}
       <div>
-        <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
+        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
           Marca de Fabricante
         </label>
         <select
           value={filters.partBrand || 'todos'}
           onChange={(e) => onChangeFilter('partBrand', e.target.value)}
-          className="w-full bg-slate-900 border border-slate-700 text-white text-sm rounded-xl px-3 py-2.5 focus:outline-none focus:border-orange-500 transition"
+          className="w-full bg-white border border-gray-300 text-gray-800 text-xs sm:text-sm rounded-md px-2.5 py-2 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition"
         >
           <option value="todos">Todas las marcas</option>
           {filtersMeta?.brands?.map((br) => (
@@ -145,7 +145,7 @@ export function FilterSidebar({
 
       {/* Rango de Precio */}
       <div>
-        <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
+        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
           Rango de Precio ($ ARS)
         </label>
         <div className="flex items-center gap-2">
@@ -154,15 +154,15 @@ export function FilterSidebar({
             placeholder="Mínimo"
             value={filters.minPrice || ''}
             onChange={(e) => onChangeFilter('minPrice', e.target.value)}
-            className="w-1/2 bg-slate-900 border border-slate-700 text-white text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-orange-500"
+            className="w-1/2 bg-white border border-gray-300 text-gray-800 text-xs rounded-md px-2.5 py-1.5 focus:outline-none focus:border-red-500"
           />
-          <span className="text-slate-500">-</span>
+          <span className="text-gray-400">-</span>
           <input
             type="number"
             placeholder="Máximo"
             value={filters.maxPrice || ''}
             onChange={(e) => onChangeFilter('maxPrice', e.target.value)}
-            className="w-1/2 bg-slate-900 border border-slate-700 text-white text-xs rounded-xl px-3 py-2 focus:outline-none focus:border-orange-500"
+            className="w-1/2 bg-white border border-gray-300 text-gray-800 text-xs rounded-md px-2.5 py-1.5 focus:outline-none focus:border-red-500"
           />
         </div>
       </div>
@@ -173,7 +173,7 @@ export function FilterSidebar({
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:block w-72 shrink-0 bg-slate-850 border border-slate-750 rounded-2xl p-5 h-fit sticky top-24 shadow-lg">
+      <aside className="hidden lg:block w-72 shrink-0 bg-white border border-gray-200 rounded-lg p-4 sm:p-5 h-fit sticky top-28 shadow-sm">
         {content}
       </aside>
 
@@ -181,15 +181,15 @@ export function FilterSidebar({
       {isOpenMobile && (
         <div className="fixed inset-0 z-50 lg:hidden flex">
           <div
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/50 backdrop-blur-xs"
             onClick={onCloseMobile}
           />
-          <div className="relative ml-auto w-full max-w-xs bg-slate-850 h-full p-6 overflow-y-auto shadow-2xl flex flex-col justify-between border-l border-slate-700">
+          <div className="relative ml-auto w-full max-w-xs bg-white h-full p-5 overflow-y-auto shadow-xl flex flex-col justify-between border-l border-gray-200">
             <div>
               <div className="flex justify-end mb-2">
                 <button
                   onClick={onCloseMobile}
-                  className="p-1 rounded-lg bg-slate-800 text-slate-400 hover:text-white"
+                  className="p-1 rounded-md bg-gray-100 text-gray-600 hover:text-black"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -198,7 +198,7 @@ export function FilterSidebar({
             </div>
             <button
               onClick={onCloseMobile}
-              className="mt-6 w-full py-3 bg-orange-500 text-white font-bold rounded-xl shadow-lg"
+              className="mt-6 w-full py-2.5 bg-red-600 text-white font-bold rounded-md shadow-sm"
             >
               Aplicar Filtros
             </button>
