@@ -178,30 +178,58 @@ export function App() {
   const mendozaSources = searchData.stats?.mendozaSources || {};
 
   return (
-    <div className="min-h-screen bg-[#ebebeb] text-[#333333] flex flex-col font-sans">
+    <div className="min-h-screen bg-[#ebebeb] text-[#333333] flex flex-col font-sans relative overflow-x-hidden">
       
-      {/* Header en Rojo Institucional y Barra integrada estilo Mercado Libre */}
-      <Navbar
-        user={currentUser}
-        onOpenAuth={(mode) => {
-          setAuthMode(mode || 'register');
-          setIsAuthOpen(true);
-        }}
-        onLogout={handleLogout}
-        onOpenAlerts={() => setIsAlertsOpen(true)}
-        onSearch={handleSearchFromHero}
-        currentQuery={currentSearchParams.query}
-      />
+      {/* Fondo de Marca de Agua DinAcitY estilo TurismoCity (No bloquea contenido ni botones) */}
+      <div
+        aria-hidden="true"
+        className="fixed inset-0 pointer-events-none select-none overflow-hidden z-0 flex flex-col justify-between"
+      >
+        {/* Marca de agua superior en ángulo */}
+        <div className="text-[13vw] font-black uppercase tracking-tighter text-gray-900/[0.03] leading-none -translate-x-12 -translate-y-6 whitespace-nowrap transform -rotate-2">
+          DinAcitY • Mendoza • DinAcitY • Mendoza • DinAcitY
+        </div>
 
-      {/* Hero Search Box con tarjeta blanca y selectores */}
-      <HeroSearch
-        taxonomy={taxonomy}
-        onSearch={handleSearchFromHero}
-        loading={loading}
-      />
+        {/* Marca de agua central gigante TurismoCity Style */}
+        <div className="text-[20vw] font-black uppercase tracking-tighter text-blue-950/[0.035] leading-none translate-x-10 whitespace-nowrap transform rotate-1">
+          DinAcitY
+        </div>
 
-      {/* Main Content Area */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 w-full flex-1">
+        {/* Marca de agua intermedia de repuestos */}
+        <div className="text-[10vw] font-black uppercase tracking-wider text-red-900/[0.025] leading-none -translate-x-8 whitespace-nowrap">
+          Comparador de Repuestos Automotores • Mendoza
+        </div>
+
+        {/* Marca de agua inferior */}
+        <div className="text-[14vw] font-black uppercase tracking-tighter text-gray-900/[0.03] leading-none translate-x-4 translate-y-12 whitespace-nowrap transform -rotate-1">
+          Autos • Motos • Camiones • Mercado Libre • Casas de Repuestos
+        </div>
+      </div>
+
+      {/* Contenido Principal por encima de la marca de agua */}
+      <div className="relative z-10 flex flex-col flex-1">
+        {/* Header en Rojo Institucional y Barra integrada estilo Mercado Libre */}
+        <Navbar
+          user={currentUser}
+          onOpenAuth={(mode) => {
+            setAuthMode(mode || 'register');
+            setIsAuthOpen(true);
+          }}
+          onLogout={handleLogout}
+          onOpenAlerts={() => setIsAlertsOpen(true)}
+          onSearch={handleSearchFromHero}
+          currentQuery={currentSearchParams.query}
+        />
+
+        {/* Hero Search Box con tarjeta blanca y selectores */}
+        <HeroSearch
+          taxonomy={taxonomy}
+          onSearch={handleSearchFromHero}
+          loading={loading}
+        />
+
+        {/* Main Content Area */}
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 w-full flex-1">
         
         {/* Results Overview Bar (Mercado Libre Style) */}
         <div className="bg-white border border-gray-200 rounded-lg p-3.5 sm:p-4 mb-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
@@ -383,6 +411,7 @@ export function App() {
         </div>
       </footer>
 
+      </div>
     </div>
   );
 }

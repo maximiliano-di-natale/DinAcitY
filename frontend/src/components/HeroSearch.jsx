@@ -53,11 +53,60 @@ export function HeroSearch({ taxonomy, onSearch, loading }) {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
-      {/* Mercado Libre Clean White Box */}
-      <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 sm:p-5">
+      {/* Encabezado Propuesta de Valor estilo TurismoCity */}
+      <div className="mb-3.5 flex flex-col md:flex-row md:items-end justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-red-600 text-white shadow-xs">
+              Metabuscador Oficial
+            </span>
+            <span className="text-[11px] font-bold text-blue-900 bg-blue-100/90 px-2 py-0.5 rounded-full border border-blue-200">
+              📍 Mendoza, Argentina
+            </span>
+            <span className="text-[11px] font-bold text-emerald-800 bg-emerald-100/90 px-2 py-0.5 rounded-full border border-emerald-200 hidden sm:inline">
+              ✓ Comparador como TurismoCity
+            </span>
+          </div>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-gray-900 tracking-tight">
+            Compará repuestos de autos, motos y camiones como vuelos
+          </h1>
+          <p className="text-xs sm:text-sm text-gray-600 max-w-2xl mt-0.5">
+            Rastreamos simultáneamente en <strong>Mercado Libre Mendoza</strong>, <strong>Facebook Marketplace</strong> y las <strong>Casas de Repuestos físicas</strong> para que elijas siempre el precio más barato.
+          </p>
+        </div>
+
+        {/* 3 Pasos TurismoCity */}
+        <div className="hidden lg:flex items-center gap-2 bg-white/90 backdrop-blur-xs border border-gray-200 rounded-xl px-3.5 py-2 text-xs shadow-xs shrink-0">
+          <div className="flex items-center gap-1.5 font-bold text-gray-800">
+            <span className="w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center text-[10px] font-black">1</span>
+            <span>Elegí vehículo</span>
+          </div>
+          <span className="text-gray-300">➔</span>
+          <div className="flex items-center gap-1.5 font-bold text-gray-800">
+            <span className="w-5 h-5 rounded-full bg-blue-700 text-white flex items-center justify-center text-[10px] font-black">2</span>
+            <span>Comparamos sitios</span>
+          </div>
+          <span className="text-gray-300">➔</span>
+          <div className="flex items-center gap-1.5 font-bold text-emerald-700">
+            <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-black">3</span>
+            <span>Pagas el más barato</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Mercado Libre Clean White Box con Marca de Agua Interna TurismoCity */}
+      <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 sm:p-5 relative overflow-hidden">
         
+        {/* Marca de agua tipográfica sutil interna (no tapa nada) */}
+        <div
+          aria-hidden="true"
+          className="absolute right-4 -bottom-6 text-7xl sm:text-9xl font-black text-gray-900/[0.03] select-none pointer-events-none tracking-tighter uppercase hidden md:block"
+        >
+          DinAcitY
+        </div>
+
         {/* Category Tabs (Rojo y Azul) */}
-        <div className="flex items-center gap-2 border-b border-gray-200 pb-3 mb-4 overflow-x-auto">
+        <div className="flex items-center gap-2 border-b border-gray-200 pb-3 mb-4 overflow-x-auto relative z-10">
           <button
             type="button"
             onClick={() => { setVehicleType('auto'); setSelectedBrand(''); }}
@@ -218,6 +267,28 @@ export function HeroSearch({ taxonomy, onSearch, loading }) {
           </div>
 
         </form>
+
+        {/* Ticker de Proveedores Comparados en Tiempo Real estilo TurismoCity */}
+        <div className="pt-3 mt-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-2 text-[11px] text-gray-500 relative z-10">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-bold text-gray-700">Comparamos en tiempo real:</span>
+            <span className="bg-yellow-50 text-yellow-900 border border-yellow-200 px-2 py-0.5 rounded font-semibold">
+              📦 Mercado Libre Mendoza
+            </span>
+            <span className="bg-blue-50 text-blue-900 border border-blue-200 px-2 py-0.5 rounded font-semibold">
+              💬 Facebook Marketplace MZA
+            </span>
+            <span className="bg-emerald-50 text-emerald-900 border border-emerald-200 px-2 py-0.5 rounded font-semibold">
+              🏢 Casas Carril Rodríguez Peña
+            </span>
+            <span className="bg-gray-100 text-gray-800 border border-gray-200 px-2 py-0.5 rounded font-semibold">
+              📍 Godoy Cruz, Guaymallén y Maipú
+            </span>
+          </div>
+          <span className="font-bold text-emerald-700 flex items-center gap-1">
+            🛡️ Ahorro promedio garantizado de hasta 35%
+          </span>
+        </div>
 
       </div>
     </div>
