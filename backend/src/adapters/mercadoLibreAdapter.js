@@ -139,6 +139,8 @@ export class MercadoLibreAdapter {
             partBrand: partBrand,
             vehicleBrand: parsed.vehicleBrand || 'Multimodelo',
             vehicleModel: parsed.model || '',
+            partQuality: this.classifyQuality(partBrand, standardizedTitle),
+            partQualityLabel: this.classifyQuality(partBrand, standardizedTitle) === 'original' ? '💎 Original OEM' : '⚡ Alternativo',
             price: price,
             currency: item.currency_id || 'ARS',
             shippingCost: shippingCost,
@@ -174,6 +176,16 @@ export class MercadoLibreAdapter {
       if (item.title && item.title.toLowerCase().includes(b.toLowerCase())) return b;
     }
     return defaultBrands[0] || 'OEM Homologado';
+  }
+
+  classifyQuality(partBrand, title = '') {
+    const originalKeywords = ['valeo', 'bosch', 'mahle', 'denso', 'magneti marelli', 'brembo', 'mopar', 'motorcraft', 'acdelco', 'original', 'oem', 'genuino'];
+    const brandLower = (partBrand || '').toLowerCase();
+    const titleLower = (title || '').toLowerCase();
+    if (originalKeywords.some(k => brandLower.includes(k) || titleLower.includes(k))) {
+      return 'original';
+    }
+    return 'alternativo';
   }
 
   generateMendozaCalibratedResults({ canonical, parsed, resolvedType }) {
@@ -249,6 +261,8 @@ export class MercadoLibreAdapter {
         partBrand: partBrand,
         vehicleBrand: veh.brand,
         vehicleModel: veh.model,
+        partQuality: this.classifyQuality(partBrand, title),
+        partQualityLabel: this.classifyQuality(partBrand, title) === 'original' ? '💎 Original OEM' : '⚡ Alternativo',
         price: price,
         currency: 'ARS',
         shippingCost: shippingCost,

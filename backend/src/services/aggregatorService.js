@@ -32,6 +32,7 @@ export class AggregatorService {
       store,
       partBrand,
       vehicleBrand,
+      partQuality = 'todos',
       mendozaZone,
       sourceType,
       sortBy = 'price_asc'
@@ -108,6 +109,9 @@ export class AggregatorService {
       }
       if (store && store !== 'todos' && item.storeKey !== store) return false;
       if (partBrand && partBrand !== 'todos' && item.partBrand.toLowerCase() !== partBrand.toLowerCase()) return false;
+      if (partQuality && partQuality !== 'todos' && item.partQuality) {
+        if (item.partQuality.toLowerCase() !== partQuality.toLowerCase()) return false;
+      }
       if (vehicleBrand && vehicleBrand !== 'todos') {
         const vb = vehicleBrand.toLowerCase();
         const matchesBrand = item.vehicleBrand?.toLowerCase().includes(vb);
@@ -227,7 +231,12 @@ export class AggregatorService {
           { id: 'facebook_marketplace_mendoza', name: 'Facebook Marketplace Mendoza (Precio Publicado)' },
           { id: 'mercadolibre_mendoza', name: 'Mercado Libre Mendoza (Precio Publicado)' }
         ],
-        conditions: ['nuevo', 'reacondicionado']
+        conditions: ['nuevo', 'reacondicionado'],
+        partQualities: [
+          { id: 'todos', label: 'Todos los repuestos' },
+          { id: 'original', label: '💎 Original / OEM de Fábrica' },
+          { id: 'alternativo', label: '⚡ Alternativo Homologado' }
+        ]
       },
       results: combinedResults
     };

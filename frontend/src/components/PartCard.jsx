@@ -1,7 +1,7 @@
 import React from 'react';
-import { ExternalLink, Star, Shield, Truck, Flame, TrendingDown, MapPin, Store, MessageCircle } from 'lucide-react';
+import { ExternalLink, Star, Shield, Truck, Flame, TrendingDown, MapPin, Store, MessageCircle, Wrench } from 'lucide-react';
 
-export function PartCard({ item, onCompare }) {
+export function PartCard({ item, onCompare, onInstall }) {
   const formattedPrice = (val) => {
     if (!val || val <= 0) return 'A consultar';
     return new Intl.NumberFormat('es-AR', {
@@ -102,6 +102,15 @@ export function PartCard({ item, onCompare }) {
             <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-gray-50 text-gray-500 border border-gray-200">
               {item.condition}
             </span>
+            {item.partQuality === 'original' ? (
+              <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-amber-50 text-amber-900 border border-amber-300 flex items-center gap-1 shadow-xs">
+                💎 ORIGINAL OEM
+              </span>
+            ) : (
+              <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase bg-slate-100 text-slate-700 border border-slate-300 flex items-center gap-1">
+                ⚡ ALTERNATIVO
+              </span>
+            )}
             {item.vehicleCompatibility && (
               <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-50 text-blue-800 border border-blue-200 flex items-center gap-1">
                 🚗 {item.vehicleCompatibility}
@@ -218,6 +227,17 @@ export function PartCard({ item, onCompare }) {
               <span>Comparar precios</span>
             </button>
           )}
+
+          {/* Cross-selling Colocación en Taller Asociado Mendoza */}
+          <button
+            type="button"
+            onClick={() => onInstall && onInstall(item)}
+            className="w-full py-1.5 px-3 rounded-md bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs transition border border-emerald-300 flex items-center justify-center gap-1.5"
+            title="Agendar turno de colocación en taller asociado de Mendoza"
+          >
+            <Wrench className="w-3.5 h-3.5 text-emerald-600" />
+            <span>🔧 Colocación en Taller</span>
+          </button>
         </div>
       </div>
 

@@ -44,6 +44,37 @@ export function FilterSidebar({
         </select>
       </div>
 
+      {/* Original vs Alternativo (Estilo Vuelos: Directo vs Escalas) */}
+      <div>
+        <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+          <span>Calidad del Repuesto</span>
+          <span className="text-[10px] text-blue-600 font-semibold lowercase">oem vs alternativo</span>
+        </label>
+        <div className="grid grid-cols-1 gap-1.5">
+          {[
+            { id: 'todos', label: 'Todos los repuestos' },
+            { id: 'original', label: '💎 Original / OEM (Fábrica)' },
+            { id: 'alternativo', label: '⚡ Alternativo Homologado' }
+          ].map((qual) => (
+            <button
+              key={qual.id}
+              type="button"
+              onClick={() => onChangeFilter('partQuality', qual.id)}
+              className={`py-1.5 px-3 rounded-md text-xs font-bold text-left transition flex items-center justify-between ${
+                (filters.partQuality || 'todos') === qual.id
+                  ? 'bg-red-600 text-white shadow-xs'
+                  : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'
+              }`}
+            >
+              <span>{qual.label}</span>
+              {(filters.partQuality || 'todos') === qual.id && (
+                <span className="text-[10px] bg-white text-red-600 px-1 rounded-full font-black">✓</span>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Fuente en Mendoza */}
       <div>
         <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">

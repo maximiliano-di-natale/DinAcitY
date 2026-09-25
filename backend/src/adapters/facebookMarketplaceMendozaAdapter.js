@@ -111,6 +111,8 @@ export class FacebookMarketplaceMendozaAdapter {
         partBrand: partBrand,
         vehicleBrand: veh.brand,
         vehicleModel: veh.model,
+        partQuality: ['valeo', 'bosch', 'mahle', 'denso', 'magneti marelli', 'brembo', 'mopar', 'motorcraft', 'acdelco'].some(k => (partBrand || '').toLowerCase().includes(k)) ? 'original' : 'alternativo',
+        partQualityLabel: ['valeo', 'bosch', 'mahle', 'denso', 'magneti marelli', 'brembo', 'mopar', 'motorcraft', 'acdelco'].some(k => (partBrand || '').toLowerCase().includes(k)) ? '💎 Original OEM' : '⚡ Alternativo',
         price: price,
         currency: 'ARS',
         shippingCost: 0,

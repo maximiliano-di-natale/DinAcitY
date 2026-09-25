@@ -1,7 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Car, Bike, Truck, Search, Sparkles, MapPin } from 'lucide-react';
+import { Car, Bike, Truck, Search, Sparkles, MapPin, ShieldCheck } from 'lucide-react';
+import { PatenteSearchWidget } from './PatenteSearchWidget.jsx';
 
-export function HeroSearch({ taxonomy, onSearch, loading, currentSearchParams }) {
+export function HeroSearch({
+  taxonomy,
+  onSearch,
+  loading,
+  currentSearchParams,
+  currentQuality = 'todos',
+  onQualityChange
+}) {
+  const [searchMode, setSearchMode] = useState('standard'); // 'standard' | 'patente'
   const [vehicleType, setVehicleType] = useState(currentSearchParams?.vehicleType || 'auto');
   const [selectedBrand, setSelectedBrand] = useState(currentSearchParams?.brand || '');
   const [selectedModel, setSelectedModel] = useState(currentSearchParams?.model || '');
@@ -118,20 +127,62 @@ export function HeroSearch({ taxonomy, onSearch, loading, currentSearchParams })
           DinAcitY
         </div>
 
-        {/* Category Tabs (Rojo y Azul) */}
-        <div className="flex items-center gap-2 border-b border-gray-200 pb-3 mb-4 overflow-x-auto relative z-10">
+        {/* Selector de Modo de Búsqueda: Tradicional vs Patente DNRPA */}
+        <div className="flex items-center gap-2 mb-4 bg-gray-100 p-1 rounded-lg w-fit relative z-10">
           <button
             type="button"
-            onClick={() => { setVehicleType('auto'); setSelectedBrand(''); }}
-            className={`flex items-center gap-2 px-4 py-2 rounded-md font-bold text-xs sm:text-sm transition whitespace-nowrap ${
-              vehicleType === 'auto'
-                ? 'bg-red-600 text-white shadow-sm'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            onClick={() => setSearchMode('standard')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs sm:text-sm font-bold transition ${
+              searchMode === 'standard'
+                ? 'bg-white text-gray-900 shadow-xs'
+                : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            <Car className="w-4 h-4" />
-            <span>🚗 Autos y Utilitarios</span>
+            <Search className="w-3.5 h-3.5 text-red-600" />
+            <span>Búsqueda por Catálogo</span>
           </button>
+
+          <button
+            type="button"
+            onClick={() => setSearchMode('patente')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs sm:text-sm font-bold transition ${
+              searchMode === 'patente'
+                ? 'bg-blue-800 text-white shadow-xs'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <span>🇦🇷</span>
+            <span>Buscar por Patente / VIN (DNRPA)</span>
+            <span className="px-1.5 py-0.2 rounded text-[10px] bg-yellow-400 text-yellow-950 font-black">
+              Nuevo
+            </span>
+          </button>
+        </div>
+
+        {searchMode === 'patente' ? (
+          <div className="relative z-10 mb-2">
+            <PatenteSearchWidget
+              onSelectVehicle={(vehParams) => {
+                onSearch(vehParams);
+              }}
+            />
+          </div>
+        ) : (
+          <>
+            {/* Category Tabs (Rojo y Azul) */}
+            <div className="flex items-center gap-2 border-b border-gray-200 pb-3 mb-4 overflow-x-auto relative z-10">
+              <button
+                type="button"
+                onClick={() => { setVehicleType('auto'); setSelectedBrand(''); }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md font-bold text-xs sm:text-sm transition whitespace-nowrap ${
+                  vehicleType === 'auto'
+                    ? 'bg-red-600 text-white shadow-sm'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                <Car className="w-4 h-4" />
+                <span>🚗 Autos y Utilitarios</span>
+              </button>
 
           <button
             type="button"
@@ -279,7 +330,38 @@ export function HeroSearch({ taxonomy, onSearch, loading, currentSearchParams })
             ))}
           </div>
 
+          {/* Quick Quality Filter (TurismoCity Style Directo vs Con Escalas) */}
+          <div className="pt-2.5 mt-2 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[11px] font-black text-gray-700 uppercase tracking-wider">
+                Tipo de Repuesto:
+              </span>
+              <div className="inline-flex rounded-md shadow-xs" role="group">
+                {[
+                  { id: 'todos', label: 'Todos' },
+                  { id: 'original', label: '💎 Original (OEM Fábrica)' },
+                  { id: 'alternativo', label: '⚡ Alternativo Homologado' }
+                ].map((q) => (
+                  <button
+                    key={q.id}
+                    type="button"
+                    onClick={() => onQualityChange && onQualityChange(q.id)}
+                    className={`px-3 py-1 text-xs font-bold transition border first:rounded-l-md last:rounded-r-md ${
+                      currentQuality === q.id
+                        ? 'bg-red-600 text-white border-red-600 z-10 shadow-xs'
+                        : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
+                    }`}
+                  >
+                    {q.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
         </form>
+        </>
+        )}
 
         {/* Ticker de Proveedores Comparados en Tiempo Real estilo TurismoCity */}
         <div className="pt-3 mt-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-2 text-[11px] text-gray-500 relative z-10">

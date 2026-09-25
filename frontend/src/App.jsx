@@ -6,6 +6,7 @@ import { FilterSidebar } from './components/FilterSidebar.jsx';
 import { PriceComparisonModal } from './components/PriceComparisonModal.jsx';
 import { PriceAlertModal } from './components/PriceAlertModal.jsx';
 import { AuthModal } from './components/AuthModal.jsx';
+import { InstallationModal } from './components/InstallationModal.jsx';
 import { Flame, SlidersHorizontal, Sparkles, AlertCircle, MapPin, Store } from 'lucide-react';
 
 export function App() {
@@ -46,6 +47,7 @@ export function App() {
     store: 'todos',
     partBrand: 'todos',
     vehicleBrand: 'todos',
+    partQuality: 'todos',
     mendozaZone: 'todos',
     sourceType: 'todos',
     minPrice: '',
@@ -55,6 +57,8 @@ export function App() {
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [isAlertsOpen, setIsAlertsOpen] = useState(false);
   const [comparingItem, setComparingItem] = useState(null);
+  const [isInstallationOpen, setIsInstallationOpen] = useState(false);
+  const [selectedInstallationItem, setSelectedInstallationItem] = useState(null);
 
   useEffect(() => {
     fetch('/api/vehicles/taxonomy')
@@ -113,6 +117,7 @@ export function App() {
         store: currentFilters?.store || 'todos',
         partBrand: currentFilters?.partBrand || 'todos',
         vehicleBrand: currentFilters?.vehicleBrand || 'todos',
+        partQuality: currentFilters?.partQuality || 'todos',
         mendozaZone: currentFilters?.mendozaZone || 'todos',
         sourceType: currentFilters?.sourceType || 'todos',
         minPrice: currentFilters?.minPrice || '',
@@ -138,6 +143,7 @@ export function App() {
       store: 'todos',
       partBrand: 'todos',
       vehicleBrand: 'todos',
+      partQuality: 'todos',
       mendozaZone: 'todos',
       sourceType: 'todos',
       minPrice: '',
@@ -161,6 +167,7 @@ export function App() {
       store: 'todos',
       partBrand: 'todos',
       vehicleBrand: 'todos',
+      partQuality: 'todos',
       mendozaZone: 'todos',
       sourceType: 'todos',
       minPrice: '',
@@ -231,6 +238,8 @@ export function App() {
           onSearch={handleSearchFromHero}
           loading={loading}
           currentSearchParams={currentSearchParams}
+          currentQuality={filters.partQuality || 'todos'}
+          onQualityChange={(q) => handleFilterChange('partQuality', q)}
         />
 
         {/* Main Content Area */}
@@ -350,6 +359,10 @@ export function App() {
                   key={item.id}
                   item={item}
                   onCompare={(it) => setComparingItem(it)}
+                  onInstall={(it) => {
+                    setSelectedInstallationItem(it);
+                    setIsInstallationOpen(true);
+                  }}
                 />
               ))
             )}
@@ -380,6 +393,13 @@ export function App() {
         onClose={() => setIsAuthOpen(false)}
         initialMode={authMode}
         onAuthSuccess={handleAuthSuccess}
+      />
+
+      {/* Modal de Turnos e Instalación en Talleres Mecánicos Asociados */}
+      <InstallationModal
+        isOpen={isInstallationOpen}
+        onClose={() => setIsInstallationOpen(false)}
+        item={selectedInstallationItem}
       />
 
       {/* Footer en Azul Marino institucional con detalles en Rojo */}

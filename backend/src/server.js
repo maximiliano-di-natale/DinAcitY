@@ -3,6 +3,8 @@ import cors from 'cors';
 import { VEHICLE_TAXONOMY, PART_CATEGORIES, YEARS_LIST } from './data/vehicleTaxonomy.js';
 import { AggregatorService } from './services/aggregatorService.js';
 import { AuthService } from './services/authService.js';
+import { PatenteService } from './services/patenteService.js';
+import { MENDOZA_WORKSHOPS, getEstimatedLabor } from './data/mendozaWorkshops.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -12,6 +14,7 @@ app.use(express.json());
 
 const aggregatorService = new AggregatorService();
 const authService = new AuthService();
+const patenteService = new PatenteService();
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -19,6 +22,49 @@ app.get('/api/health', (req, res) => {
     status: 'ok',
     app: 'DinAcitY Backend Aggregator API',
     timestamp: new Date().toISOString()
+  });
+});
+
+// Identificación Vehicular por Patente o VIN (DNRPA Argentina)
+app.get('/api/vehicles/lookup-patente', (req, res) => {
+  try {
+    const { patente, vin } = req.query;
+    const query = patente || vin || '';
+    const result = patenteService.lookup(query);
+    res.json(result);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Talleres Mecánicos Asociados en Mendoza
+app.get('/api/workshops', (req, res) => {
+  const { zone, specialty } = req.query;
+  let list = [...MENDOZA_WORKSHOPS];
+  if (zone && zone !== 'todos') {
+    list = list.filter(w => w.zone.toLowerCase().includes(zone.toLowerCase()) || w.department.toLowerCase().includes(zone.toLowerCase()));
+  }
+  if (specialty && specialty !== 'todos') {
+    list = list.filter(w => w.specialties.includes(specialty.toLowerCase()));
+  }
+  res.json({
+    total: list.length,
+    workshops: list
+  });
+});
+
+// Estimación de Mano de Obra para Colocación
+app.get('/api/workshops/estimate', (req, res) => {
+  const { category, query, zone } = req.query;
+  const labor = getEstimatedLabor(category || query);
+  let relevantWorkshops = [...MENDOZA_WORKSHOPS];
+  if (zone && zone !== 'todos') {
+    const filtered = relevantWorkshops.filter(w => w.zone.toLowerCase().includes(zone.toLowerCase()));
+    if (filtered.length > 0) relevantWorkshops = filtered;
+  }
+  res.json({
+    laborEstimate: labor,
+    recommendedWorkshops: relevantWorkshops.slice(0, 3)
   });
 });
 
