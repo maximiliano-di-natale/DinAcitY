@@ -45,6 +45,7 @@ export function App() {
     freeShippingOnly: false,
     store: 'todos',
     partBrand: 'todos',
+    vehicleBrand: 'todos',
     mendozaZone: 'todos',
     sourceType: 'todos',
     minPrice: '',
@@ -111,6 +112,7 @@ export function App() {
         freeShippingOnly: currentFilters?.freeShippingOnly ? 'true' : 'false',
         store: currentFilters?.store || 'todos',
         partBrand: currentFilters?.partBrand || 'todos',
+        vehicleBrand: currentFilters?.vehicleBrand || 'todos',
         mendozaZone: currentFilters?.mendozaZone || 'todos',
         sourceType: currentFilters?.sourceType || 'todos',
         minPrice: currentFilters?.minPrice || '',
@@ -135,6 +137,7 @@ export function App() {
       freeShippingOnly: false,
       store: 'todos',
       partBrand: 'todos',
+      vehicleBrand: 'todos',
       mendozaZone: 'todos',
       sourceType: 'todos',
       minPrice: '',
@@ -157,6 +160,7 @@ export function App() {
       freeShippingOnly: false,
       store: 'todos',
       partBrand: 'todos',
+      vehicleBrand: 'todos',
       mendozaZone: 'todos',
       sourceType: 'todos',
       minPrice: '',
@@ -226,6 +230,7 @@ export function App() {
           taxonomy={taxonomy}
           onSearch={handleSearchFromHero}
           loading={loading}
+          currentSearchParams={currentSearchParams}
         />
 
         {/* Main Content Area */}

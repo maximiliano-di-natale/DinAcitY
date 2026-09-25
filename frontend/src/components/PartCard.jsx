@@ -102,6 +102,11 @@ export function PartCard({ item, onCompare }) {
             <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-gray-50 text-gray-500 border border-gray-200">
               {item.condition}
             </span>
+            {item.vehicleCompatibility && (
+              <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-blue-50 text-blue-800 border border-blue-200 flex items-center gap-1">
+                🚗 {item.vehicleCompatibility}
+              </span>
+            )}
           </div>
 
           {/* Title */}

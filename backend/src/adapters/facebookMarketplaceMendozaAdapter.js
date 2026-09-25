@@ -47,34 +47,56 @@ export class FacebookMarketplaceMendozaAdapter {
     const parsed = titleNormalizer.parseSearchIntent(query, { brand, model, vehicleType, year });
     const canonical = parsed.canonicalPart;
     const resolvedType = parsed.vehicleType || vehicleType || 'auto';
-    const baseMarketPrice = this.getMarketplacePrice(canonical.category, resolvedType, parsed.model);
 
     const results = [];
 
     const sellerProfiles = [
       { name: 'Lucas Mecánica & Repuestos', zone: 'Godoy Cruz, Mendoza', condition: 'nuevo', factor: 0.95, rating: '4.8' },
       { name: 'Repuestos & Accesorios Cuyo', zone: 'Guaymallén, Mendoza', condition: 'nuevo', factor: 1.05, rating: '4.7' },
-      { name: 'Taller & Autopartes Maipú', zone: 'Maipú, Mendoza', condition: 'reacondicionado', factor: 0.76, rating: '4.6' }
+      { name: 'Taller & Autopartes Maipú', zone: 'Maipú, Mendoza', condition: 'reacondicionado', factor: 0.76, rating: '4.6' },
+      { name: 'Mendoza Desarme & Partes', zone: 'Las Heras, Mendoza', condition: 'nuevo', factor: 0.92, rating: '4.7' },
+      { name: 'Centro Motor Cuyo', zone: 'Capital, Mendoza', condition: 'nuevo', factor: 1.02, rating: '4.9' }
     ];
 
-    sellerProfiles.forEach((seller, idx) => {
-      const partBrand = canonical.defaultBrands[idx % canonical.defaultBrands.length];
+    const targetVehicles = parsed.model
+      ? [
+          { brand: parsed.vehicleBrand || 'Volkswagen', model: parsed.model, type: resolvedType, year: parsed.year || '2019', engine: parsed.engineSpec },
+          { brand: parsed.vehicleBrand || 'Volkswagen', model: parsed.model, type: resolvedType, year: parsed.year || '2019', engine: parsed.engineSpec },
+          { brand: parsed.vehicleBrand || 'Volkswagen', model: parsed.model, type: resolvedType, year: parsed.year || '2019', engine: parsed.engineSpec }
+        ]
+      : [
+          { brand: 'Volkswagen', model: 'Gol Trend', type: 'auto', year: '2018', engine: '1.6 8V MSI' },
+          { brand: 'Chevrolet', model: 'Corsa Classic', type: 'auto', year: '2015', engine: '1.4 8V' },
+          { brand: 'Toyota', model: 'Hilux', type: 'auto', year: '2021', engine: '2.8 D-4D Turbo' },
+          { brand: 'Ford', model: 'Ranger', type: 'auto', year: '2019', engine: '3.2 TDCi Puma' },
+          { brand: 'Fiat', model: 'Palio Fire / Cronos', type: 'auto', year: '2019', engine: '1.4 Fire / 1.3 GSE' },
+          { brand: 'Renault', model: 'Kangoo / Sandero', type: 'auto', year: '2017', engine: '1.6 16V K4M' },
+          { brand: 'Peugeot', model: '206 / 207 / Partner', type: 'auto', year: '2014', engine: '1.6 16V' },
+          { brand: 'Scania', model: '113 H/T', type: 'camion', year: '1996', engine: 'DS11 360 CV' },
+          { brand: 'Mercedes-Benz', model: '1620', type: 'camion', year: '1998', engine: 'OM 366 LA Turbo' }
+        ];
+
+    targetVehicles.forEach((veh, vIdx) => {
+      const seller = sellerProfiles[vIdx % sellerProfiles.length];
+      const partBrand = canonical.defaultBrands[vIdx % canonical.defaultBrands.length];
+      const baseMarketPrice = this.getMarketplacePrice(canonical.category, veh.type, veh.model);
+      const price = Math.round((baseMarketPrice * seller.factor) / 100) * 100;
+
       const title = titleNormalizer.formatStandardTitle({
         partName: canonical.canonicalName,
         partBrand: partBrand,
-        vehicleBrand: parsed.vehicleBrand,
-        model: parsed.model,
-        year: parsed.year,
+        vehicleBrand: veh.brand,
+        model: veh.model,
+        year: veh.year,
         condition: seller.condition,
-        engineSpec: parsed.engineSpec
+        engineSpec: veh.engine
       });
 
-      const price = Math.round((baseMarketPrice * seller.factor) / 100) * 100;
-      const fbSearchQuery = encodeURIComponent(`${canonical.canonicalName} ${parsed.vehicleBrand} ${parsed.model} mendoza`.trim());
+      const fbSearchQuery = encodeURIComponent(`${canonical.canonicalName} ${veh.brand} ${veh.model}`.trim());
       const realFbUrl = `https://www.facebook.com/marketplace/mendoza/search?query=${fbSearchQuery}&sortBy=price_ascend`;
 
       results.push({
-        id: `fb-mza-${idx + 1}`,
+        id: `fb-mza-${vIdx + 1}`,
         sourceType: 'facebook_marketplace_mendoza',
         storeName: 'Facebook Marketplace Mendoza',
         storeKey: 'facebook_marketplace',
@@ -87,6 +109,8 @@ export class FacebookMarketplaceMendozaAdapter {
         title: title,
         partName: canonical.canonicalName,
         partBrand: partBrand,
+        vehicleBrand: veh.brand,
+        vehicleModel: veh.model,
         price: price,
         currency: 'ARS',
         shippingCost: 0,
@@ -95,13 +119,13 @@ export class FacebookMarketplaceMendozaAdapter {
         condition: seller.condition,
         sellerName: seller.name,
         sellerRating: seller.rating,
-        reviewsCount: 30 + (idx * 15),
+        reviewsCount: 30 + (vIdx * 15),
         badge: `Facebook Marketplace • ${seller.zone.split(',')[0]}`,
         imageUrl: this.getImageForCategory(canonical.category),
         productUrl: realFbUrl,
         actionLabel: 'Ver en Marketplace',
         actionType: 'facebook',
-        vehicleCompatibility: `${(parsed.vehicleBrand || '').toUpperCase()} ${parsed.model || ''} ${parsed.year || ''}`.trim() || 'Apto línea oficial',
+        vehicleCompatibility: `${veh.brand.toUpperCase()} ${veh.model} (${veh.year})`,
         warrantyDays: seller.condition === 'reacondicionado' ? 60 : 90
       });
     });

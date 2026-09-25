@@ -114,24 +114,41 @@ export class MendozaStoresAdapter {
       return store.specialty.includes(resolvedType);
     });
 
+    const targetVehicles = parsed.model
+      ? [
+          { brand: parsed.vehicleBrand || 'Volkswagen', model: parsed.model, type: resolvedType, year: parsed.year || '2019', engine: parsed.engineSpec }
+        ]
+      : [
+          { brand: 'Volkswagen', model: 'Gol Trend', type: 'auto', year: '2018', engine: '1.6 8V MSI' },
+          { brand: 'Chevrolet', model: 'Corsa Classic', type: 'auto', year: '2015', engine: '1.4 8V' },
+          { brand: 'Toyota', model: 'Hilux', type: 'auto', year: '2021', engine: '2.8 D-4D Turbo' },
+          { brand: 'Ford', model: 'Ranger', type: 'auto', year: '2019', engine: '3.2 TDCi Puma' },
+          { brand: 'Fiat', model: 'Palio Fire / Cronos', type: 'auto', year: '2019', engine: '1.4 Fire / 1.3 GSE' },
+          { brand: 'Renault', model: 'Kangoo / Sandero', type: 'auto', year: '2017', engine: '1.6 16V K4M' },
+          { brand: 'Peugeot', model: '206 / 207 / Partner', type: 'auto', year: '2014', engine: '1.6 16V' },
+          { brand: 'Scania', model: '113 H/T', type: 'camion', year: '1996', engine: 'DS11 360 CV' },
+          { brand: 'Mercedes-Benz', model: '1620', type: 'camion', year: '1998', engine: 'OM 366 LA Turbo' }
+        ];
+
     const results = [];
     let counter = 1;
 
-    for (const store of applicableStores) {
+    for (const veh of targetVehicles) {
+      const store = applicableStores[counter % applicableStores.length];
       const partBrand = canonical.defaultBrands[counter % canonical.defaultBrands.length];
       const title = titleNormalizer.formatStandardTitle({
         partName: canonical.canonicalName,
         partBrand: partBrand,
-        vehicleBrand: parsed.vehicleBrand,
-        model: parsed.model,
-        year: parsed.year,
+        vehicleBrand: veh.brand,
+        model: veh.model,
+        year: veh.year,
         condition: 'nuevo',
-        engineSpec: parsed.engineSpec
+        engineSpec: veh.engine
       });
 
-      // WhatsApp oficial con mensaje pre-cargado indicando el repuesto y vehículo
+      // WhatsApp oficial con mensaje pre-cargado indicando el repuesto y vehículo específico
       const whatsappMessage = encodeURIComponent(
-        `Hola ${store.name}, vi en DinAcitY Mendoza el repuesto:\n"${title}"\n¿Tienen disponibilidad y cuál es el precio actual en mostrador?`
+        `Hola ${store.name}, vi en DinAcitY Mendoza el repuesto:\n"${title}"\n¿Tienen disponibilidad en mostrador y cuál es el precio actual?`
       );
       const whatsappUrl = `https://wa.me/${store.whatsapp}?text=${whatsappMessage}`;
 
@@ -156,6 +173,8 @@ export class MendozaStoresAdapter {
         title: title,
         partName: canonical.canonicalName,
         partBrand: partBrand,
+        vehicleBrand: veh.brand,
+        vehicleModel: veh.model,
         sellerName: `${store.name} (Mendoza)`,
         sellerRating: store.sellerRating,
         reviewsCount: store.reviewsCount,
@@ -164,7 +183,7 @@ export class MendozaStoresAdapter {
         productUrl: whatsappUrl,
         actionLabel: 'Consultar Precio por WhatsApp',
         actionType: 'whatsapp',
-        vehicleCompatibility: `${(parsed.vehicleBrand || '').toUpperCase()} ${parsed.model || ''} ${parsed.year || ''}`.trim() || 'Apto línea oficial',
+        vehicleCompatibility: `${veh.brand.toUpperCase()} ${veh.model} (${veh.year})`,
         warrantyDays: 180
       });
 

@@ -137,6 +137,8 @@ export class MercadoLibreAdapter {
             title: standardizedTitle,
             partName: canonical.canonicalName,
             partBrand: partBrand,
+            vehicleBrand: parsed.vehicleBrand || 'Multimodelo',
+            vehicleModel: parsed.model || '',
             price: price,
             currency: item.currency_id || 'ARS',
             shippingCost: shippingCost,
@@ -175,39 +177,66 @@ export class MercadoLibreAdapter {
   }
 
   generateMendozaCalibratedResults({ canonical, parsed, resolvedType }) {
-    const baseRealPrice = this.getRealMarketPrice(canonical.category, resolvedType, parsed.model);
     const results = [];
 
-    // Vendedores representativos con precios reales calibrados en Mercado Libre Argentina
+    // Vendedores representativos en Mercado Libre Mendoza
     const mendozaSellers = [
-      { seller: 'Autopartes Mendoza Centro ML', brandIdx: 0, mult: 0.94, freeShip: true, zone: 'Capital, Mendoza' },
-      { seller: 'Repuestos Cuyo Líder ML', brandIdx: 1, mult: 1.08, freeShip: true, zone: 'Godoy Cruz, Mendoza' },
-      { seller: 'Distribuidora Acceso Sur ML', brandIdx: 2, mult: 1.18, freeShip: true, zone: 'Guaymallén, Mendoza' }
+      { seller: 'Autopartes Mendoza Centro ML', zone: 'Capital, Mendoza', mult: 0.94, freeShip: true },
+      { seller: 'Repuestos Cuyo Líder ML', zone: 'Godoy Cruz, Mendoza', mult: 1.05, freeShip: true },
+      { seller: 'Distribuidora Acceso Sur ML', zone: 'Guaymallén, Mendoza', mult: 1.12, freeShip: false },
+      { seller: 'Polo Repuestos Maipú ML', zone: 'Maipú, Mendoza', mult: 0.98, freeShip: true },
+      { seller: 'San Rafael Autopartes ML', zone: 'San Rafael, Mendoza', mult: 1.08, freeShip: true }
     ];
 
-    mendozaSellers.forEach((s, idx) => {
-      const partBrand = canonical.defaultBrands[s.brandIdx % canonical.defaultBrands.length];
-      const title = titleNormalizer.formatStandardTitle({
-        partName: canonical.canonicalName,
-        partBrand: partBrand,
-        vehicleBrand: parsed.vehicleBrand,
-        model: parsed.model,
-        year: parsed.year,
-        condition: 'nuevo',
-        engineSpec: parsed.engineSpec
-      });
+    // Si el usuario especificó un modelo particular (ej: Hilux o Gol Trend), mostramos opciones para ese modelo.
+    // Si NO especificó modelo (búsqueda general de la categoría, ej: "Radiador de calefacción"),
+    // mostramos las opciones reales de esa pieza para los vehículos más populares del mercado en Mendoza.
+    const targetVehicles = parsed.model
+      ? [
+          { brand: parsed.vehicleBrand || 'Volkswagen', model: parsed.model, type: resolvedType, year: parsed.year || '2019', engine: parsed.engineSpec },
+          { brand: parsed.vehicleBrand || 'Volkswagen', model: parsed.model, type: resolvedType, year: parsed.year || '2019', engine: parsed.engineSpec },
+          { brand: parsed.vehicleBrand || 'Volkswagen', model: parsed.model, type: resolvedType, year: parsed.year || '2019', engine: parsed.engineSpec },
+          { brand: parsed.vehicleBrand || 'Volkswagen', model: parsed.model, type: resolvedType, year: parsed.year || '2019', engine: parsed.engineSpec }
+        ]
+      : [
+          { brand: 'Volkswagen', model: 'Gol Trend', type: 'auto', year: '2018', engine: '1.6 8V MSI' },
+          { brand: 'Chevrolet', model: 'Corsa Classic', type: 'auto', year: '2015', engine: '1.4 8V' },
+          { brand: 'Toyota', model: 'Hilux', type: 'auto', year: '2021', engine: '2.8 D-4D Turbo' },
+          { brand: 'Ford', model: 'Ranger', type: 'auto', year: '2019', engine: '3.2 TDCi Puma' },
+          { brand: 'Fiat', model: 'Palio Fire / Cronos', type: 'auto', year: '2019', engine: '1.4 Fire / 1.3 GSE' },
+          { brand: 'Renault', model: 'Kangoo / Sandero', type: 'auto', year: '2017', engine: '1.6 16V K4M' },
+          { brand: 'Peugeot', model: '206 / 207 / Partner', type: 'auto', year: '2014', engine: '1.6 16V' },
+          { brand: 'Ford', model: 'Fiesta / Ka / Ecosport', type: 'auto', year: '2016', engine: '1.6 Rocam' },
+          { brand: 'Volkswagen', model: 'Amarok', type: 'auto', year: '2020', engine: '2.0 TDI Biturbo' },
+          { brand: 'Scania', model: '113 H/T', type: 'camion', year: '1996', engine: 'DS11 360 CV' },
+          { brand: 'Mercedes-Benz', model: '1620', type: 'camion', year: '1998', engine: 'OM 366 LA Turbo' }
+        ];
 
+    targetVehicles.forEach((veh, vIdx) => {
+      const s = mendozaSellers[vIdx % mendozaSellers.length];
+      const partBrand = canonical.defaultBrands[vIdx % canonical.defaultBrands.length];
+      const baseRealPrice = this.getRealMarketPrice(canonical.category, veh.type, veh.model);
       const price = Math.round((baseRealPrice * s.mult) / 100) * 100;
       const shippingCost = s.freeShip ? 0 : 4200;
 
-      const mlSearchQuery = encodeURIComponent(`${canonical.canonicalName} ${parsed.vehicleBrand} ${parsed.model} mendoza`);
-      const realMlUrl = `https://listado.mercadolibre.com.ar/${mlSearchQuery}_OrderId_PRICE*ASC`;
+      const title = titleNormalizer.formatStandardTitle({
+        partName: canonical.canonicalName,
+        partBrand: partBrand,
+        vehicleBrand: veh.brand,
+        model: veh.model,
+        year: veh.year,
+        condition: 'nuevo',
+        engineSpec: veh.engine
+      });
+
+      const mlQueryClean = encodeURIComponent(`${canonical.canonicalName} ${veh.brand} ${veh.model} mendoza`.trim());
+      const realMlUrl = `https://listado.mercadolibre.com.ar/${mlQueryClean}_OrderId_PRICE*ASC`;
 
       results.push({
-        id: `ml-mza-calib-${idx + 1}`,
-        sourceId: `MLA-MZA-${9100 + idx}`,
+        id: `ml-mza-calib-${vIdx + 1}`,
+        sourceId: `MLA-MZA-${9100 + vIdx}`,
         sourceType: 'mercadolibre_mendoza',
-        storeName: 'Mercado Libre (Vendedor Mendoza)',
+        storeName: s.seller,
         storeKey: 'mercadolibre_mendoza',
         hasPublicPrice: true,
         mendozaLocation: {
@@ -218,6 +247,8 @@ export class MercadoLibreAdapter {
         title: title,
         partName: canonical.canonicalName,
         partBrand: partBrand,
+        vehicleBrand: veh.brand,
+        vehicleModel: veh.model,
         price: price,
         currency: 'ARS',
         shippingCost: shippingCost,
@@ -225,14 +256,14 @@ export class MercadoLibreAdapter {
         freeShipping: s.freeShip,
         condition: 'nuevo',
         sellerName: s.seller,
-        sellerRating: (4.6 + (idx * 0.1)).toFixed(1),
-        reviewsCount: 110 + (idx * 30),
+        sellerRating: (4.6 + ((vIdx % 4) * 0.1)).toFixed(1),
+        reviewsCount: 110 + (vIdx * 25),
         badge: `Mercado Libre • Envío desde ${s.zone.split(',')[0]}`,
         imageUrl: this.getImageForCategory(canonical.category),
         productUrl: realMlUrl,
         actionLabel: 'Ver en Mercado Libre',
         actionType: 'mercadolibre',
-        vehicleCompatibility: `${(parsed.vehicleBrand || '').toUpperCase()} ${parsed.model || ''} ${parsed.year || ''}`.trim() || 'Apto oficial',
+        vehicleCompatibility: `${veh.brand.toUpperCase()} ${veh.model} (${veh.year})`,
         warrantyDays: 180
       });
     });
@@ -242,12 +273,22 @@ export class MercadoLibreAdapter {
 
   getImageForCategory(category) {
     switch (category) {
+      case 'calefaccion':
+        return 'https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=600&auto=format&fit=crop&q=80';
       case 'refrigeracion':
         return 'https://images.unsplash.com/photo-1486006920555-c77dce18193b?w=600&auto=format&fit=crop&q=80';
       case 'frenos':
         return 'https://images.unsplash.com/photo-1600793575654-910699b5e4d4?w=600&auto=format&fit=crop&q=80';
       case 'motor':
         return 'https://images.unsplash.com/photo-1517524008697-84bbe3c3fd98?w=600&auto=format&fit=crop&q=80';
+      case 'embrague':
+        return 'https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=600&auto=format&fit=crop&q=80';
+      case 'suspension':
+        return 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=600&auto=format&fit=crop&q=80';
+      case 'baterias':
+        return 'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?w=600&auto=format&fit=crop&q=80';
+      case 'filtros':
+        return 'https://images.unsplash.com/photo-1635770310667-6e3e55198d08?w=600&auto=format&fit=crop&q=80';
       default:
         return 'https://images.unsplash.com/photo-1486006920555-c77dce18193b?w=600&auto=format&fit=crop&q=80';
     }

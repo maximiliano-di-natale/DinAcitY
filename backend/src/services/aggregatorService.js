@@ -31,6 +31,7 @@ export class AggregatorService {
       freeShippingOnly,
       store,
       partBrand,
+      vehicleBrand,
       mendozaZone,
       sourceType,
       sortBy = 'price_asc'
@@ -107,6 +108,13 @@ export class AggregatorService {
       }
       if (store && store !== 'todos' && item.storeKey !== store) return false;
       if (partBrand && partBrand !== 'todos' && item.partBrand.toLowerCase() !== partBrand.toLowerCase()) return false;
+      if (vehicleBrand && vehicleBrand !== 'todos') {
+        const vb = vehicleBrand.toLowerCase();
+        const matchesBrand = item.vehicleBrand?.toLowerCase().includes(vb);
+        const matchesCompat = item.vehicleCompatibility?.toLowerCase().includes(vb);
+        const matchesTitle = item.title?.toLowerCase().includes(vb);
+        if (!matchesBrand && !matchesCompat && !matchesTitle) return false;
+      }
       if (sourceType && sourceType !== 'todos' && item.sourceType !== sourceType) return false;
       if (mendozaZone && mendozaZone !== 'todos') {
         const zoneStr = item.mendozaLocation?.zone || '';
@@ -167,8 +175,11 @@ export class AggregatorService {
 
     const combinedResults = [...enrichedWithPrice, ...enrichedToConsult];
 
-    const availableStores = [...new Set(allItems.map((i) => ({ key: i.storeKey, name: i.storeName })))];
-    const availableBrands = [...new Set(allItems.map((i) => i.partBrand))];
+    const availableStores = Array.from(
+      new Map(allItems.map((i) => [i.storeKey, { key: i.storeKey, name: i.storeName }])).values()
+    );
+    const availableBrands = [...new Set(allItems.map((i) => i.partBrand).filter(Boolean))].sort();
+    const availableVehicleBrands = [...new Set(allItems.map((i) => i.vehicleBrand).filter(Boolean))].sort();
     const availableMendozaZones = [
       'Carril Rodríguez Peña',
       'Godoy Cruz',
@@ -208,6 +219,7 @@ export class AggregatorService {
       filtersMeta: {
         stores: availableStores,
         brands: availableBrands,
+        vehicleBrands: availableVehicleBrands,
         mendozaZones: availableMendozaZones,
         sourceTypes: [
           { id: 'todos', name: 'Todas las fuentes en Mendoza' },

@@ -1,15 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { Car, Bike, Truck, Search, Sparkles, MapPin } from 'lucide-react';
 
-export function HeroSearch({ taxonomy, onSearch, loading }) {
-  const [vehicleType, setVehicleType] = useState('auto');
-  const [selectedBrand, setSelectedBrand] = useState('');
-  const [selectedModel, setSelectedModel] = useState('');
-  const [selectedYear, setSelectedYear] = useState('');
-  const [query, setQuery] = useState('');
+export function HeroSearch({ taxonomy, onSearch, loading, currentSearchParams }) {
+  const [vehicleType, setVehicleType] = useState(currentSearchParams?.vehicleType || 'auto');
+  const [selectedBrand, setSelectedBrand] = useState(currentSearchParams?.brand || '');
+  const [selectedModel, setSelectedModel] = useState(currentSearchParams?.model || '');
+  const [selectedYear, setSelectedYear] = useState(currentSearchParams?.year || '');
+  const [query, setQuery] = useState(currentSearchParams?.query || '');
 
   useEffect(() => {
-    setSelectedModel('');
+    if (currentSearchParams) {
+      if (currentSearchParams.query !== undefined) setQuery(currentSearchParams.query);
+      if (currentSearchParams.vehicleType !== undefined) setVehicleType(currentSearchParams.vehicleType || 'auto');
+      if (currentSearchParams.brand !== undefined) setSelectedBrand(currentSearchParams.brand || '');
+      if (currentSearchParams.model !== undefined) setSelectedModel(currentSearchParams.model || '');
+      if (currentSearchParams.year !== undefined) setSelectedYear(currentSearchParams.year || '');
+    }
+  }, [currentSearchParams]);
+
+  useEffect(() => {
+    // If selectedBrand changes and doesn't match current selectedModel's brand, reset model
+    if (!selectedBrand) {
+      setSelectedModel('');
+    }
   }, [selectedBrand, vehicleType]);
 
   const currentTypeData = taxonomy?.types?.[vehicleType] || { brands: [] };

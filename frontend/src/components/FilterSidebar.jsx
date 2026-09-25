@@ -1,5 +1,5 @@
 import React from 'react';
-import { Filter, RotateCcw, Truck, MapPin, Store, X } from 'lucide-react';
+import { Filter, RotateCcw, Truck, MapPin, Store, X, Car } from 'lucide-react';
 
 export function FilterSidebar({
   filters,
@@ -61,6 +61,28 @@ export function FilterSidebar({
         </select>
       </div>
 
+      {/* Marca de Vehículo (Auto, Camioneta, Camión) */}
+      {filtersMeta?.vehicleBrands && filtersMeta.vehicleBrands.length > 0 && (
+        <div>
+          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+            <Car className="w-3.5 h-3.5 text-blue-600" />
+            <span>Vehículo / Marca de Auto</span>
+          </label>
+          <select
+            value={filters.vehicleBrand || 'todos'}
+            onChange={(e) => onChangeFilter('vehicleBrand', e.target.value)}
+            className="w-full bg-white border border-gray-300 text-gray-800 text-xs sm:text-sm rounded-md px-2.5 py-2 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition font-medium"
+          >
+            <option value="todos">Todos los vehículos ({filtersMeta.vehicleBrands.length} marcas)</option>
+            {filtersMeta.vehicleBrands.map((vb) => (
+              <option key={vb} value={vb}>
+                {vb}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
       {/* Zona o Departamento de Mendoza */}
       <div>
         <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5 flex items-center gap-1">
@@ -80,6 +102,28 @@ export function FilterSidebar({
           ))}
         </select>
       </div>
+
+      {/* Casa de Repuestos / Vendedor */}
+      {filtersMeta?.stores && filtersMeta.stores.length > 0 && (
+        <div>
+          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+            <Store className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Casa de Repuestos / Vendedor</span>
+          </label>
+          <select
+            value={filters.store || 'todos'}
+            onChange={(e) => onChangeFilter('store', e.target.value)}
+            className="w-full bg-white border border-gray-300 text-gray-800 text-xs sm:text-sm rounded-md px-2.5 py-2 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition"
+          >
+            <option value="todos">Todos los comercios en Mendoza</option>
+            {filtersMeta.stores.map((st) => (
+              <option key={st.key} value={st.key}>
+                {st.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {/* Retiro Gratis / Envío Gratis */}
       <div className="bg-gray-50 p-3 rounded-md border border-gray-200">

@@ -284,7 +284,11 @@ export class TitleNormalizerService {
     const engineStr = engineSpec ? `[Motor ${engineSpec}]` : '';
     const condStr = condition === 'reacondicionado' ? '[Reacondicionado Certificado]' : '';
 
-    return `${partName} ${partBrand} ${condStr} Para ${brandClean} ${modelClean} ${engineStr} ${yearClean}`
+    const vehicleTarget = (brandClean || modelClean)
+      ? `Para ${brandClean} ${modelClean} ${engineStr} ${yearClean}`
+      : 'Apto Multimodelo / Universal';
+
+    return `${partName} ${partBrand} ${condStr} ${vehicleTarget}`
       .replace(/\s+/g, ' ')
       .trim();
   }
