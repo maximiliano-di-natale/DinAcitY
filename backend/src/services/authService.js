@@ -1,45 +1,30 @@
-import fs from 'fs/promises';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import bcrypt from 'bcryptjs';
+﻿import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const USERS_FILE = path.join(__dirname, '../data/users.json');
+import { db } from '../db/database.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dinacity_mendoza_secret_key_2026_super_secure';
 
 export class AuthService {
   constructor() {
-    this.users = [];
-    this.loaded = false;
-  }
-
-  async init() {
-    if (this.loaded) return;
-    try {
-      const data = await fs.readFile(USERS_FILE, 'utf-8');
-      this.users = JSON.parse(data || '[]');
-    } catch (err) {
-      if (err.code === 'ENOENT') {
-        this.users = [];
-        await this.saveUsers();
-      } else {
-        console.error('Error cargando archivo de usuarios:', err);
-        this.users = [];
-      }
-    }
-    this.loaded = true;
-  }
-
-  async saveUsers() {
-    try {
-      await fs.writeFile(USERS_FILE, JSON.stringify(this.users, null, 2), 'utf-8');
-    } catch (err) {
-      console.error('Error guardando archivo de usuarios:', err);
-      throw new Error('Error interno al persistir usuario');
-    }
+    // Sentencias preparadas (Prepared Statements) para máxima seguridad y velocidad
+    this.queries = {
+      findByEmail: db.prepare('SELECT * FROM users WHERE email = ?'),
+      findById: db.prepare('SELECT * FROM users WHERE id = ?'),
+      insertUser: db.prepare(`
+        INSERT INTO users (id, email, password_hash, nombre, apellido, direccion, telefono, role, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `),
+      updateProfile: db.prepare(`
+        UPDATE users
+        SET nombre = ?, apellido = ?, direccion = ?, telefono = COALESCE(?, telefono), updated_at = ?
+        WHERE id = ?
+      `),
+      updatePassword: db.prepare(`
+        UPDATE users
+        SET password_hash = ?, updated_at = ?
+        WHERE id = ?
+      `)
+    };
   }
 
   // Validador estricto de contraseña segura
@@ -73,19 +58,8 @@ export class AuthService {
 
   sanitizeUser(user) {
     if (!user) return null;
-    const { passwordHash, ...safeUser } = user;
-    const km = user.loyaltyKm !== undefined ? user.loyaltyKm : 150;
-    return {
-      ...safeUser,
-      loyaltyKm: km,
-      loyaltyTier: this.calculateTier(km)
-    };
-  }
-
-  calculateTier(km) {
-    if (km >= 1500) return 'Oro';
-    if (km >= 500) return 'Plata';
-    return 'Bronce';
+    const { password_hash, passwordHash, ...safeUser } = user;
+    return safeUser;
   }
 
   generateToken(user) {
@@ -96,16 +70,14 @@ export class AuthService {
         nombre: user.nombre,
         apellido: user.apellido,
         direccion: user.direccion,
-        loyaltyKm: user.loyaltyKm || 150
+        role: user.role || 'user'
       },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
   }
 
-  async register({ nombre, apellido, direccion, email, password }) {
-    await this.init();
-
+  async register({ nombre, apellido, direccion, email, password, telefono = null }) {
     // Validar campos requeridos
     if (!nombre || !nombre.trim()) {
       throw new Error('El nombre es obligatorio.');
@@ -120,60 +92,65 @@ export class AuthService {
       throw new Error('Debes ingresar un correo electrónico válido.');
     }
 
-    const passCheck = this.validatePassword(password);
-    if (!passCheck.valid) {
-      throw new Error(passCheck.message);
-    }
-
     const cleanEmail = email.trim().toLowerCase();
 
-    // Comprobar si el email ya está registrado
-    const existing = this.users.find((u) => u.email === cleanEmail);
+    // Validar robustez de la contraseña
+    const pwdCheck = this.validatePassword(password);
+    if (!pwdCheck.valid) {
+      throw new Error(pwdCheck.message);
+    }
+
+    // Verificar si el email ya existe en la base de datos SQL
+    const existing = this.queries.findByEmail.get(cleanEmail);
     if (existing) {
       throw new Error('Ya existe una cuenta registrada con este correo electrónico.');
     }
 
-    // Hashear contraseña con bcrypt (salt rounds = 10)
+    // Generar Hash bcrypt con 10 rondas de salt
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
-    const newUser = {
-      id: `usr_${Date.now()}_${Math.random().toString(36).substr(2, 7)}`,
-      nombre: nombre.trim(),
-      apellido: apellido.trim(),
-      direccion: direccion.trim(),
-      email: cleanEmail,
+    const now = new Date().toISOString();
+    const userId = `usr_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+
+    // Inserción parametrizada protegida contra SQL Injection
+    this.queries.insertUser.run(
+      userId,
+      cleanEmail,
       passwordHash,
-      createdAt: new Date().toISOString()
-    };
+      nombre.trim(),
+      apellido.trim(),
+      direccion.trim(),
+      telefono ? telefono.trim() : null,
+      'user',
+      now,
+      now
+    );
 
-    this.users.push(newUser);
-    await this.saveUsers();
+    const createdUser = this.queries.findById.get(userId);
+    const token = this.generateToken(createdUser);
 
-    const token = this.generateToken(newUser);
     return {
-      user: this.sanitizeUser(newUser),
+      user: this.sanitizeUser(createdUser),
       token
     };
   }
 
   async login({ email, password }) {
-    await this.init();
-
     if (!email || !password) {
       throw new Error('Debes proporcionar email y contraseña.');
     }
 
     const cleanEmail = email.trim().toLowerCase();
-    const user = this.users.find((u) => u.email === cleanEmail);
+    const user = this.queries.findByEmail.get(cleanEmail);
 
     if (!user) {
       throw new Error('Email o contraseña incorrectos.');
     }
 
-    // Comparar contraseña con hash
-    const match = await bcrypt.compare(password, user.passwordHash);
-    if (!match) {
+    // Comparar contraseña con el hash bcrypt almacenado
+    const isMatch = await bcrypt.compare(password, user.password_hash || user.passwordHash);
+    if (!isMatch) {
       throw new Error('Email o contraseña incorrectos.');
     }
 
@@ -185,10 +162,9 @@ export class AuthService {
   }
 
   async verifyToken(token) {
-    await this.init();
     try {
       const decoded = jwt.verify(token, JWT_SECRET);
-      const user = this.users.find((u) => u.id === decoded.id);
+      const user = this.queries.findById.get(decoded.id);
       if (!user) return null;
       return this.sanitizeUser(user);
     } catch {
@@ -196,120 +172,33 @@ export class AuthService {
     }
   }
 
-  async updateProfile(userId, { nombre, apellido, direccion }) {
-    await this.init();
-    const index = this.users.findIndex((u) => u.id === userId);
-    if (index === -1) {
+  async updateProfile(userId, { nombre, apellido, direccion, telefono }) {
+    const user = this.queries.findById.get(userId);
+    if (!user) {
       throw new Error('Usuario no encontrado.');
     }
 
-    if (nombre && nombre.trim()) this.users[index].nombre = nombre.trim();
-    if (apellido && apellido.trim()) this.users[index].apellido = apellido.trim();
-    if (direccion && direccion.trim()) this.users[index].direccion = direccion.trim();
+    const updatedNombre = (nombre && nombre.trim()) ? nombre.trim() : user.nombre;
+    const updatedApellido = (apellido && apellido.trim()) ? apellido.trim() : user.apellido;
+    const updatedDireccion = (direccion && direccion.trim()) ? direccion.trim() : user.direccion;
+    const updatedTelefono = telefono !== undefined ? (telefono ? telefono.trim() : null) : user.telefono;
+    const now = new Date().toISOString();
 
-    await this.saveUsers();
-    const updated = this.users[index];
+    this.queries.updateProfile.run(
+      updatedNombre,
+      updatedApellido,
+      updatedDireccion,
+      updatedTelefono,
+      now,
+      userId
+    );
+
+    const updated = this.queries.findById.get(userId);
     const token = this.generateToken(updated);
 
     return {
       user: this.sanitizeUser(updated),
       token
     };
-  }
-
-  async getLoyaltyProfile(userId) {
-    await this.init();
-    const user = this.users.find(u => u.id === userId);
-    if (!user) {
-      // Perfil invitado / anónimo con beneficios base
-      return {
-        isGuest: true,
-        loyaltyKm: 150,
-        loyaltyTier: 'Bronce',
-        nextTier: 'Plata',
-        kmToNextTier: 350,
-        progressPercentage: 30,
-        benefits: [
-          'Acceso a alertas de precios en Mendoza',
-          'Cotizaciones directas con WhatsApp pre-cargado'
-        ],
-        availableVouchers: [
-          { id: 'vouch-1', title: '5% OFF en mostrador', store: 'Casas de Carril Rodríguez Peña', minSpend: 40000, code: 'DINACITY-BRONCE-5' }
-        ]
-      };
-    }
-
-    const km = user.loyaltyKm !== undefined ? user.loyaltyKm : 150;
-    const tier = this.calculateTier(km);
-    let nextTier = 'Plata';
-    let kmToNext = 500 - km;
-    let progress = Math.min(100, Math.round((km / 500) * 100));
-
-    if (tier === 'Plata') {
-      nextTier = 'Oro';
-      kmToNext = 1500 - km;
-      progress = Math.min(100, Math.round(((km - 500) / 1000) * 100));
-    } else if (tier === 'Oro') {
-      nextTier = 'Nivel Máximo (Oro VIP)';
-      kmToNext = 0;
-      progress = 100;
-    }
-
-    return {
-      isGuest: false,
-      userId: user.id,
-      userName: `${user.nombre} ${user.apellido}`,
-      loyaltyKm: km,
-      loyaltyTier: tier,
-      nextTier: nextTier,
-      kmToNextTier: Math.max(0, kmToNext),
-      progressPercentage: progress,
-      benefits: tier === 'Oro'
-        ? [
-            '15% Descuento en mano de obra en talleres mecánicos asociados',
-            'Diagnóstico computarizado OBD-II bonificado',
-            'Alertas VIP prioritarias de repuestos en liquidación',
-            'Atención preferencial por WhatsApp'
-          ]
-        : tier === 'Plata'
-        ? [
-            '10% Descuento en mano de obra en talleres mecánicos asociados',
-            'Prioridad en búsquedas de mostrador en Mendoza',
-            'Alertas semanales de ofertas'
-          ]
-        : [
-            'Acceso a alertas de precios en Mendoza',
-            'Cotizaciones directas con WhatsApp pre-cargado'
-          ],
-      availableVouchers: [
-        { id: 'vouch-1', title: 'Cupón Bienvenida Mostrador', store: 'Red Mendoza', discount: 'Bonificación $3.000', code: 'PASA-BIENVENIDO' },
-        { id: 'vouch-2', title: 'Líquido Refrigerante Bonificado', store: 'Talleres Asociados', discount: '1L Gratis con Colocación', code: 'PASA-REFRIG' }
-      ],
-      history: user.loyaltyHistory || [
-        { date: user.createdAt || new Date().toISOString(), km: 150, reason: 'Bono de Bienvenida Pasaporte DinAcitY' }
-      ]
-    };
-  }
-
-  async addLoyaltyKm(userId, amount, reason = 'Acción en DinAcitY') {
-    await this.init();
-    const index = this.users.findIndex(u => u.id === userId);
-    if (index === -1) return null;
-
-    const currentKm = this.users[index].loyaltyKm || 150;
-    const newKm = currentKm + amount;
-    this.users[index].loyaltyKm = newKm;
-
-    if (!this.users[index].loyaltyHistory) {
-      this.users[index].loyaltyHistory = [];
-    }
-    this.users[index].loyaltyHistory.unshift({
-      date: new Date().toISOString(),
-      km: amount,
-      reason
-    });
-
-    await this.saveUsers();
-    return this.getLoyaltyProfile(userId);
   }
 }

@@ -19,26 +19,48 @@ export function PriceAlertModal({ isOpen, onClose, currentSearch }) {
     }
   }, []);
 
-  const handleSaveAlert = (e) => {
+  const handleSaveAlert = async (e) => {
     e.preventDefault();
     if (!email || !partName) return;
 
-    const newAlert = {
-      id: Date.now(),
-      partName,
-      vehicle: `${currentSearch?.brand || ''} ${currentSearch?.model || ''}`.trim() || 'Cualquier vehículo',
-      targetPrice: targetPrice ? Number(targetPrice) : null,
-      email,
-      createdAt: new Date().toLocaleDateString()
-    };
+    try {
+      const token = localStorage.getItem('dinacity_token');
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
 
-    const updated = [newAlert, ...alerts];
-    setAlerts(updated);
-    localStorage.setItem('dinacity_alerts', JSON.stringify(updated));
-    setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 3000);
-    setEmail('');
-    setTargetPrice('');
+      const res = await fetch('/api/alerts', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          email,
+          partQuery: partName,
+          vehicleBrand: currentSearch?.brand || '',
+          vehicleModel: currentSearch?.model || '',
+          vehicleYear: currentSearch?.year || '',
+          targetPrice: targetPrice ? Number(targetPrice) : null
+        })
+      });
+      const data = await res.json();
+
+      const newAlert = {
+        id: data.alert?.id || Date.now(),
+        partName,
+        vehicle: `${currentSearch?.brand || ''} ${currentSearch?.model || ''}`.trim() || 'Cualquier vehículo',
+        targetPrice: targetPrice ? Number(targetPrice) : null,
+        email,
+        createdAt: new Date().toLocaleDateString()
+      };
+
+      const updated = [newAlert, ...alerts];
+      setAlerts(updated);
+      localStorage.setItem('dinacity_alerts', JSON.stringify(updated));
+      setSavedSuccess(true);
+      setTimeout(() => setSavedSuccess(false), 3000);
+      setEmail('');
+      setTargetPrice('');
+    } catch (err) {
+      console.error('Error guardando alerta en base de datos:', err);
+    }
   };
 
   const handleDeleteAlert = (id) => {

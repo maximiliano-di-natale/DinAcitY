@@ -47,6 +47,27 @@ export function InstallationModal({ isOpen, onClose, item }) {
   ];
 
   const handleWhatsAppBooking = (workshop) => {
+    try {
+      const token = localStorage.getItem('dinacity_token');
+      const savedUser = localStorage.getItem('dinacity_user');
+      const user = savedUser ? JSON.parse(savedUser) : null;
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      fetch('/api/workshops/bookings', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          workshopName: workshop.name,
+          workshopZone: workshop.zone || 'Gran Mendoza',
+          partTitle: item?.title || 'Repuesto automotor',
+          customerName: user ? `${user.nombre} ${user.apellido}` : 'Cliente DinAcitY',
+          customerPhone: user?.telefono || 'Consultar por WhatsApp',
+          customerVehicle: item?.vehicleCompatibility || 'Vehículo particular'
+        })
+      }).catch((err) => console.error('Error registrando turno en base de datos:', err));
+    } catch (e) {}
+
     const message = encodeURIComponent(
       `Hola ${workshop.name}, vi en DinAcitY Mendoza el repuesto:\n"${item.title}"\npara mi ${item.vehicleCompatibility || 'auto'}.\n\nQuiero coordinar un turno para la colocación e instalación en su taller de ${workshop.address}. ¿Tienen disponibilidad de turnos esta semana y cuál es el presupuesto estimado? Muchas gracias.`
     );

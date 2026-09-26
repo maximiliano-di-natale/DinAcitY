@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
-import { Search, ShieldCheck, Car, CheckCircle2, AlertCircle, Wrench, Sparkles, MapPin, Gauge, Fuel } from 'lucide-react';
+import { Search, ShieldCheck, Car, CheckCircle2, AlertCircle, Wrench, Sparkles, MapPin, Gauge, Fuel, Bookmark } from 'lucide-react';
 
 export function PatenteSearchWidget({ onSelectVehicle, onDirectSearch }) {
   const [patenteInput, setPatenteInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [vehicleData, setVehicleData] = useState(null);
   const [error, setError] = useState(null);
+  const [savedDbVehicle, setSavedDbVehicle] = useState(false);
 
   const quickSamples = [
     { plate: 'AF 482 QZ', label: 'Hilux SRV 2.8 TDI (2022)' },
@@ -59,6 +59,45 @@ export function PatenteSearchWidget({ onSelectVehicle, onDirectSearch }) {
         engineSpec: v.engine?.name || '',
         fullVehicleTitle: `${v.brand} ${v.model} ${v.version} (${v.year})`
       });
+    }
+  };
+
+  const handleSaveVehicleToDb = async () => {
+    if (!vehicleData) return;
+    const token = localStorage.getItem('dinacity_token');
+    if (!token) {
+      alert('Para guardar este vehículo en tu cuenta en la base de datos, por favor ingresá a tu cuenta o registrate.');
+      return;
+    }
+
+    try {
+      const v = vehicleData.data;
+      const res = await fetch('/api/user/vehicles', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          patente: v.patente || patenteInput,
+          marca: v.brand,
+          modelo: `${v.model} ${v.version}`.trim(),
+          anio: v.year,
+          motor: v.engine?.name || null,
+          vin: v.vin || null,
+          radicacion: v.dnrpa?.seccional || null
+        })
+      });
+
+      if (res.ok) {
+        setSavedDbVehicle(true);
+        setTimeout(() => setSavedDbVehicle(false), 4000);
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Error al guardar vehículo en la base de datos');
+      }
+    } catch (e) {
+      console.error('Error guardando vehículo:', e);
     }
   };
 
@@ -202,14 +241,30 @@ export function PatenteSearchWidget({ onSelectVehicle, onDirectSearch }) {
               </h3>
             </div>
 
-            <button
-              type="button"
-              onClick={() => handleApplyVehicle()}
-              className="px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2 shrink-0 transform active:scale-98"
-            >
-              <Sparkles className="w-4 h-4 text-yellow-300" />
-              <span>Ver todos los repuestos para este auto</span>
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={handleSaveVehicleToDb}
+                className={`px-3.5 py-2.5 rounded-lg border font-bold text-xs transition flex items-center gap-1.5 shadow-sm ${
+                  savedDbVehicle
+                    ? 'bg-emerald-950 text-emerald-300 border-emerald-500'
+                    : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-600'
+                }`}
+                title="Guardar este auto en tu cuenta en la base de datos segura"
+              >
+                <Bookmark className="w-3.5 h-3.5 text-blue-400" />
+                <span>{savedDbVehicle ? '✓ Guardado en tu cuenta' : 'Guardar auto en mi cuenta'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleApplyVehicle()}
+                className="px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2 shrink-0 transform active:scale-98"
+              >
+                <Sparkles className="w-4 h-4 text-yellow-300" />
+                <span>Ver todos los repuestos para este auto</span>
+              </button>
+            </div>
           </div>
 
           {/* Technical Specs Grid */}

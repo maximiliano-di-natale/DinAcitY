@@ -7,6 +7,13 @@ import { PatenteService } from './services/patenteService.js';
 import { MENDOZA_WORKSHOPS, getEstimatedLabor } from './data/mendozaWorkshops.js';
 import { generateVehicleKits } from './data/combosData.js';
 import { CrossSellingService } from './services/crossSellingService.js';
+import { initDatabase } from './db/database.js';
+import { UserVehiclesService } from './services/userVehiclesService.js';
+import { AlertsService } from './services/alertsService.js';
+import { WorkshopBookingsService } from './services/workshopBookingsService.js';
+
+// Inicializar base de datos SQL segura y ejecutar migraciones
+initDatabase();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -18,6 +25,9 @@ const aggregatorService = new AggregatorService();
 const authService = new AuthService();
 const patenteService = new PatenteService();
 const crossSellingService = new CrossSellingService();
+const userVehiclesService = new UserVehiclesService();
+const alertsService = new AlertsService();
+const workshopBookingsService = new WorkshopBookingsService();
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -201,6 +211,148 @@ app.put('/api/auth/profile', async (req, res) => {
     res.json(result);
   } catch (error) {
     res.status(400).json({ error: error.message });
+  }
+});
+
+// Middleware de Autenticación
+const requireAuth = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Token no proporcionado' });
+  }
+  const token = authHeader.split(' ')[1];
+  const user = await authService.verifyToken(token);
+  if (!user) {
+    return res.status(401).json({ error: 'Sesión inválida o expirada' });
+  }
+  req.user = user;
+  next();
+};
+
+// ==========================================
+// Rutas de Vehículos Guardados por el Usuario
+// ==========================================
+app.get('/api/user/vehicles', requireAuth, (req, res) => {
+  try {
+    const vehicles = userVehiclesService.getUserVehicles(req.user.id);
+    res.json({ vehicles });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al consultar vehículos', message: error.message });
+  }
+});
+
+app.post('/api/user/vehicles', requireAuth, (req, res) => {
+  try {
+    const { patente, marca, modelo, anio, motor, vin, radicacion, isPrimary } = req.body;
+    const vehicle = userVehiclesService.addVehicle({
+      userId: req.user.id,
+      patente,
+      marca,
+      modelo,
+      anio,
+      motor,
+      vin,
+      radicacion,
+      isPrimary
+    });
+    res.status(201).json({ vehicle });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.delete('/api/user/vehicles/:id', requireAuth, (req, res) => {
+  try {
+    const success = userVehiclesService.deleteVehicle(req.user.id, req.params.id);
+    res.json({ success });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// ==========================================
+// Rutas de Alertas de Precios en Base de Datos
+// ==========================================
+app.post('/api/alerts', async (req, res) => {
+  try {
+    let userId = null;
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const user = await authService.verifyToken(authHeader.split(' ')[1]);
+      if (user) userId = user.id;
+    }
+
+    const { email, whatsapp, partQuery, vehicleBrand, vehicleModel, vehicleYear, targetPrice, currentLowestPrice } = req.body;
+    const alert = alertsService.createAlert({
+      userId,
+      email,
+      whatsapp,
+      partQuery,
+      vehicleBrand,
+      vehicleModel,
+      vehicleYear,
+      targetPrice,
+      currentLowestPrice
+    });
+    res.status(201).json({ alert });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.get('/api/user/alerts', requireAuth, (req, res) => {
+  try {
+    const alerts = alertsService.getUserAlerts(req.user.id, req.user.email);
+    res.json({ alerts });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al consultar alertas', message: error.message });
+  }
+});
+
+app.delete('/api/alerts/:id', requireAuth, (req, res) => {
+  try {
+    const success = alertsService.deleteAlert(req.params.id, req.user.id, req.user.email);
+    res.json({ success });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// ==========================================
+// Rutas de Turnos de Talleres en Base de Datos
+// ==========================================
+app.post('/api/workshops/bookings', async (req, res) => {
+  try {
+    let userId = null;
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const user = await authService.verifyToken(authHeader.split(' ')[1]);
+      if (user) userId = user.id;
+    }
+
+    const { workshopName, workshopZone, partTitle, customerName, customerPhone, customerVehicle, preferredDate } = req.body;
+    const booking = workshopBookingsService.createBooking({
+      userId,
+      workshopName,
+      workshopZone,
+      partTitle,
+      customerName,
+      customerPhone,
+      customerVehicle,
+      preferredDate
+    });
+    res.status(201).json({ booking });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.get('/api/user/bookings', requireAuth, (req, res) => {
+  try {
+    const bookings = workshopBookingsService.getUserBookings(req.user.id);
+    res.json({ bookings });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al consultar turnos', message: error.message });
   }
 });
 
