@@ -74,7 +74,18 @@ export class AuthService {
   sanitizeUser(user) {
     if (!user) return null;
     const { passwordHash, ...safeUser } = user;
-    return safeUser;
+    const km = user.loyaltyKm !== undefined ? user.loyaltyKm : 150;
+    return {
+      ...safeUser,
+      loyaltyKm: km,
+      loyaltyTier: this.calculateTier(km)
+    };
+  }
+
+  calculateTier(km) {
+    if (km >= 1500) return 'Oro';
+    if (km >= 500) return 'Plata';
+    return 'Bronce';
   }
 
   generateToken(user) {
@@ -84,7 +95,8 @@ export class AuthService {
         email: user.email,
         nombre: user.nombre,
         apellido: user.apellido,
-        direccion: user.direccion
+        direccion: user.direccion,
+        loyaltyKm: user.loyaltyKm || 150
       },
       JWT_SECRET,
       { expiresIn: '7d' }
@@ -203,5 +215,101 @@ export class AuthService {
       user: this.sanitizeUser(updated),
       token
     };
+  }
+
+  async getLoyaltyProfile(userId) {
+    await this.init();
+    const user = this.users.find(u => u.id === userId);
+    if (!user) {
+      // Perfil invitado / anónimo con beneficios base
+      return {
+        isGuest: true,
+        loyaltyKm: 150,
+        loyaltyTier: 'Bronce',
+        nextTier: 'Plata',
+        kmToNextTier: 350,
+        progressPercentage: 30,
+        benefits: [
+          'Acceso a alertas de precios en Mendoza',
+          'Cotizaciones directas con WhatsApp pre-cargado'
+        ],
+        availableVouchers: [
+          { id: 'vouch-1', title: '5% OFF en mostrador', store: 'Casas de Carril Rodríguez Peña', minSpend: 40000, code: 'DINACITY-BRONCE-5' }
+        ]
+      };
+    }
+
+    const km = user.loyaltyKm !== undefined ? user.loyaltyKm : 150;
+    const tier = this.calculateTier(km);
+    let nextTier = 'Plata';
+    let kmToNext = 500 - km;
+    let progress = Math.min(100, Math.round((km / 500) * 100));
+
+    if (tier === 'Plata') {
+      nextTier = 'Oro';
+      kmToNext = 1500 - km;
+      progress = Math.min(100, Math.round(((km - 500) / 1000) * 100));
+    } else if (tier === 'Oro') {
+      nextTier = 'Nivel Máximo (Oro VIP)';
+      kmToNext = 0;
+      progress = 100;
+    }
+
+    return {
+      isGuest: false,
+      userId: user.id,
+      userName: `${user.nombre} ${user.apellido}`,
+      loyaltyKm: km,
+      loyaltyTier: tier,
+      nextTier: nextTier,
+      kmToNextTier: Math.max(0, kmToNext),
+      progressPercentage: progress,
+      benefits: tier === 'Oro'
+        ? [
+            '15% Descuento en mano de obra en talleres mecánicos asociados',
+            'Diagnóstico computarizado OBD-II bonificado',
+            'Alertas VIP prioritarias de repuestos en liquidación',
+            'Atención preferencial por WhatsApp'
+          ]
+        : tier === 'Plata'
+        ? [
+            '10% Descuento en mano de obra en talleres mecánicos asociados',
+            'Prioridad en búsquedas de mostrador en Mendoza',
+            'Alertas semanales de ofertas'
+          ]
+        : [
+            'Acceso a alertas de precios en Mendoza',
+            'Cotizaciones directas con WhatsApp pre-cargado'
+          ],
+      availableVouchers: [
+        { id: 'vouch-1', title: 'Cupón Bienvenida Mostrador', store: 'Red Mendoza', discount: 'Bonificación $3.000', code: 'PASA-BIENVENIDO' },
+        { id: 'vouch-2', title: 'Líquido Refrigerante Bonificado', store: 'Talleres Asociados', discount: '1L Gratis con Colocación', code: 'PASA-REFRIG' }
+      ],
+      history: user.loyaltyHistory || [
+        { date: user.createdAt || new Date().toISOString(), km: 150, reason: 'Bono de Bienvenida Pasaporte DinAcitY' }
+      ]
+    };
+  }
+
+  async addLoyaltyKm(userId, amount, reason = 'Acción en DinAcitY') {
+    await this.init();
+    const index = this.users.findIndex(u => u.id === userId);
+    if (index === -1) return null;
+
+    const currentKm = this.users[index].loyaltyKm || 150;
+    const newKm = currentKm + amount;
+    this.users[index].loyaltyKm = newKm;
+
+    if (!this.users[index].loyaltyHistory) {
+      this.users[index].loyaltyHistory = [];
+    }
+    this.users[index].loyaltyHistory.unshift({
+      date: new Date().toISOString(),
+      km: amount,
+      reason
+    });
+
+    await this.saveUsers();
+    return this.getLoyaltyProfile(userId);
   }
 }

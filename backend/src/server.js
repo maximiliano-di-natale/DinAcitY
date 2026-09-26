@@ -5,6 +5,9 @@ import { AggregatorService } from './services/aggregatorService.js';
 import { AuthService } from './services/authService.js';
 import { PatenteService } from './services/patenteService.js';
 import { MENDOZA_WORKSHOPS, getEstimatedLabor } from './data/mendozaWorkshops.js';
+import { generateVehicleKits } from './data/combosData.js';
+import { FinancingService } from './services/financingService.js';
+import { CrossSellingService } from './services/crossSellingService.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -15,6 +18,8 @@ app.use(express.json());
 const aggregatorService = new AggregatorService();
 const authService = new AuthService();
 const patenteService = new PatenteService();
+const financingService = new FinancingService();
+const crossSellingService = new CrossSellingService();
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -79,6 +84,90 @@ app.get('/api/vehicles/taxonomy', (req, res) => {
 // Categorías de Repuestos Automotores
 app.get('/api/categories', (req, res) => {
   res.json(PART_CATEGORIES);
+});
+
+// Paquetes Dinámicos y Kits para el Vehículo
+app.get('/api/combos', (req, res) => {
+  try {
+    const { vehicleType = 'auto', brand = 'Volkswagen', model = 'Gol Trend', year = '2019' } = req.query;
+    const kits = generateVehicleKits({ vehicleType, brand, model, year });
+    res.json({
+      vehicle: `${brand} ${model} (${year})`,
+      totalKits: kits.length,
+      kits
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al generar paquetes dinámicos', message: error.message });
+  }
+});
+
+// Calculadora de Financiación y Pago Dividido
+app.get('/api/financing/calculate', (req, res) => {
+  try {
+    const { totalPrice = 0, card1Amount, card1Installments = 1, card2Installments = 6 } = req.query;
+    const standardPlan = financingService.calculateInstallments(totalPrice);
+    const splitSimulation = financingService.simulateSplitPayment({
+      totalPrice,
+      card1Amount,
+      card1Installments,
+      card2Installments
+    });
+    res.json({
+      totalPrice: Number(totalPrice),
+      standardInstallments: standardPlan,
+      splitPayment: splitSimulation
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Venta Cruzada (Cross-selling de Repuestos Complementarios)
+app.get('/api/parts/cross-sell', (req, res) => {
+  try {
+    const { query = '', brand = '', model = '', vehicleType = 'auto' } = req.query;
+    const recommendations = crossSellingService.getRecommendations({ query, brand, model, vehicleType });
+    res.json(recommendations);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener recomendaciones cruzadas', message: error.message });
+  }
+});
+
+// Perfil de Pasaporte DinAcitY (Club Kilómetros)
+app.get('/api/loyalty/profile', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    let userId = null;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      const verified = await authService.verifyToken(token);
+      if (verified) userId = verified.id;
+    }
+    const profile = await authService.getLoyaltyProfile(userId);
+    res.json(profile);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al consultar pasaporte', message: error.message });
+  }
+});
+
+// Sumar Kilómetros al Pasaporte DinAcitY
+app.post('/api/loyalty/earn', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Inicia sesión para acumular KM en tu Pasaporte DinAcitY' });
+    }
+    const token = authHeader.split(' ')[1];
+    const user = await authService.verifyToken(token);
+    if (!user) {
+      return res.status(401).json({ error: 'Sesión inválida o expirada' });
+    }
+    const { amount = 50, reason = 'Búsqueda o cotización' } = req.body;
+    const updated = await authService.addLoyaltyKm(user.id, Number(amount), reason);
+    res.json(updated);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al acreditar kilómetros', message: error.message });
+  }
 });
 
 // Búsqueda y Comparador de Precios Agregado

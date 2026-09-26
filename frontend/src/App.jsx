@@ -7,6 +7,9 @@ import { PriceComparisonModal } from './components/PriceComparisonModal.jsx';
 import { PriceAlertModal } from './components/PriceAlertModal.jsx';
 import { AuthModal } from './components/AuthModal.jsx';
 import { InstallationModal } from './components/InstallationModal.jsx';
+import { ComboBuilderModal } from './components/ComboBuilderModal.jsx';
+import { FinancingModal } from './components/FinancingModal.jsx';
+import { LoyaltyPassportModal } from './components/LoyaltyPassportModal.jsx';
 import { Flame, SlidersHorizontal, Sparkles, AlertCircle, MapPin, Store } from 'lucide-react';
 
 export function App() {
@@ -18,6 +21,13 @@ export function App() {
     filtersMeta: {},
     query: {}
   });
+
+  // Estados de Modales y Nuevas Funcionalidades
+  const [isComboOpen, setIsComboOpen] = useState(false);
+  const [isFinancingOpen, setIsFinancingOpen] = useState(false);
+  const [financingItem, setFinancingItem] = useState(null);
+  const [isLoyaltyOpen, setIsLoyaltyOpen] = useState(false);
+  const [loyaltyProfile, setLoyaltyProfile] = useState(null);
 
   // Estado de Autenticación de Usuario Seguro
   const [currentUser, setCurrentUser] = useState(() => {
@@ -88,11 +98,29 @@ export function App() {
     }
   }, [token]);
 
+  // Cargar Perfil de Pasaporte DinAcitY
+  useEffect(() => {
+    fetchLoyaltyProfile();
+  }, [token, currentUser]);
+
+  const fetchLoyaltyProfile = async () => {
+    try {
+      const headers = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const res = await fetch('/api/loyalty/profile', { headers });
+      const data = await res.json();
+      setLoyaltyProfile(data);
+    } catch (err) {
+      console.error('Error cargando pasaporte:', err);
+    }
+  };
+
   const handleAuthSuccess = (user, authToken) => {
     setCurrentUser(user);
     setToken(authToken);
     localStorage.setItem('dinacity_user', JSON.stringify(user));
     localStorage.setItem('dinacity_token', authToken);
+    fetchLoyaltyProfile();
   };
 
   const handleLogout = () => {
@@ -100,6 +128,7 @@ export function App() {
     setToken(null);
     localStorage.removeItem('dinacity_user');
     localStorage.removeItem('dinacity_token');
+    fetchLoyaltyProfile();
   };
 
   const executeSearch = async (searchParams, currentFilters) => {
@@ -230,6 +259,9 @@ export function App() {
           onOpenAlerts={() => setIsAlertsOpen(true)}
           onSearch={handleSearchFromHero}
           currentQuery={currentSearchParams.query}
+          onOpenCombos={() => setIsComboOpen(true)}
+          onOpenLoyalty={() => setIsLoyaltyOpen(true)}
+          loyaltyKm={loyaltyProfile?.loyaltyKm || 150}
         />
 
         {/* Hero Search Box con tarjeta blanca y selectores */}
@@ -240,6 +272,7 @@ export function App() {
           currentSearchParams={currentSearchParams}
           currentQuality={filters.partQuality || 'todos'}
           onQualityChange={(q) => handleFilterChange('partQuality', q)}
+          onOpenCombos={() => setIsComboOpen(true)}
         />
 
         {/* Main Content Area */}
@@ -363,6 +396,16 @@ export function App() {
                     setSelectedInstallationItem(it);
                     setIsInstallationOpen(true);
                   }}
+                  onOpenFinancing={(it) => {
+                    setFinancingItem(it);
+                    setIsFinancingOpen(true);
+                  }}
+                  onSearchRelated={(term) => {
+                    handleSearchFromHero({
+                      ...currentSearchParams,
+                      query: term
+                    });
+                  }}
                 />
               ))
             )}
@@ -400,6 +443,36 @@ export function App() {
         isOpen={isInstallationOpen}
         onClose={() => setIsInstallationOpen(false)}
         item={selectedInstallationItem}
+      />
+
+      {/* Modal de Paquetes Dinámicos y Kits de Repuestos */}
+      <ComboBuilderModal
+        isOpen={isComboOpen}
+        onClose={() => setIsComboOpen(false)}
+        vehicleParams={currentSearchParams}
+      />
+
+      {/* Modal de Financiación y Simulador de Pago Dividido con 2 Tarjetas */}
+      <FinancingModal
+        isOpen={isFinancingOpen}
+        onClose={() => {
+          setIsFinancingOpen(false);
+          setFinancingItem(null);
+        }}
+        item={financingItem}
+      />
+
+      {/* Modal de Pasaporte DinAcitY (Club Kilómetros) */}
+      <LoyaltyPassportModal
+        isOpen={isLoyaltyOpen}
+        onClose={() => setIsLoyaltyOpen(false)}
+        token={token}
+        user={currentUser}
+        onOpenAuth={() => {
+          setIsLoyaltyOpen(false);
+          setAuthMode('register');
+          setIsAuthOpen(true);
+        }}
       />
 
       {/* Footer en Azul Marino institucional con detalles en Rojo */}

@@ -1,7 +1,9 @@
-import React from 'react';
-import { ExternalLink, Star, Shield, Truck, Flame, TrendingDown, MapPin, Store, MessageCircle, Wrench } from 'lucide-react';
+﻿import React, { useState } from 'react';
+import { ExternalLink, Star, Shield, Truck, Flame, TrendingDown, MapPin, Store, MessageCircle, Wrench, CreditCard, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 
-export function PartCard({ item, onCompare, onInstall }) {
+export function PartCard({ item, onCompare, onInstall, onOpenFinancing, onSearchRelated }) {
+  const [showCrossSell, setShowCrossSell] = useState(false);
+
   const formattedPrice = (val) => {
     if (!val || val <= 0) return 'A consultar';
     return new Intl.NumberFormat('es-AR', {
@@ -13,6 +15,9 @@ export function PartCard({ item, onCompare, onInstall }) {
 
   const isCheapest = item.isCheapest;
   const hasPrice = item.hasPublicPrice && item.totalPrice > 0;
+
+  // Cálculo estimativo de cuotas de referencia (6 cuotas coeficiente 1.28)
+  const approxCuota6 = hasPrice ? Math.round((item.totalPrice * 1.28) / 6) : 0;
 
   const getSourceBadge = (sourceType) => {
     if (sourceType === 'casa_repuestos_mendoza') {
@@ -59,6 +64,41 @@ export function PartCard({ item, onCompare, onInstall }) {
 
   const actionBtn = getActionButton();
 
+  // Sugerencias de venta cruzada según el título o categoría
+  const getComplementarySuggestions = (title = '') => {
+    const t = title.toLowerCase();
+    if (t.includes('pastilla') || t.includes('freno')) {
+      return [
+        { name: 'Discos de Freno Delanteros', reason: 'Recomendado cambiar juntos para evitar vibraciones al frenar' },
+        { name: 'Líquido de Freno DOT 4', reason: 'Se purga el circuito al abrir el cáliper' }
+      ];
+    }
+    if (t.includes('radiador') || t.includes('calefaccion') || t.includes('refrigeracion') || t.includes('termostato')) {
+      return [
+        { name: 'Termostato con Caja', reason: 'Evita que el radiador trabaje fuera de temperatura' },
+        { name: 'Mangueras de Agua', reason: 'Las viejas suelen rajarse con la nueva presión' }
+      ];
+    }
+    if (t.includes('amortiguador') || t.includes('suspension')) {
+      return [
+        { name: 'Cazoletas con Crapodinas', reason: 'Si están duras desgastan prematuramente el vástago' },
+        { name: 'Fuelles y Topes de Rebote', reason: 'Protegen el amortiguador del ripio mendocino' }
+      ];
+    }
+    if (t.includes('distribucion') || t.includes('correa') || t.includes('bomba')) {
+      return [
+        { name: 'Bomba de Agua con Junta', reason: 'Falla habitual si se tensa la correa nueva con la bomba vieja' },
+        { name: 'Correa Poli-V de Accesorios', reason: 'Se desmonta al mismo tiempo; conviene renovarla' }
+      ];
+    }
+    return [
+      { name: 'Filtro de Aceite y Aire', reason: 'Mantenimiento preventivo habitual' },
+      { name: 'Bujías de Encendido', reason: 'Optimizan consumo y arranque en frío' }
+    ];
+  };
+
+  const suggestions = getComplementarySuggestions(item.title);
+
   return (
     <div
       className={`relative bg-white rounded-lg transition-all duration-200 border flex flex-col md:flex-row overflow-hidden ml-card-shadow ${
@@ -88,7 +128,7 @@ export function PartCard({ item, onCompare, onInstall }) {
         </div>
       </div>
 
-      {/* Content Details (Mercado Libre Clean Style) */}
+      {/* Content Details */}
       <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
         <div>
           {/* Header Badges */}
@@ -152,6 +192,44 @@ export function PartCard({ item, onCompare, onInstall }) {
               <span>Garantía {item.warrantyDays} días</span>
             </div>
           </div>
+
+          {/* Cross-Selling Suggestions Dropdown/Accordion */}
+          <div className="mt-3">
+            <button
+              type="button"
+              onClick={() => setShowCrossSell(!showCrossSell)}
+              className="text-xs font-bold text-blue-700 hover:text-blue-900 flex items-center gap-1 transition"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+              <span>¿Qué repuestos se cambian habitualmente juntos con este?</span>
+              {showCrossSell ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            </button>
+
+            {showCrossSell && (
+              <div className="mt-2 p-3 bg-blue-50/60 border border-blue-200/80 rounded-lg space-y-2">
+                <span className="text-[10px] font-black uppercase text-blue-900 tracking-wider block">
+                  Recomendaciones para este trabajo:
+                </span>
+                <div className="space-y-1.5">
+                  {suggestions.map((sug, idx) => (
+                    <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs bg-white p-2 rounded border border-blue-100">
+                      <div>
+                        <strong className="text-gray-900">{sug.name}</strong>
+                        <p className="text-[11px] text-gray-500">{sug.reason}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => onSearchRelated && onSearchRelated(sug.name)}
+                        className="text-[11px] text-blue-700 hover:underline font-bold shrink-0 self-start sm:self-auto"
+                      >
+                        Comparar opciones →
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Shipping / Local Delivery info */}
@@ -177,8 +255,8 @@ export function PartCard({ item, onCompare, onInstall }) {
         </div>
       </div>
 
-      {/* Price and CTA Sidebar (Mercado Libre Style) */}
-      <div className="p-4 sm:p-5 md:w-56 shrink-0 bg-gray-50/70 md:border-l border-gray-200 flex flex-col justify-center items-stretch text-right md:text-center border-t md:border-t-0">
+      {/* Price and CTA Sidebar */}
+      <div className="p-4 sm:p-5 md:w-60 shrink-0 bg-gray-50/70 md:border-l border-gray-200 flex flex-col justify-center items-stretch text-right md:text-center border-t md:border-t-0">
         
         {hasPrice ? (
           <>
@@ -188,9 +266,13 @@ export function PartCard({ item, onCompare, onInstall }) {
             <div className="text-2xl sm:text-3xl font-extrabold text-gray-900 my-0.5">
               {formattedPrice(item.totalPrice)}
             </div>
-            <span className="text-[11px] text-emerald-600 font-semibold block mb-2">
-              en 6 cuotas con envío
-            </span>
+            
+            {/* Installments Highlight */}
+            <div className="bg-emerald-50 border border-emerald-200 rounded-md py-1 px-2 my-1 text-center">
+              <span className="text-xs font-bold text-emerald-800 block">
+                Hasta 6 cuotas de {formattedPrice(approxCuota6)}
+              </span>
+            </div>
           </>
         ) : (
           <div className="my-1 text-center">
@@ -217,6 +299,19 @@ export function PartCard({ item, onCompare, onInstall }) {
             <span>{actionBtn.text}</span>
             {actionBtn.icon}
           </a>
+
+          {/* Botón Financiación / Cuotas y 2 Tarjetas */}
+          {hasPrice && (
+            <button
+              type="button"
+              onClick={() => onOpenFinancing && onOpenFinancing(item)}
+              className="w-full py-1.5 px-3 rounded-md bg-white hover:bg-gray-100 text-gray-800 font-bold text-xs transition border border-gray-300 flex items-center justify-center gap-1.5"
+              title="Calcular cuotas y simular pago con 2 tarjetas"
+            >
+              <CreditCard className="w-3.5 h-3.5 text-blue-600" />
+              <span>Cuotas / 2 Tarjetas</span>
+            </button>
+          )}
 
           {hasPrice && (
             <button

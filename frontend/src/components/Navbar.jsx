@@ -22,7 +22,9 @@ import {
   Gauge,
   Cog,
   BatteryCharging,
-  Shield
+  Shield,
+  Award,
+  Package
 } from 'lucide-react';
 
 export function Navbar({
@@ -31,7 +33,10 @@ export function Navbar({
   onLogout,
   onOpenAlerts,
   onSearch,
-  currentQuery
+  currentQuery,
+  onOpenCombos,
+  onOpenLoyalty,
+  loyaltyKm = 150
 }) {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [installed, setInstalled] = useState(false);
@@ -239,6 +244,20 @@ export function Navbar({
 
           {/* Right Top Actions */}
           <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+            {/* Pasaporte DinAcitY Club Kilómetros Button */}
+            <button
+              type="button"
+              onClick={onOpenLoyalty}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-black rounded-lg bg-amber-400 hover:bg-amber-300 text-amber-950 shadow-sm transition border border-amber-300 cursor-pointer"
+              title="Ver mi Pasaporte DinAcitY y acumular Kilómetros"
+            >
+              <Award className="w-4 h-4 text-amber-900" />
+              <span className="hidden sm:inline">Pasaporte</span>
+              <span className="px-1.5 py-0.2 rounded-full bg-amber-950 text-amber-200 text-[10px] font-black">
+                {loyaltyKm} KM
+              </span>
+            </button>
+
             {/* Price Alert Button */}
             <button
               onClick={onOpenAlerts}
@@ -304,6 +323,16 @@ export function Navbar({
           {/* Center Links & Dropdowns (Frenos, Refrigeración ⌵, Calefacción ⌵, Mangueras, Motor...) */}
           <div className="flex items-center gap-1 sm:gap-2 text-xs shrink-0">
             
+            {/* Kits / Paquetes Dinámicos */}
+            <button
+              onClick={onOpenCombos}
+              className="px-2 sm:px-2.5 py-1 rounded bg-white/20 hover:bg-white/30 text-white whitespace-nowrap transition cursor-pointer font-black text-[11px] sm:text-xs flex items-center gap-1 border border-white/30 shadow-xs"
+              title="Armar paquetes de repuestos para tu vehículo"
+            >
+              <Package className="w-3.5 h-3.5 text-yellow-300" />
+              <span>Kits / Combos</span>
+            </button>
+
             {/* Frenos */}
             <button
               onClick={() => handleCategoryClick('Pastillas de freno')}
@@ -531,6 +560,21 @@ export function Navbar({
                     </div>
 
                     <div className="py-1 text-xs">
+                      <div
+                        onClick={() => {
+                          setIsUserMenuOpen(false);
+                          if (onOpenLoyalty) onOpenLoyalty();
+                        }}
+                        className="px-4 py-2 hover:bg-amber-50 text-amber-900 font-bold flex items-center justify-between cursor-pointer"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Award className="w-3.5 h-3.5 text-amber-600" />
+                          <span>Pasaporte DinAcitY</span>
+                        </div>
+                        <span className="px-1.5 py-0.2 rounded-full bg-amber-200 text-amber-900 text-[10px] font-black">
+                          {loyaltyKm} KM
+                        </span>
+                      </div>
                       <div className="px-4 py-2 hover:bg-gray-50 text-gray-700 flex items-center gap-2 cursor-pointer">
                         <User className="w-3.5 h-3.5 text-blue-600" />
                         <span>Mi cuenta en DinAcitY</span>

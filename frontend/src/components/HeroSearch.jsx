@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Car, Bike, Truck, Search, Sparkles, MapPin, ShieldCheck } from 'lucide-react';
+import { Car, Bike, Truck, Search, Sparkles, MapPin, ShieldCheck, Package } from 'lucide-react';
 import { PatenteSearchWidget } from './PatenteSearchWidget.jsx';
 
 export function HeroSearch({
@@ -8,7 +8,8 @@ export function HeroSearch({
   loading,
   currentSearchParams,
   currentQuality = 'todos',
-  onQualityChange
+  onQualityChange,
+  onOpenCombos
 }) {
   const [searchMode, setSearchMode] = useState('standard'); // 'standard' | 'patente'
   const [vehicleType, setVehicleType] = useState(currentSearchParams?.vehicleType || 'auto');
@@ -127,35 +128,47 @@ export function HeroSearch({
           DinAcitY
         </div>
 
-        {/* Selector de Modo de Búsqueda: Tradicional vs Patente DNRPA */}
-        <div className="flex items-center gap-2 mb-4 bg-gray-100 p-1 rounded-lg w-fit relative z-10">
-          <button
-            type="button"
-            onClick={() => setSearchMode('standard')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs sm:text-sm font-bold transition ${
-              searchMode === 'standard'
-                ? 'bg-white text-gray-900 shadow-xs'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            <Search className="w-3.5 h-3.5 text-red-600" />
-            <span>Búsqueda por Catálogo</span>
-          </button>
+        {/* Selector de Modo de Búsqueda y Botón de Paquetes Dinámicos (Kits) */}
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-4 relative z-10">
+          <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg w-fit">
+            <button
+              type="button"
+              onClick={() => setSearchMode('standard')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs sm:text-sm font-bold transition ${
+                searchMode === 'standard'
+                  ? 'bg-white text-gray-900 shadow-xs'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <Search className="w-3.5 h-3.5 text-red-600" />
+              <span>Búsqueda por Catálogo</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setSearchMode('patente')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs sm:text-sm font-bold transition ${
+                searchMode === 'patente'
+                  ? 'bg-blue-800 text-white shadow-xs'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <span>🇦🇷</span>
+              <span>Buscar por Patente / VIN (DNRPA)</span>
+              <span className="px-1.5 py-0.2 rounded text-[10px] bg-yellow-400 text-yellow-950 font-black">
+                Nuevo
+              </span>
+            </button>
+          </div>
 
           <button
             type="button"
-            onClick={() => setSearchMode('patente')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs sm:text-sm font-bold transition ${
-              searchMode === 'patente'
-                ? 'bg-blue-800 text-white shadow-xs'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
+            onClick={onOpenCombos}
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 border border-red-300 font-bold text-xs sm:text-sm shadow-xs transition transform active:scale-95"
+            title="Armar combos y kits completos para tu auto sin descuentos inventados"
           >
-            <span>🇦🇷</span>
-            <span>Buscar por Patente / VIN (DNRPA)</span>
-            <span className="px-1.5 py-0.2 rounded text-[10px] bg-yellow-400 text-yellow-950 font-black">
-              Nuevo
-            </span>
+            <Package className="w-4 h-4 text-red-600" />
+            <span>📦 Armar Kit para tu Auto</span>
           </button>
         </div>
 
