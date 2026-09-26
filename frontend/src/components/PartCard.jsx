@@ -1,7 +1,7 @@
 ﻿import React, { useState } from 'react';
-import { ExternalLink, Star, Shield, Truck, Flame, TrendingDown, MapPin, Store, MessageCircle, Wrench, CreditCard, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
+import { ExternalLink, Star, Shield, Truck, Flame, TrendingDown, MapPin, Store, MessageCircle, Wrench, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 
-export function PartCard({ item, onCompare, onInstall, onOpenFinancing, onSearchRelated }) {
+export function PartCard({ item, onCompare, onInstall, onSearchRelated }) {
   const [showCrossSell, setShowCrossSell] = useState(false);
 
   const formattedPrice = (val) => {
@@ -15,9 +15,6 @@ export function PartCard({ item, onCompare, onInstall, onOpenFinancing, onSearch
 
   const isCheapest = item.isCheapest;
   const hasPrice = item.hasPublicPrice && item.totalPrice > 0;
-
-  // Cálculo estimativo de cuotas de referencia (6 cuotas coeficiente 1.28)
-  const approxCuota6 = hasPrice ? Math.round((item.totalPrice * 1.28) / 6) : 0;
 
   const getSourceBadge = (sourceType) => {
     if (sourceType === 'casa_repuestos_mendoza') {
@@ -266,13 +263,9 @@ export function PartCard({ item, onCompare, onInstall, onOpenFinancing, onSearch
             <div className="text-2xl sm:text-3xl font-extrabold text-gray-900 my-0.5">
               {formattedPrice(item.totalPrice)}
             </div>
-            
-            {/* Installments Highlight */}
-            <div className="bg-emerald-50 border border-emerald-200 rounded-md py-1 px-2 my-1 text-center">
-              <span className="text-xs font-bold text-emerald-800 block">
-                Hasta 6 cuotas de {formattedPrice(approxCuota6)}
-              </span>
-            </div>
+            <span className="text-[11px] text-gray-500 block mb-2">
+              Precio contado / mostrador
+            </span>
           </>
         ) : (
           <div className="my-1 text-center">
@@ -299,19 +292,6 @@ export function PartCard({ item, onCompare, onInstall, onOpenFinancing, onSearch
             <span>{actionBtn.text}</span>
             {actionBtn.icon}
           </a>
-
-          {/* Botón Financiación / Cuotas y 2 Tarjetas */}
-          {hasPrice && (
-            <button
-              type="button"
-              onClick={() => onOpenFinancing && onOpenFinancing(item)}
-              className="w-full py-1.5 px-3 rounded-md bg-white hover:bg-gray-100 text-gray-800 font-bold text-xs transition border border-gray-300 flex items-center justify-center gap-1.5"
-              title="Calcular cuotas y simular pago con 2 tarjetas"
-            >
-              <CreditCard className="w-3.5 h-3.5 text-blue-600" />
-              <span>Cuotas / 2 Tarjetas</span>
-            </button>
-          )}
 
           {hasPrice && (
             <button
