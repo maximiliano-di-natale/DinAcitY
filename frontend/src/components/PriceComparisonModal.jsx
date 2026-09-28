@@ -107,12 +107,14 @@ export function PriceComparisonModal({ item, allResults, onClose }) {
                     className={`py-1.5 px-3 rounded-md font-bold text-xs flex items-center gap-1 transition ${
                       alt.actionType === 'whatsapp'
                         ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                        : alt.actionType === 'tienda_web'
+                        ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
                         : isTop
                         ? 'bg-red-600 hover:bg-red-700 text-white'
                         : 'bg-blue-600 hover:bg-blue-700 text-white'
                     }`}
                   >
-                    <span>{alt.actionType === 'whatsapp' ? 'WhatsApp' : 'Ver Oferta'}</span>
+                    <span>{alt.actionLabel || (alt.actionType === 'whatsapp' ? 'WhatsApp' : `Ir a ${alt.storeName.split(' ')[0]}`)}</span>
                     <ExternalLink className="w-3 h-3" />
                   </a>
                 </div>

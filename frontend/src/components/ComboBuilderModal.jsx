@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Package, Check, MessageCircle, ExternalLink, ShieldCheck, Car, ChevronRight, Sparkles, Layers } from 'lucide-react';
+import { clientFallbackService } from '../services/clientFallbackService.js';
 
 export function ComboBuilderModal({ isOpen, onClose, vehicleParams }) {
   const [kits, setKits] = useState([]);
@@ -20,22 +21,28 @@ export function ComboBuilderModal({ isOpen, onClose, vehicleParams }) {
 
   const fetchKits = async () => {
     setLoading(true);
+    let kitsData = [];
     try {
       const res = await fetch(`/api/combos?brand=${encodeURIComponent(brand)}&model=${encodeURIComponent(model)}&year=${encodeURIComponent(year)}&vehicleType=${encodeURIComponent(vehicleType)}`);
-      const data = await res.json();
-      setKits(data.kits || []);
-      if (data.kits && data.kits.length > 0) {
-        setSelectedKitId(data.kits[0].id);
-        // Inicializar todos los items como seleccionados
+      if (res.ok) {
+        const data = await res.json();
+        kitsData = data.kits || [];
+      } else {
+        throw new Error('API offline');
+      }
+    } catch {
+      const fallback = clientFallbackService.getCombos({ brand, model, year, vehicleType });
+      kitsData = fallback.kits || [];
+    } finally {
+      setKits(kitsData);
+      if (kitsData.length > 0) {
+        setSelectedKitId(kitsData[0].id);
         const initialSelected = {};
-        data.kits.forEach(k => {
+        kitsData.forEach(k => {
           initialSelected[k.id] = k.items.map(i => i.id);
         });
         setSelectedItems(initialSelected);
       }
-    } catch (err) {
-      console.error('Error cargando paquetes dinámicos:', err);
-    } finally {
       setLoading(false);
     }
   };

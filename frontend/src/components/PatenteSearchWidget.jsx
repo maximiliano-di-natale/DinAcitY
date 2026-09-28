@@ -1,4 +1,6 @@
+import React, { useState } from 'react';
 import { Search, ShieldCheck, Car, CheckCircle2, AlertCircle, Wrench, Sparkles, MapPin, Gauge, Fuel, Bookmark } from 'lucide-react';
+import { clientFallbackService } from '../services/clientFallbackService.js';
 
 export function PatenteSearchWidget({ onSelectVehicle, onDirectSearch }) {
   const [patenteInput, setPatenteInput] = useState('');
@@ -33,14 +35,20 @@ export function PatenteSearchWidget({ onSelectVehicle, onDirectSearch }) {
 
     try {
       const res = await fetch(`/api/vehicles/lookup-patente?patente=${encodeURIComponent(target)}`);
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'No se pudo identificar el vehículo en el registro');
+      if (res.ok) {
+        const data = await res.json();
+        setVehicleData(data);
+        return;
       }
-      setVehicleData(data);
-    } catch (err) {
-      setError(err.message);
-      setVehicleData(null);
+      throw new Error('API offline');
+    } catch {
+      try {
+        const data = clientFallbackService.lookupPatente(target);
+        setVehicleData(data);
+      } catch (err) {
+        setError(err.message || 'No se pudo identificar el vehículo en el registro automotor.');
+        setVehicleData(null);
+      }
     } finally {
       setLoading(false);
     }

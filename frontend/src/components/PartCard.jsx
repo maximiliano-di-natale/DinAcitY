@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { ExternalLink, Star, Shield, Truck, Flame, TrendingDown, MapPin, Store, MessageCircle, Wrench, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 
 export function PartCard({ item, onCompare, onInstall, onSearchRelated }) {
@@ -17,6 +17,12 @@ export function PartCard({ item, onCompare, onInstall, onSearchRelated }) {
   const hasPrice = item.hasPublicPrice && item.totalPrice > 0;
 
   const getSourceBadge = (sourceType) => {
+    if (sourceType === 'tienda_web_mendoza') {
+      return {
+        label: 'Tienda Web Mendoza (E-Commerce Directo)',
+        bg: 'bg-indigo-50 text-indigo-900 border-indigo-300'
+      };
+    }
     if (sourceType === 'casa_repuestos_mendoza') {
       return {
         label: 'Casa de Repuestos Mendoza (Mostrador / WhatsApp)',
@@ -30,7 +36,7 @@ export function PartCard({ item, onCompare, onInstall, onSearchRelated }) {
       };
     }
     return {
-      label: 'Mercado Libre Mendoza',
+      label: 'Mercado Libre Mendoza Oficial',
       bg: 'bg-yellow-50 text-yellow-900 border-yellow-300'
     };
   };
@@ -40,22 +46,29 @@ export function PartCard({ item, onCompare, onInstall, onSearchRelated }) {
   const getActionButton = () => {
     if (item.actionType === 'whatsapp') {
       return {
-        text: 'Consultar por WhatsApp',
+        text: item.actionLabel || 'Pedir por WhatsApp al Mostrador',
         icon: <MessageCircle className="w-4 h-4" />,
-        className: 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm'
+        className: 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm ring-1 ring-emerald-600/30'
+      };
+    }
+    if (item.actionType === 'tienda_web') {
+      return {
+        text: item.actionLabel || `Comprar en ${item.storeName}`,
+        icon: <ExternalLink className="w-3.5 h-3.5" />,
+        className: 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm ring-1 ring-indigo-600/30'
       };
     }
     if (item.actionType === 'facebook') {
       return {
-        text: 'Ver en Marketplace',
+        text: item.actionLabel || 'Ver en Marketplace',
         icon: <ExternalLink className="w-3.5 h-3.5" />,
-        className: 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm'
+        className: 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm ring-1 ring-blue-600/30'
       };
     }
     return {
-      text: 'Ver en Mercado Libre',
+      text: item.actionLabel || 'Comprar en Mercado Libre',
       icon: <ExternalLink className="w-3.5 h-3.5" />,
-      className: 'bg-red-600 hover:bg-red-700 text-white shadow-sm'
+      className: 'bg-red-600 hover:bg-red-700 text-white shadow-sm ring-1 ring-red-600/30'
     };
   };
 
@@ -179,6 +192,18 @@ export function PartCard({ item, onCompare, onInstall, onSearchRelated }) {
               <Store className="w-3.5 h-3.5 text-gray-500" />
               <span>{item.sellerName}</span>
             </div>
+            {item.storeWebsite && (
+              <a
+                href={item.storeWebsite}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-indigo-600 hover:text-indigo-800 font-medium underline flex items-center gap-0.5"
+                title="Visitar sitio web oficial"
+              >
+                <span>{item.storeWebsite.replace(/^https?:\/\/(www\.)?/, '')}</span>
+                <ExternalLink className="w-2.5 h-2.5" />
+              </a>
+            )}
             <div className="flex items-center gap-1 text-amber-500">
               <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
               <span className="font-bold text-gray-800">{item.sellerRating}</span>

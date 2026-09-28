@@ -215,6 +215,7 @@ export class AggregatorService {
         avgPrice: avgPrice,
         maxSavingsPossible: maxCalculatedPrice - minCalculatedPrice,
         mendozaSources: {
+          tiendasWebMendoza: combinedResults.filter(i => i.sourceType === 'tienda_web_mendoza').length,
           casasRepuestosMendoza: combinedResults.filter(i => i.sourceType === 'casa_repuestos_mendoza').length,
           mercadoLibreMendoza: combinedResults.filter(i => i.sourceType === 'mercadolibre_mendoza').length,
           facebookMarketplaceMendoza: combinedResults.filter(i => i.sourceType === 'facebook_marketplace_mendoza').length
@@ -227,9 +228,10 @@ export class AggregatorService {
         mendozaZones: availableMendozaZones,
         sourceTypes: [
           { id: 'todos', name: 'Todas las fuentes en Mendoza' },
-          { id: 'casa_repuestos_mendoza', name: 'Casas de Repuestos (WhatsApp Mendoza)' },
-          { id: 'facebook_marketplace_mendoza', name: 'Facebook Marketplace Mendoza (Precio Publicado)' },
-          { id: 'mercadolibre_mendoza', name: 'Mercado Libre Mendoza (Precio Publicado)' }
+          { id: 'tienda_web_mendoza', name: 'Tiendas Web Mendoza (E-Commerce Oficial)' },
+          { id: 'casa_repuestos_mendoza', name: 'Casas de Repuestos (WhatsApp Mostrador)' },
+          { id: 'mercadolibre_mendoza', name: 'Mercado Libre Mendoza (Precio Publicado)' },
+          { id: 'facebook_marketplace_mendoza', name: 'Facebook Marketplace Mendoza' }
         ],
         conditions: ['nuevo', 'reacondicionado'],
         partQualities: [

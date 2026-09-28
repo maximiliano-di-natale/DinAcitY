@@ -8,6 +8,7 @@ import { PriceAlertModal } from './components/PriceAlertModal.jsx';
 import { AuthModal } from './components/AuthModal.jsx';
 import { InstallationModal } from './components/InstallationModal.jsx';
 import { ComboBuilderModal } from './components/ComboBuilderModal.jsx';
+import { clientFallbackService } from './services/clientFallbackService.js';
 import { Flame, SlidersHorizontal, Sparkles, AlertCircle, MapPin, Store } from 'lucide-react';
 
 export function App() {
@@ -66,9 +67,15 @@ export function App() {
 
   useEffect(() => {
     fetch('/api/vehicles/taxonomy')
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error('API offline');
+        return res.json();
+      })
       .then((data) => setTaxonomy(data))
-      .catch((err) => console.error('Error cargando taxonomía:', err));
+      .catch((err) => {
+        console.warn('Utilizando catálogo directo cliente Mendoza:', err);
+        setTaxonomy(clientFallbackService.getTaxonomy());
+      });
 
     executeSearch(currentSearchParams, filters);
   }, []);
@@ -129,10 +136,16 @@ export function App() {
       });
 
       const response = await fetch(`/api/parts/search?${queryParams.toString()}`);
+      if (!response.ok) throw new Error('API offline');
       const data = await response.json();
       setSearchData(data);
     } catch (error) {
-      console.error('Error buscando repuestos en Mendoza:', error);
+      console.warn('Conectando directamente con motor Mendoza local:', error);
+      const fallbackData = clientFallbackService.searchParts({
+        ...searchParams,
+        ...currentFilters
+      });
+      setSearchData(fallbackData);
     } finally {
       setLoading(false);
     }

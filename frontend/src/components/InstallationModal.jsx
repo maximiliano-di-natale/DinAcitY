@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Wrench, MapPin, Star, ShieldCheck, Clock, MessageCircle, CheckCircle2, DollarSign } from 'lucide-react';
+import { clientFallbackService } from '../services/clientFallbackService.js';
 
 export function InstallationModal({ isOpen, onClose, item }) {
   const [selectedZone, setSelectedZone] = useState('todos');
@@ -17,10 +18,15 @@ export function InstallationModal({ isOpen, onClose, item }) {
     try {
       const zoneParam = zone && zone !== 'todos' ? `&zone=${encodeURIComponent(zone)}` : '';
       const res = await fetch(`/api/workshops/estimate?query=${encodeURIComponent(query)}${zoneParam}`);
-      const data = await res.json();
-      setEstimateData(data);
-    } catch (err) {
-      console.error('Error obteniendo cotización de mano de obra:', err);
+      if (res.ok) {
+        const data = await res.json();
+        setEstimateData(data);
+        return;
+      }
+      throw new Error('API offline');
+    } catch {
+      const fallback = clientFallbackService.getWorkshopEstimate(query, zone);
+      setEstimateData(fallback);
     } finally {
       setLoading(false);
     }
