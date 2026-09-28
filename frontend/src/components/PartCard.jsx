@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ExternalLink, Star, Shield, Truck, Flame, TrendingDown, MapPin, Store, MessageCircle, Wrench, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 
-export function PartCard({ item, onCompare, onInstall, onSearchRelated }) {
+export function PartCard({ item, onCompare, onSearchRelated }) {
   const [showCrossSell, setShowCrossSell] = useState(false);
 
   const formattedPrice = (val) => {
@@ -16,16 +16,22 @@ export function PartCard({ item, onCompare, onInstall, onSearchRelated }) {
   const isCheapest = item.isCheapest;
   const hasPrice = item.hasPublicPrice && item.totalPrice > 0;
 
-  const getSourceBadge = (sourceType) => {
+  const getSourceBadge = (sourceType, isOfficial) => {
+    if (sourceType === 'concesionario_oficial_mendoza' || isOfficial) {
+      return {
+        label: '💎 Concesionario Oficial Mendoza (Genuino)',
+        bg: 'bg-amber-100 text-amber-950 border-amber-400 font-extrabold shadow-xs'
+      };
+    }
     if (sourceType === 'tienda_web_mendoza') {
       return {
-        label: 'Tienda Web Mendoza (E-Commerce Directo)',
+        label: 'Tienda Especializada Mendoza (Web)',
         bg: 'bg-indigo-50 text-indigo-900 border-indigo-300'
       };
     }
     if (sourceType === 'casa_repuestos_mendoza') {
       return {
-        label: 'Casa de Repuestos Mendoza (Mostrador / WhatsApp)',
+        label: 'Mostrador Oficial Mendoza (WhatsApp)',
         bg: 'bg-emerald-50 text-emerald-800 border-emerald-300'
       };
     }
@@ -41,7 +47,7 @@ export function PartCard({ item, onCompare, onInstall, onSearchRelated }) {
     };
   };
 
-  const sourceBadge = getSourceBadge(item.sourceType);
+  const sourceBadge = getSourceBadge(item.sourceType, item.isOfficialDealer);
 
   const getActionButton = () => {
     if (item.actionType === 'whatsapp') {
@@ -328,16 +334,19 @@ export function PartCard({ item, onCompare, onInstall, onSearchRelated }) {
             </button>
           )}
 
-          {/* Cross-selling Colocación en Taller Asociado Mendoza */}
-          <button
-            type="button"
-            onClick={() => onInstall && onInstall(item)}
-            className="w-full py-1.5 px-3 rounded-md bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs transition border border-emerald-300 flex items-center justify-center gap-1.5"
-            title="Agendar turno de colocación en taller asociado de Mendoza"
-          >
-            <Wrench className="w-3.5 h-3.5 text-emerald-600" />
-            <span>🔧 Colocación en Taller</span>
-          </button>
+          {/* Contacto Oficial WhatsApp al Concesionario Mendoza */}
+          {item.whatsappUrl && item.actionType !== 'whatsapp' && (
+            <a
+              href={item.whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-1.5 px-3 rounded-md bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs transition border border-emerald-300 flex items-center justify-center gap-1.5"
+              title="Consultar al mostrador del concesionario oficial en Mendoza"
+            >
+              <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+              <span>Pedir por WhatsApp al Mostrador</span>
+            </a>
+          )}
         </div>
       </div>
 

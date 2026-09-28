@@ -6,10 +6,9 @@ import { FilterSidebar } from './components/FilterSidebar.jsx';
 import { PriceComparisonModal } from './components/PriceComparisonModal.jsx';
 import { PriceAlertModal } from './components/PriceAlertModal.jsx';
 import { AuthModal } from './components/AuthModal.jsx';
-import { InstallationModal } from './components/InstallationModal.jsx';
 import { ComboBuilderModal } from './components/ComboBuilderModal.jsx';
 import { clientFallbackService } from './services/clientFallbackService.js';
-import { Flame, SlidersHorizontal, Sparkles, AlertCircle, MapPin, Store } from 'lucide-react';
+import { Flame, SlidersHorizontal, Sparkles, AlertCircle, MapPin, Store, Car } from 'lucide-react';
 
 export function App() {
   const [taxonomy, setTaxonomy] = useState(null);
@@ -62,8 +61,6 @@ export function App() {
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
   const [isAlertsOpen, setIsAlertsOpen] = useState(false);
   const [comparingItem, setComparingItem] = useState(null);
-  const [isInstallationOpen, setIsInstallationOpen] = useState(false);
-  const [selectedInstallationItem, setSelectedInstallationItem] = useState(null);
 
   useEffect(() => {
     fetch('/api/vehicles/taxonomy')
@@ -373,23 +370,66 @@ export function App() {
                 </button>
               </div>
             ) : (
-              searchData.results?.map((item) => (
-                <PartCard
-                  key={item.id}
-                  item={item}
-                  onCompare={(it) => setComparingItem(it)}
-                  onInstall={(it) => {
-                    setSelectedInstallationItem(it);
-                    setIsInstallationOpen(true);
-                  }}
-                  onSearchRelated={(term) => {
-                    handleSearchFromHero({
-                      ...currentSearchParams,
-                      query: term
-                    });
-                  }}
-                />
-              ))
+              <>
+                {/* Ficha de Radicación en Mendoza y Patente Conectada */}
+                {searchData.vehicleRegistry && (
+                  <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-blue-950 text-white rounded-lg p-4 shadow-sm border border-blue-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 mb-3">
+                    <div className="flex items-start sm:items-center gap-3">
+                      <div className="bg-white/10 p-2.5 rounded-lg border border-white/20 shrink-0">
+                        <Car className="w-5 h-5 text-yellow-400" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-black text-sm sm:text-base text-white tracking-tight">
+                            {searchData.vehicleRegistry.brand.toUpperCase()} {searchData.vehicleRegistry.model} ({searchData.vehicleRegistry.year})
+                          </span>
+                          <span className="px-2 py-0.5 rounded text-[11px] font-black bg-blue-500 text-white border border-blue-300">
+                            🇦🇷 Patente: {searchData.vehicleRegistry.patente}
+                          </span>
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500 text-white">
+                            ✓ Radicado en Mendoza
+                          </span>
+                        </div>
+                        <p className="text-xs text-blue-200 mt-1">
+                          {searchData.vehicleRegistry.radicacion} • Motor: <strong className="text-white">{searchData.vehicleRegistry.engine}</strong>
+                        </p>
+                        {searchData.officialDealer && (
+                          <p className="text-xs text-yellow-300 font-semibold mt-0.5 flex flex-wrap items-center gap-1">
+                            <span>Concesionario Oficial Designado:</span>
+                            <strong className="text-white underline">{searchData.officialDealer.dealerName}</strong>
+                            <span>({searchData.officialDealer.address})</span>
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {searchData.officialDealer?.officialWebsite && (
+                      <a
+                        href={searchData.officialDealer.officialWebsite}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="shrink-0 px-3.5 py-2 rounded-md bg-white text-blue-950 hover:bg-blue-50 font-extrabold text-xs flex items-center gap-1.5 shadow-sm transition border border-white/40"
+                      >
+                        <span>Sitio Oficial {searchData.officialDealer.brandName} ↗</span>
+                      </a>
+                    )}
+                  </div>
+                )}
+
+                {searchData.results?.map((item) => (
+                  <PartCard
+                    key={item.id}
+                    item={item}
+                    onCompare={(it) => setComparingItem(it)}
+                    onSearchRelated={(term) => {
+                      handleSearchFromHero({
+                        ...currentSearchParams,
+                        query: term
+                      });
+                    }}
+                  />
+                ))}
+              </>
             )}
 
           </div>
@@ -418,13 +458,6 @@ export function App() {
         onClose={() => setIsAuthOpen(false)}
         initialMode={authMode}
         onAuthSuccess={handleAuthSuccess}
-      />
-
-      {/* Modal de Turnos e Instalación en Talleres Mecánicos Asociados */}
-      <InstallationModal
-        isOpen={isInstallationOpen}
-        onClose={() => setIsInstallationOpen(false)}
-        item={selectedInstallationItem}
       />
 
       {/* Modal de Paquetes Dinámicos y Kits de Repuestos */}

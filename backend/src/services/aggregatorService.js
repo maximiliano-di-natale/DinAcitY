@@ -1,5 +1,5 @@
 import { MercadoLibreAdapter } from '../adapters/mercadoLibreAdapter.js';
-import { MendozaStoresAdapter } from '../adapters/mendozaStoresAdapter.js';
+import { MendozaStoresAdapter, getMendozaVehicleRegistry, MENDOZA_OFFICIAL_DEALERS } from '../adapters/mendozaStoresAdapter.js';
 import { FacebookMarketplaceMendozaAdapter } from '../adapters/facebookMarketplaceMendozaAdapter.js';
 import { titleNormalizer } from './titleNormalizerService.js';
 
@@ -194,8 +194,13 @@ export class AggregatorService {
       'San Rafael'
     ];
 
+    const registry = getMendozaVehicleRegistry(effectiveBrand, effectiveModel, effectiveYear, effectiveType);
+    const officialDealer = this.mendozaStoresAdapter.getDealerForBrand(effectiveBrand, effectiveType);
+
     return {
       region: 'Mendoza, Argentina',
+      vehicleRegistry: registry,
+      officialDealer: officialDealer,
       query: {
         searchedQuery: query || effectiveQuery,
         resolvedVehicle: {
@@ -215,6 +220,7 @@ export class AggregatorService {
         avgPrice: avgPrice,
         maxSavingsPossible: maxCalculatedPrice - minCalculatedPrice,
         mendozaSources: {
+          concesionariosOficialesMendoza: combinedResults.filter(i => i.sourceType === 'concesionario_oficial_mendoza').length,
           tiendasWebMendoza: combinedResults.filter(i => i.sourceType === 'tienda_web_mendoza').length,
           casasRepuestosMendoza: combinedResults.filter(i => i.sourceType === 'casa_repuestos_mendoza').length,
           mercadoLibreMendoza: combinedResults.filter(i => i.sourceType === 'mercadolibre_mendoza').length,
@@ -228,6 +234,7 @@ export class AggregatorService {
         mendozaZones: availableMendozaZones,
         sourceTypes: [
           { id: 'todos', name: 'Todas las fuentes en Mendoza' },
+          { id: 'concesionario_oficial_mendoza', name: '💎 Concesionarios Oficiales Mendoza (Genuino)' },
           { id: 'tienda_web_mendoza', name: 'Tiendas Web Mendoza (E-Commerce Oficial)' },
           { id: 'casa_repuestos_mendoza', name: 'Casas de Repuestos (WhatsApp Mostrador)' },
           { id: 'mercadolibre_mendoza', name: 'Mercado Libre Mendoza (Precio Publicado)' },
