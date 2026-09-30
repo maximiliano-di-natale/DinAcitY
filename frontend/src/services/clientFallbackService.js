@@ -507,6 +507,73 @@ export const clientFallbackService = {
     };
   },
 
+  loginUser({ email, password }) {
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const defaultUser = {
+      id: 'usr_maxi_mendoza',
+      email: 'maxi@dinacity.com.ar',
+      nombre: 'Maximiliano',
+      apellido: 'Di Natale',
+      direccion: 'Calle San Isidro 2341, Godoy Cruz, Mendoza',
+      telefono: '5492614979100',
+      role: 'admin',
+      created_at: '2026-09-01T12:00:00.000Z'
+    };
+
+    // Verificar si es el usuario de Maximiliano
+    if (cleanEmail === 'maxi@dinacity.com.ar' && password === 'DinAcitY2026!Seguro') {
+      const token = 'client_tok_' + btoa('maxi@dinacity.com.ar:' + Date.now());
+      return { user: defaultUser, token };
+    }
+
+    // Verificar usuarios registrados localmente en el navegador
+    try {
+      const localUsers = JSON.parse(localStorage.getItem('dinacity_registered_users') || '[]');
+      const found = localUsers.find(u => u.email.toLowerCase() === cleanEmail && u.password === password);
+      if (found) {
+        const { password: _, ...safeUser } = found;
+        const token = 'client_tok_' + btoa(cleanEmail + ':' + Date.now());
+        return { user: safeUser, token };
+      }
+    } catch (e) {
+      console.warn('Error al leer usuarios locales:', e);
+    }
+
+    throw new Error('Correo electrónico o contraseña incorrectos.');
+  },
+
+  registerUser({ nombre, apellido, direccion, email, password }) {
+    const cleanEmail = (email || '').trim().toLowerCase();
+    if (!cleanEmail || !password) throw new Error('Email y contraseña requeridos');
+
+    try {
+      const localUsers = JSON.parse(localStorage.getItem('dinacity_registered_users') || '[]');
+      if (localUsers.some(u => u.email.toLowerCase() === cleanEmail) || cleanEmail === 'maxi@dinacity.com.ar') {
+        throw new Error('Este correo electrónico ya está registrado.');
+      }
+
+      const newUser = {
+        id: `usr_${Date.now()}`,
+        email: cleanEmail,
+        nombre,
+        apellido,
+        direccion: direccion || 'Mendoza, Argentina',
+        role: 'user',
+        password,
+        created_at: new Date().toISOString()
+      };
+
+      localUsers.push(newUser);
+      localStorage.setItem('dinacity_registered_users', JSON.stringify(localUsers));
+
+      const { password: _, ...safeUser } = newUser;
+      const token = 'client_tok_' + btoa(cleanEmail + ':' + Date.now());
+      return { user: safeUser, token };
+    } catch (err) {
+      throw err;
+    }
+  },
+
   searchParts(params = {}) {
     const {
       query = 'Chevrolet Onix',

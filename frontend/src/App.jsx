@@ -80,10 +80,25 @@ export function App() {
   // Verificar sesión persistida si existe token
   useEffect(() => {
     if (token) {
+      if (token.startsWith('client_tok_')) {
+        const stored = localStorage.getItem('dinacity_user');
+        if (stored) {
+          try {
+            setCurrentUser(JSON.parse(stored));
+          } catch (e) {}
+        }
+        return;
+      }
+
       fetch('/api/auth/me', {
         headers: { Authorization: `Bearer ${token}` }
       })
-        .then((res) => (res.ok ? res.json() : null))
+        .then((res) => {
+          if (!res.ok) throw new Error('Not ok');
+          const ct = res.headers.get('content-type') || '';
+          if (!ct.includes('application/json')) throw new Error('Not json');
+          return res.json();
+        })
         .then((data) => {
           if (data?.user) {
             setCurrentUser(data.user);

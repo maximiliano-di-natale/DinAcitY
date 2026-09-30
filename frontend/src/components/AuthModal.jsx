@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Lock, Mail, User, MapPin, Eye, EyeOff, ShieldCheck, CheckCircle2, AlertCircle } from 'lucide-react';
+import { clientFallbackService } from '../services/clientFallbackService.js';
 
 export function AuthModal({ isOpen, onClose, initialMode = 'register', onAuthSuccess }) {
   const [mode, setMode] = useState(initialMode); // 'register' | 'login'
@@ -80,21 +81,45 @@ export function AuthModal({ isOpen, onClose, initialMode = 'register', onAuthSuc
 
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      let data = null;
+
+      try {
+        const res = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            nombre: formData.nombre,
+            apellido: formData.apellido,
+            direccion: formData.direccion,
+            email: formData.email,
+            password: formData.password
+          })
+        });
+
+        const contentType = res.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const resJson = await res.json();
+          if (res.ok) {
+            data = resJson;
+          } else {
+            throw new Error(resJson.error || 'Error al crear la cuenta.');
+          }
+        } else {
+          // GitHub Pages u hosting estático devolvió 404 HTML
+          throw new Error('API_OFFLINE');
+        }
+      } catch (fetchErr) {
+        if (fetchErr.message !== 'API_OFFLINE' && !fetchErr.message.includes('fetch') && !fetchErr.message.includes('JSON')) {
+          throw fetchErr;
+        }
+        // Fallback a almacenamiento y sesión local en cliente
+        data = clientFallbackService.registerUser({
           nombre: formData.nombre,
           apellido: formData.apellido,
           direccion: formData.direccion,
           email: formData.email,
           password: formData.password
-        })
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Error al crear la cuenta.');
+        });
       }
 
       setSuccessMessage('¡Cuenta creada con éxito! Bienvenido a DinAcitY Mendoza.');
@@ -104,7 +129,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'register', onAuthSuc
       setTimeout(() => {
         onClose();
         setSuccessMessage('');
-      }, 1200);
+      }, 1000);
     } catch (err) {
       setErrorMessage(err.message);
     } finally {
@@ -118,28 +143,49 @@ export function AuthModal({ isOpen, onClose, initialMode = 'register', onAuthSuc
     setLoading(true);
 
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      let data = null;
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: formData.email,
+            password: formData.password
+          })
+        });
+
+        const contentType = res.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+          const resJson = await res.json();
+          if (res.ok) {
+            data = resJson;
+          } else {
+            throw new Error(resJson.error || 'Error al iniciar sesión.');
+          }
+        } else {
+          // GitHub Pages o API local offline devolvió HTML
+          throw new Error('API_OFFLINE');
+        }
+      } catch (fetchErr) {
+        if (fetchErr.message !== 'API_OFFLINE' && !fetchErr.message.includes('fetch') && !fetchErr.message.includes('JSON')) {
+          throw fetchErr;
+        }
+        // Fallback a autenticación de cliente (GitHub Pages standalone)
+        data = clientFallbackService.loginUser({
           email: formData.email,
           password: formData.password
-        })
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Error al iniciar sesión.');
+        });
       }
 
-      setSuccessMessage('¡Ingreso exitoso!');
+      setSuccessMessage('¡Ingreso exitoso! Bienvenido a DinAcitY.');
       if (onAuthSuccess) {
         onAuthSuccess(data.user, data.token);
       }
       setTimeout(() => {
         onClose();
         setSuccessMessage('');
-      }, 800);
+      }, 700);
     } catch (err) {
       setErrorMessage(err.message);
     } finally {
