@@ -11,6 +11,7 @@ import { initDatabase } from './db/database.js';
 import { UserVehiclesService } from './services/userVehiclesService.js';
 import { AlertsService } from './services/alertsService.js';
 import { WorkshopBookingsService } from './services/workshopBookingsService.js';
+import { catalogIndexer } from './crawler/catalogIndexer.js';
 
 // Inicializar base de datos SQL segura y ejecutar migraciones
 initDatabase();
@@ -353,6 +354,55 @@ app.get('/api/user/bookings', requireAuth, (req, res) => {
     res.json({ bookings });
   } catch (error) {
     res.status(500).json({ error: 'Error al consultar turnos', message: error.message });
+  }
+});
+
+// ========================================================
+// Rutas de Catálogo Maestro Normalizado y Crawler OEM
+// ========================================================
+
+// Búsqueda directa por Catálogo OEM y Ofertas Canónicas Pre-indexadas
+app.get('/api/catalog/search', (req, res) => {
+  try {
+    const { query, brand, model, category, oem, limit = 50 } = req.query;
+    const results = catalogIndexer.searchCatalog({
+      query,
+      brand,
+      model,
+      category,
+      oem,
+      limit: Number(limit)
+    });
+    res.json({
+      total: results.length,
+      results
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al consultar catálogo indexado', message: error.message });
+  }
+});
+
+// Estadísticas del Catálogo y URLs Canónicas Indexadas
+app.get('/api/catalog/stats', (req, res) => {
+  try {
+    const stats = catalogIndexer.getStats();
+    res.json(stats);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener estadísticas del catálogo', message: error.message });
+  }
+});
+
+// Ejecución manual o programada del ciclo del crawler
+app.post('/api/catalog/crawl', (req, res) => {
+  try {
+    const crawlResult = catalogIndexer.runCrawlerCycle();
+    res.json({
+      success: true,
+      message: 'Ciclo del crawler completado exitosamente',
+      crawlResult
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al ejecutar ciclo del crawler', message: error.message });
   }
 });
 

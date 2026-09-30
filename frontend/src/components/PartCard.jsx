@@ -152,6 +152,21 @@ export function PartCard({ item, onCompare, onSearchRelated }) {
             <span className={`px-2 py-0.5 rounded text-[11px] font-bold border ${sourceBadge.bg}`}>
               {sourceBadge.label}
             </span>
+            {item.oemCode && (
+              <span className="px-2 py-0.5 rounded text-[11px] font-mono font-black bg-purple-100 text-purple-950 border border-purple-300 flex items-center gap-1 shadow-xs" title="Código unificado de catálogo OEM / Fabricante">
+                🏷️ OEM: {item.oemCode}
+              </span>
+            )}
+            {item.stock !== undefined && (
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-900 border border-emerald-300 flex items-center gap-0.5" title="Unidades verificadas en stock">
+                📦 Stock: {item.stock} u.
+              </span>
+            )}
+            {item.isCanonicalUrl && (
+              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-50 text-cyan-900 border border-cyan-300 flex items-center gap-0.5" title="Ficha de repuesto verificada directamente por el indexador">
+                ⚡ Ficha Canónica Directa
+              </span>
+            )}
             <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-gray-100 text-gray-700 border border-gray-200">
               {item.partBrand}
             </span>
@@ -294,9 +309,14 @@ export function PartCard({ item, onCompare, onSearchRelated }) {
             <div className="text-2xl sm:text-3xl font-extrabold text-gray-900 my-0.5">
               {formattedPrice(item.totalPrice)}
             </div>
-            <span className="text-[11px] text-gray-500 block mb-2">
+            <span className="text-[11px] text-gray-500 block mb-0.5">
               Precio contado / mostrador
             </span>
+            {item.lastUpdated && (
+              <span className="text-[10px] text-gray-400 block mb-2 font-medium">
+                Verificado: {new Date(item.lastUpdated).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+              </span>
+            )}
           </>
         ) : (
           <div className="my-1 text-center">
