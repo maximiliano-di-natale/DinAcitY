@@ -263,12 +263,15 @@ export function App() {
   const mendozaSources = searchData.stats?.mendozaSources || {};
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-[#0d1629] to-slate-950 text-slate-100 flex flex-col font-sans relative overflow-x-hidden selection:bg-red-600 selection:text-white">
+    <div className="min-h-screen bg-gradient-to-b from-[#09152b] via-[#0d2146] via-45% to-[#050c18] text-slate-100 flex flex-col font-sans relative overflow-x-hidden selection:bg-red-600 selection:text-white">
       
-      {/* Resplandor ambiental sutil automotor (reemplaza marca de agua) */}
+      {/* Resplandor ambiental automotor premium en tonos azules profundos (más interesante y oscuro) */}
       <div className="fixed inset-0 pointer-events-none select-none overflow-hidden z-0">
-        <div className="absolute -top-40 left-1/4 w-[600px] h-[600px] bg-red-600/10 rounded-full blur-[140px]" />
-        <div className="absolute top-1/3 -right-40 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[140px]" />
+        <div className="absolute -top-36 left-1/4 w-[750px] h-[750px] bg-blue-600/15 rounded-full blur-[160px]" />
+        <div className="absolute top-1/4 -right-40 w-[650px] h-[650px] bg-indigo-600/20 rounded-full blur-[150px]" />
+        <div className="absolute top-2/3 -left-32 w-[600px] h-[600px] bg-blue-700/15 rounded-full blur-[160px]" />
+        <div className="absolute -bottom-32 right-1/4 w-[700px] h-[700px] bg-sky-800/10 rounded-full blur-[170px]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(30,58,138,0.22),rgba(255,255,255,0))] pointer-events-none" />
       </div>
 
       {/* Contenido Principal */}
@@ -291,16 +294,16 @@ export function App() {
 
         {/* Barra Superior de Navegación de Vistas: Opción 1, Opción 2 y Catálogo */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2 w-full">
-          <div className="bg-slate-800/90 border border-slate-700/80 rounded-2xl p-1.5 shadow-xl flex items-center justify-between gap-1.5 overflow-x-auto">
+          <div className="bg-[#0b1b38]/90 border border-[#1d3d78]/80 rounded-2xl p-1.5 shadow-2xl backdrop-blur-md flex items-center justify-between gap-2 overflow-x-auto">
             
             {/* Tab 1: Cotizador Express WhatsApp (Opción 1) */}
             <button
               type="button"
               onClick={() => setActiveView('cotizador')}
-              className={`flex-1 min-w-[200px] py-3 px-4 rounded-xl text-xs sm:text-sm font-black transition flex items-center justify-center gap-2 border ${
+              className={`flex-1 min-w-[200px] py-3 px-4 rounded-xl text-xs sm:text-sm font-black transition flex items-center justify-center gap-2 border cursor-pointer ${
                 activeView === 'cotizador'
-                  ? 'bg-gradient-to-r from-red-600 to-rose-600 text-white border-red-500 shadow-md shadow-red-600/20'
-                  : 'bg-transparent text-slate-300 hover:text-white hover:bg-slate-700/60 border-transparent'
+                  ? 'bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white border-blue-400 shadow-lg shadow-blue-600/35 ring-2 ring-blue-400/40'
+                  : 'bg-[#10244c]/70 hover:bg-[#18366e]/90 text-blue-100 hover:text-white border-blue-500/30 hover:border-blue-400/60 shadow-sm'
               }`}
             >
               <span className="text-base">💬</span>
@@ -311,10 +314,10 @@ export function App() {
             <button
               type="button"
               onClick={() => setActiveView('mantenimiento')}
-              className={`flex-1 min-w-[200px] py-3 px-4 rounded-xl text-xs sm:text-sm font-black transition flex items-center justify-center gap-2 border ${
+              className={`flex-1 min-w-[200px] py-3 px-4 rounded-xl text-xs sm:text-sm font-black transition flex items-center justify-center gap-2 border cursor-pointer ${
                 activeView === 'mantenimiento'
-                  ? 'bg-gradient-to-r from-blue-700 to-indigo-700 text-white border-blue-500 shadow-md shadow-blue-700/20'
-                  : 'bg-transparent text-slate-300 hover:text-white hover:bg-slate-700/60 border-transparent'
+                  ? 'bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white border-blue-400 shadow-lg shadow-blue-600/35 ring-2 ring-blue-400/40'
+                  : 'bg-[#10244c]/70 hover:bg-[#18366e]/90 text-blue-100 hover:text-white border-blue-500/30 hover:border-blue-400/60 shadow-sm'
               }`}
             >
               <span className="text-base">📖</span>
@@ -325,10 +328,10 @@ export function App() {
             <button
               type="button"
               onClick={() => setActiveView('patente')}
-              className={`flex-1 min-w-[200px] py-3 px-4 rounded-xl text-xs sm:text-sm font-black transition flex items-center justify-center gap-2 border ${
+              className={`flex-1 min-w-[200px] py-3 px-4 rounded-xl text-xs sm:text-sm font-black transition flex items-center justify-center gap-2 border cursor-pointer ${
                 activeView === 'patente'
-                  ? 'bg-slate-700 text-white border-slate-500 shadow-md'
-                  : 'bg-transparent text-slate-300 hover:text-white hover:bg-slate-700/60 border-transparent'
+                  ? 'bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white border-blue-400 shadow-lg shadow-blue-600/35 ring-2 ring-blue-400/40'
+                  : 'bg-[#10244c]/70 hover:bg-[#18366e]/90 text-blue-100 hover:text-white border-blue-500/30 hover:border-blue-400/60 shadow-sm'
               }`}
             >
               <span className="text-base">🇦🇷</span>

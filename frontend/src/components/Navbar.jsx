@@ -22,6 +22,8 @@ import {
   Gauge,
   Cog,
   BatteryCharging,
+  Battery,
+  Sparkles,
   Shield,
   Package
 } from 'lucide-react';
@@ -267,9 +269,9 @@ export function Navbar({
         </div>
       </div>
 
-      {/* Sub-Header Row (Mercado Libre Line 2) */}
-      <div className="bg-red-700 border-t border-red-500/30 text-xs text-white">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-1.5 flex items-center justify-between gap-3 overflow-x-auto md:overflow-visible">
+      {/* Sub-Header Línea 1 (Arriba): Ubicación, Accesos Operativos y Usuario Registrado */}
+      <div className="bg-red-700 border-t border-red-500/30 border-b border-red-800/40 text-xs text-white">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-1.5 flex items-center justify-between gap-2 sm:gap-4 overflow-x-auto scrollbar-none md:overflow-visible">
           
           {/* Left: Location Pin ("Enviar a Maximiliano / Calle San Isidro 2341") */}
           <div
@@ -305,16 +307,15 @@ export function Navbar({
             </div>
           </div>
 
-          {/* Center Links & Dropdowns (Cotizador, Libreta Mantenimiento, Kits, Frenos, etc.) */}
+          {/* Center: Accesos directos y herramientas */}
           <div className="flex items-center gap-1 sm:gap-2 text-xs shrink-0">
-            
             {/* Opción 1: Cotizador Express Mendoza WhatsApp */}
             <button
               onClick={() => onChangeView && onChangeView('cotizador')}
               className={`px-2 sm:px-2.5 py-1 rounded whitespace-nowrap transition cursor-pointer font-black text-[11px] sm:text-xs flex items-center gap-1 shadow-xs border ${
                 currentView === 'cotizador'
-                  ? 'bg-white text-red-700 border-white shadow-sm'
-                  : 'bg-emerald-600/90 hover:bg-emerald-600 text-white border-emerald-400/40'
+                  ? 'bg-white text-blue-950 border-white shadow-sm'
+                  : 'bg-blue-950/80 hover:bg-blue-900 text-white border-blue-400/40'
               }`}
               title="Pedir cotización de repuestos por WhatsApp en Mendoza"
             >
@@ -326,8 +327,8 @@ export function Navbar({
               onClick={() => onChangeView && onChangeView('mantenimiento')}
               className={`px-2 sm:px-2.5 py-1 rounded whitespace-nowrap transition cursor-pointer font-black text-[11px] sm:text-xs flex items-center gap-1 shadow-xs border ${
                 currentView === 'mantenimiento'
-                  ? 'bg-white text-blue-900 border-white shadow-sm'
-                  : 'bg-blue-800/90 hover:bg-blue-800 text-white border-blue-400/40'
+                  ? 'bg-white text-blue-950 border-white shadow-sm'
+                  : 'bg-blue-950/80 hover:bg-blue-900 text-white border-blue-400/40'
               }`}
               title="Ver especificaciones de aceite, fluidos y services por kilometraje"
             >
@@ -340,7 +341,7 @@ export function Navbar({
               className={`px-2 sm:px-2.5 py-1 rounded whitespace-nowrap transition cursor-pointer font-black text-[11px] sm:text-xs flex items-center gap-1 shadow-xs border ${
                 currentView === 'patente'
                   ? 'bg-white text-blue-950 border-white shadow-sm'
-                  : 'bg-slate-700/90 hover:bg-slate-700 text-white border-slate-500/40'
+                  : 'bg-blue-950/80 hover:bg-blue-900 text-white border-blue-400/40'
               }`}
               title="Buscar vehículo por patente DNRPA"
             >
@@ -356,243 +357,73 @@ export function Navbar({
               <Package className="w-3.5 h-3.5 text-yellow-300" />
               <span>Kits</span>
             </button>
-
-            {/* Frenos */}
-            <button
-              onClick={() => handleCategoryClick('Pastillas de freno')}
-              className="px-2 py-1 rounded hover:bg-white/15 text-white whitespace-nowrap transition cursor-pointer font-semibold text-[11px] sm:text-xs"
-            >
-              Frenos
-            </button>
-
-            {/* Refrigeración con Menú Desplegable Múltiple */}
-            <div className="relative" ref={refrigeracionRef}>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsRefrigeracionOpen(!isRefrigeracionOpen);
-                  setIsCalefaccionOpen(false);
-                }}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded font-bold text-[11px] sm:text-xs transition ${
-                  isRefrigeracionOpen
-                    ? 'bg-white text-red-700 shadow-sm'
-                    : 'text-white hover:bg-white/15'
-                }`}
-              >
-                <span>Refrigeración</span>
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isRefrigeracionOpen ? 'rotate-180' : ''}`} />
-              </button>
-
-              {/* Menú Desplegable Múltiple de Refrigeración */}
-              {isRefrigeracionOpen && (
-                <div className="absolute left-0 top-full mt-1.5 w-72 sm:w-80 bg-white text-gray-800 rounded-xl shadow-2xl border border-gray-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
-                  <div className="px-3.5 py-1.5 border-b border-gray-100 flex items-center justify-between text-xs text-gray-500 font-bold">
-                    <span className="text-blue-900 font-black">Sistema de Refrigeración</span>
-                    <span className="text-red-600 text-[10px] font-black uppercase">Mendoza</span>
-                  </div>
-
-                  <div className="py-1">
-                    {refrigeracionOptions.map((opt) => {
-                      const IconComponent = opt.icon;
-                      return (
-                        <button
-                          key={opt.id}
-                          onClick={() => handleCategoryClick(opt.query)}
-                          className="w-full text-left px-3.5 py-2 hover:bg-red-50 flex items-start gap-2.5 transition group"
-                        >
-                          <div className="p-1.5 rounded-lg bg-blue-50 text-blue-700 group-hover:bg-red-600 group-hover:text-white transition mt-0.5">
-                            <IconComponent className="w-4 h-4" />
-                          </div>
-                          <div>
-                            <span className="block text-xs font-bold text-gray-900 group-hover:text-red-600">
-                              {opt.name}
-                            </span>
-                            <span className="block text-[10px] text-gray-500 line-clamp-1">
-                              {opt.desc}
-                            </span>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <div className="border-t border-gray-100 pt-1.5 px-3">
-                    <button
-                      onClick={() => handleCategoryClick('Refrigeracion')}
-                      className="w-full text-center py-1 text-[11px] font-black text-blue-700 hover:text-blue-900 hover:underline"
-                    >
-                      Ver todo en Refrigeración →
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Calefacción con Menú Desplegable Múltiple */}
-            <div className="relative" ref={calefaccionRef}>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsCalefaccionOpen(!isCalefaccionOpen);
-                  setIsRefrigeracionOpen(false);
-                }}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded font-bold text-[11px] sm:text-xs transition ${
-                  isCalefaccionOpen
-                    ? 'bg-white text-red-700 shadow-sm'
-                    : 'text-white hover:bg-white/15'
-                }`}
-              >
-                <span>Calefacción</span>
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isCalefaccionOpen ? 'rotate-180' : ''}`} />
-              </button>
-
-              {/* Menú Desplegable Múltiple de Calefacción */}
-              {isCalefaccionOpen && (
-                <div className="absolute left-0 top-full mt-1.5 w-72 sm:w-80 bg-white text-gray-800 rounded-xl shadow-2xl border border-gray-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
-                  <div className="px-3.5 py-1.5 border-b border-gray-100 flex items-center justify-between text-xs text-gray-500 font-bold">
-                    <span className="text-red-700 font-black">Sistema de Calefacción</span>
-                    <span className="text-red-600 text-[10px] font-black uppercase">Mendoza</span>
-                  </div>
-
-                  <div className="py-1">
-                    {calefaccionOptions.map((opt) => {
-                      const IconComponent = opt.icon;
-                      return (
-                        <button
-                          key={opt.id}
-                          onClick={() => handleCategoryClick(opt.query)}
-                          className="w-full text-left px-3.5 py-2 hover:bg-red-50 flex items-start gap-2.5 transition group"
-                        >
-                          <div className="p-1.5 rounded-lg bg-red-50 text-red-600 group-hover:bg-red-600 group-hover:text-white transition mt-0.5">
-                            <IconComponent className="w-4 h-4" />
-                          </div>
-                          <div>
-                            <span className="block text-xs font-bold text-gray-900 group-hover:text-red-600">
-                              {opt.name}
-                            </span>
-                            <span className="block text-[10px] text-gray-500 line-clamp-1">
-                              {opt.desc}
-                            </span>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <div className="border-t border-gray-100 pt-1.5 px-3">
-                    <button
-                      onClick={() => handleCategoryClick('Calefaccion')}
-                      className="w-full text-center py-1 text-[11px] font-black text-red-600 hover:text-red-800 hover:underline"
-                    >
-                      Ver todo en Calefacción →
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Mangueras directo */}
-            <button
-              onClick={() => handleCategoryClick('Mangueras')}
-              className="px-2 py-1 rounded hover:bg-white/15 text-white whitespace-nowrap transition cursor-pointer font-semibold text-[11px] sm:text-xs"
-            >
-              Mangueras
-            </button>
-
-            {/* Motor */}
-            <button
-              onClick={() => handleCategoryClick('Kit distribucion')}
-              className="px-2 py-1 rounded hover:bg-white/15 text-white whitespace-nowrap transition cursor-pointer font-semibold text-[11px] sm:text-xs"
-            >
-              Motor
-            </button>
-
-            {/* Embragues */}
-            <button
-              onClick={() => handleCategoryClick('Kit embrague')}
-              className="hidden sm:inline-block px-2 py-1 rounded hover:bg-white/15 text-white whitespace-nowrap transition cursor-pointer font-semibold text-[11px] sm:text-xs"
-            >
-              Embragues
-            </button>
-
-            {/* Suspensión */}
-            <button
-              onClick={() => handleCategoryClick('Amortiguadores')}
-              className="hidden md:inline-block px-2 py-1 rounded hover:bg-white/15 text-white whitespace-nowrap transition cursor-pointer font-semibold text-[11px] sm:text-xs"
-            >
-              Suspensión
-            </button>
-
-            {/* Baterías */}
-            <button
-              onClick={() => handleCategoryClick('Bateria 12V')}
-              className="hidden lg:inline-block px-2 py-1 rounded hover:bg-white/15 text-white whitespace-nowrap transition cursor-pointer font-semibold text-[11px] sm:text-xs"
-            >
-              Baterías
-            </button>
-
-            {/* Filtros */}
-            <button
-              onClick={() => handleCategoryClick('Filtro aceite')}
-              className="hidden lg:inline-block px-2 py-1 rounded hover:bg-white/15 text-white whitespace-nowrap transition cursor-pointer font-semibold text-[11px] sm:text-xs"
-            >
-              Filtros
-            </button>
-
-            {/* Ofertas Mendoza */}
-            <button
-              onClick={() => handleCategoryClick('Repuestos')}
-              className="hidden xl:inline-block px-2 py-1 rounded bg-yellow-400 text-gray-900 whitespace-nowrap transition cursor-pointer font-black text-[11px] shadow-xs hover:bg-yellow-300"
-            >
-              Ofertas Mendoza
-            </button>
-
           </div>
 
-          {/* Right: Auth Profile / Creá tu cuenta / Ingresá */}
+          {/* Right: Usuario Registrado con Icono, Mis Compras y Notificaciones */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0 text-xs">
             {user ? (
-              /* Authenticated User Menu */
+              /* Authenticated User Menu con Icono de Usuario Destacado */
               <div className="relative" ref={userMenuRef}>
                 <button
                   type="button"
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className="flex items-center gap-1.5 py-1 px-2 rounded-md hover:bg-white/10 transition"
+                  className="flex items-center gap-2 py-1 px-2.5 rounded-lg bg-black/25 hover:bg-black/35 border border-white/25 hover:border-white/40 transition group shadow-xs cursor-pointer"
+                  title={`Sesión iniciada: ${user.nombre} ${user.apellido || ''}`}
                 >
-                  {/* Initials Avatar Circle (e.g. MD) */}
-                  <div className="w-6 h-6 rounded-full bg-blue-800 text-white font-black text-[10px] flex items-center justify-center border border-white/40 shadow-xs">
-                    {getUserInitials()}
+                  {/* Iconito del Usuario Registrado */}
+                  <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center border border-white/40 shadow-xs group-hover:scale-105 transition-transform shrink-0">
+                    <User className="w-3.5 h-3.5" />
                   </div>
-                  <span className="font-bold text-white max-w-[100px] sm:max-w-[130px] truncate">
-                    {user.nombre}
-                  </span>
-                  <ChevronDown className={`w-3 h-3 text-white/80 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+
+                  <div className="text-left leading-none">
+                    <div className="flex items-center gap-1 mb-0.5">
+                      <span className="text-[9px] text-red-200 uppercase tracking-wider font-semibold">Usuario</span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block animate-pulse" title="Conectado"></span>
+                    </div>
+                    <span className="font-bold text-xs text-white max-w-[120px] truncate block leading-tight">
+                      {user.nombre}
+                    </span>
+                  </div>
+
+                  <ChevronDown className={`w-3.5 h-3.5 text-white/80 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
                 </button>
 
                 {/* Profile Dropdown */}
                 {isUserMenuOpen && (
                   <div className="absolute right-0 top-full mt-1.5 w-64 bg-white text-gray-800 rounded-xl shadow-2xl border border-gray-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
                     <div className="px-4 py-2.5 border-b border-gray-100 bg-gray-50">
-                      <p className="text-xs font-black text-gray-900">
-                        {user.nombre} {user.apellido}
-                      </p>
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <div className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                          <User className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-black text-gray-900 leading-tight">
+                            {user.nombre} {user.apellido || ''}
+                          </p>
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-700">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Conectado
+                          </span>
+                        </div>
+                      </div>
                       <p className="text-[11px] text-gray-500 truncate">{user.email}</p>
-                      <p className="text-[10px] text-blue-700 mt-1 font-semibold flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-red-500 shrink-0" />
-                        <span className="truncate">{user.direccion}</span>
-                      </p>
+                      {user.direccion && (
+                        <p className="text-[10px] text-blue-700 mt-1 font-semibold flex items-center gap-1">
+                          <MapPin className="w-3 h-3 text-red-500 shrink-0" />
+                          <span className="truncate">{user.direccion}</span>
+                        </p>
+                      )}
                     </div>
 
                     <div className="py-1 text-xs">
-                      <div className="px-4 py-2 hover:bg-gray-50 text-gray-700 flex items-center gap-2 cursor-pointer">
+                      <div className="px-4 py-2 hover:bg-gray-50 text-gray-700 flex items-center gap-2 cursor-pointer font-medium">
                         <User className="w-3.5 h-3.5 text-blue-600" />
                         <span>Mi cuenta en DinAcitY</span>
                       </div>
-                      <div className="px-4 py-2 hover:bg-gray-50 text-gray-700 flex items-center gap-2 cursor-pointer">
+                      <div className="px-4 py-2 hover:bg-gray-50 text-gray-700 flex items-center gap-2 cursor-pointer font-medium">
                         <ShoppingBag className="w-3.5 h-3.5 text-emerald-600" />
                         <span>Mis compras y cotizaciones</span>
                       </div>
-                      <div className="px-4 py-2 hover:bg-gray-50 text-gray-700 flex items-center gap-2 cursor-pointer">
+                      <div className="px-4 py-2 hover:bg-gray-50 text-gray-700 flex items-center gap-2 cursor-pointer font-medium">
                         <Heart className="w-3.5 h-3.5 text-red-600" />
                         <span>Repuestos favoritos</span>
                       </div>
@@ -604,7 +435,7 @@ export function Navbar({
                           setIsUserMenuOpen(false);
                           if (onLogout) onLogout();
                         }}
-                        className="w-full text-left px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-50 flex items-center gap-2 transition"
+                        className="w-full text-left px-4 py-2 text-xs font-bold text-red-600 hover:bg-red-50 flex items-center gap-2 transition cursor-pointer"
                       >
                         <LogOut className="w-3.5 h-3.5" />
                         <span>Cerrar sesión</span>
@@ -614,21 +445,22 @@ export function Navbar({
                 )}
               </div>
             ) : (
-              /* Guest Actions (Creá tu cuenta / Ingresá) */
+              /* Guest Actions con Iconito de Usuario */
               <div className="flex items-center gap-1.5 sm:gap-2">
                 <button
                   type="button"
-                  onClick={() => onOpenAuth && onOpenAuth('register')}
-                  className="px-2 sm:px-2.5 py-1 rounded font-bold text-white hover:bg-white/15 transition text-[11px] sm:text-xs"
+                  onClick={() => onOpenAuth && onOpenAuth('login')}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/20 border border-white/25 text-white font-bold text-[11px] sm:text-xs transition cursor-pointer"
                 >
-                  Creá tu cuenta
+                  <User className="w-3.5 h-3.5 text-yellow-300" />
+                  <span>Ingresá</span>
                 </button>
                 <button
                   type="button"
-                  onClick={() => onOpenAuth && onOpenAuth('login')}
-                  className="px-2 sm:px-2.5 py-1 rounded font-bold text-white hover:bg-white/15 transition text-[11px] sm:text-xs"
+                  onClick={() => onOpenAuth && onOpenAuth('register')}
+                  className="px-2.5 py-1 rounded-md bg-white text-red-700 hover:bg-gray-100 font-black text-[11px] sm:text-xs shadow-xs transition cursor-pointer"
                 >
-                  Ingresá
+                  Creá tu cuenta
                 </button>
               </div>
             )}
@@ -638,11 +470,11 @@ export function Navbar({
               Mis compras
             </span>
 
-            {/* Notification Bell Badge (Mercado Libre style with 6) */}
+            {/* Notification Bell Badge */}
             <button
               type="button"
               onClick={onOpenAlerts}
-              className="relative p-1 text-white hover:text-yellow-200 transition"
+              className="relative p-1 text-white hover:text-yellow-200 transition cursor-pointer"
               title="Notificaciones de precios en Mendoza"
             >
               <Bell className="w-4 h-4" />
@@ -651,6 +483,211 @@ export function Navbar({
               </span>
             </button>
           </div>
+
+        </div>
+      </div>
+
+      {/* Sub-Header Línea 2 (Abajo): Categorías de Repuestos completas (con Baterías visible y destacado en tono de rojo más oscuro) */}
+      <div className="bg-red-900 border-b border-red-950/70 text-xs text-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-1 flex items-center gap-1 sm:gap-2 overflow-x-auto scrollbar-none md:overflow-visible">
+          
+          {/* Label de Categorías */}
+          <div className="flex items-center gap-1 text-red-200 font-bold text-[11px] uppercase tracking-wider shrink-0 mr-1.5 hidden sm:flex">
+            <Sparkles className="w-3.5 h-3.5 text-yellow-300" />
+            <span>Categorías:</span>
+          </div>
+
+          {/* Frenos */}
+          <button
+            onClick={() => handleCategoryClick('Pastillas de freno')}
+            className="px-2 py-1 rounded hover:bg-white/15 text-white whitespace-nowrap transition cursor-pointer font-semibold text-[11px] sm:text-xs shrink-0"
+          >
+            Frenos
+          </button>
+
+          {/* Refrigeración con Menú Desplegable Múltiple */}
+          <div className="relative shrink-0" ref={refrigeracionRef}>
+            <button
+              type="button"
+              onClick={() => {
+                setIsRefrigeracionOpen(!isRefrigeracionOpen);
+                setIsCalefaccionOpen(false);
+              }}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded font-bold text-[11px] sm:text-xs transition cursor-pointer ${
+                isRefrigeracionOpen
+                  ? 'bg-white text-red-900 shadow-sm'
+                  : 'text-white hover:bg-white/15'
+              }`}
+            >
+              <span>Refrigeración</span>
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isRefrigeracionOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {/* Menú Desplegable Múltiple de Refrigeración */}
+            {isRefrigeracionOpen && (
+              <div className="absolute left-0 top-full mt-1.5 w-72 sm:w-80 bg-white text-gray-800 rounded-xl shadow-2xl border border-gray-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                <div className="px-3.5 py-1.5 border-b border-gray-100 flex items-center justify-between text-xs text-gray-500 font-bold">
+                  <span className="text-blue-900 font-black">Sistema de Refrigeración</span>
+                  <span className="text-red-600 text-[10px] font-black uppercase">Mendoza</span>
+                </div>
+
+                <div className="py-1">
+                  {refrigeracionOptions.map((opt) => {
+                    const IconComponent = opt.icon;
+                    return (
+                      <button
+                        key={opt.id}
+                        onClick={() => handleCategoryClick(opt.query)}
+                        className="w-full text-left px-3.5 py-2 hover:bg-red-50 flex items-start gap-2.5 transition group cursor-pointer"
+                      >
+                        <div className="p-1.5 rounded-lg bg-blue-50 text-blue-700 group-hover:bg-red-600 group-hover:text-white transition mt-0.5">
+                          <IconComponent className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <span className="block text-xs font-bold text-gray-900 group-hover:text-red-600">
+                            {opt.name}
+                          </span>
+                          <span className="block text-[10px] text-gray-500 line-clamp-1">
+                            {opt.desc}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="border-t border-gray-100 pt-1.5 px-3">
+                  <button
+                    onClick={() => handleCategoryClick('Refrigeracion')}
+                    className="w-full text-center py-1 text-[11px] font-black text-blue-700 hover:text-blue-900 hover:underline cursor-pointer"
+                  >
+                    Ver todo en Refrigeración →
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Calefacción con Menú Desplegable Múltiple */}
+          <div className="relative shrink-0" ref={calefaccionRef}>
+            <button
+              type="button"
+              onClick={() => {
+                setIsCalefaccionOpen(!isCalefaccionOpen);
+                setIsRefrigeracionOpen(false);
+              }}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded font-bold text-[11px] sm:text-xs transition cursor-pointer ${
+                isCalefaccionOpen
+                  ? 'bg-white text-red-900 shadow-sm'
+                  : 'text-white hover:bg-white/15'
+              }`}
+            >
+              <span>Calefacción</span>
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isCalefaccionOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {/* Menú Desplegable Múltiple de Calefacción */}
+            {isCalefaccionOpen && (
+              <div className="absolute left-0 top-full mt-1.5 w-72 sm:w-80 bg-white text-gray-800 rounded-xl shadow-2xl border border-gray-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                <div className="px-3.5 py-1.5 border-b border-gray-100 flex items-center justify-between text-xs text-gray-500 font-bold">
+                  <span className="text-red-700 font-black">Sistema de Calefacción</span>
+                  <span className="text-red-600 text-[10px] font-black uppercase">Mendoza</span>
+                </div>
+
+                <div className="py-1">
+                  {calefaccionOptions.map((opt) => {
+                    const IconComponent = opt.icon;
+                    return (
+                      <button
+                        key={opt.id}
+                        onClick={() => handleCategoryClick(opt.query)}
+                        className="w-full text-left px-3.5 py-2 hover:bg-red-50 flex items-start gap-2.5 transition group cursor-pointer"
+                      >
+                        <div className="p-1.5 rounded-lg bg-red-50 text-red-600 group-hover:bg-red-600 group-hover:text-white transition mt-0.5">
+                          <IconComponent className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <span className="block text-xs font-bold text-gray-900 group-hover:text-red-600">
+                            {opt.name}
+                          </span>
+                          <span className="block text-[10px] text-gray-500 line-clamp-1">
+                            {opt.desc}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="border-t border-gray-100 pt-1.5 px-3">
+                  <button
+                    onClick={() => handleCategoryClick('Calefaccion')}
+                    className="w-full text-center py-1 text-[11px] font-black text-red-600 hover:text-red-800 hover:underline cursor-pointer"
+                  >
+                    Ver todo en Calefacción →
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Mangueras */}
+          <button
+            onClick={() => handleCategoryClick('Mangueras')}
+            className="px-2 py-1 rounded hover:bg-white/15 text-white whitespace-nowrap transition cursor-pointer font-semibold text-[11px] sm:text-xs shrink-0"
+          >
+            Mangueras
+          </button>
+
+          {/* Motor */}
+          <button
+            onClick={() => handleCategoryClick('Kit distribucion')}
+            className="px-2 py-1 rounded hover:bg-white/15 text-white whitespace-nowrap transition cursor-pointer font-semibold text-[11px] sm:text-xs shrink-0"
+          >
+            Motor
+          </button>
+
+          {/* Embragues */}
+          <button
+            onClick={() => handleCategoryClick('Kit embrague')}
+            className="px-2 py-1 rounded hover:bg-white/15 text-white whitespace-nowrap transition cursor-pointer font-semibold text-[11px] sm:text-xs shrink-0"
+          >
+            Embragues
+          </button>
+
+          {/* Suspensión */}
+          <button
+            onClick={() => handleCategoryClick('Amortiguadores')}
+            className="px-2 py-1 rounded hover:bg-white/15 text-white whitespace-nowrap transition cursor-pointer font-semibold text-[11px] sm:text-xs shrink-0"
+          >
+            Suspensión
+          </button>
+
+          {/* Baterías - DESTACADO Y 100% VISIBLE */}
+          <button
+            onClick={() => handleCategoryClick('Bateria 12V')}
+            className="px-2.5 py-1 rounded bg-white/15 hover:bg-white/25 text-white whitespace-nowrap transition cursor-pointer font-bold text-[11px] sm:text-xs shrink-0 flex items-center gap-1 border border-white/20"
+            title="Baterías de auto y camioneta 12V"
+          >
+            <Battery className="w-3.5 h-3.5 text-yellow-300" />
+            <span>Baterías</span>
+          </button>
+
+          {/* Filtros */}
+          <button
+            onClick={() => handleCategoryClick('Filtro aceite')}
+            className="px-2 py-1 rounded hover:bg-white/15 text-white whitespace-nowrap transition cursor-pointer font-semibold text-[11px] sm:text-xs shrink-0"
+          >
+            Filtros
+          </button>
+
+          {/* Ofertas Mendoza */}
+          <button
+            onClick={() => handleCategoryClick('Repuestos')}
+            className="px-2.5 py-1 rounded bg-yellow-400 text-gray-900 whitespace-nowrap transition cursor-pointer font-black text-[11px] shadow-xs hover:bg-yellow-300 shrink-0 ml-auto sm:ml-0"
+          >
+            🔥 Ofertas Mendoza
+          </button>
 
         </div>
       </div>
