@@ -78,12 +78,12 @@ export function HeroSearch({
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
-      {/* Encabezado Propuesta de Valor estilo TurismoCity */}
+      {/* Encabezado Propuesta de Valor Cotizador Express */}
       <div className="mb-3.5 flex flex-col md:flex-row md:items-end justify-between gap-3">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-red-600 text-white shadow-xs">
-              Metabuscador Oficial
+              Cotizador Oficial de Repuestos
             </span>
             <span className="text-[11px] font-bold text-blue-900 bg-blue-100/90 px-2 py-0.5 rounded-full border border-blue-200">
               📍 Mendoza, Argentina
@@ -93,14 +93,14 @@ export function HeroSearch({
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-gray-900 tracking-tight">
-            Compará repuestos de autos, motos y camiones en Mendoza
+            Cotizá repuestos para autos, motos y camiones en Mendoza
           </h1>
           <p className="text-xs sm:text-sm text-gray-600 max-w-2xl mt-0.5">
-            Rastreamos simultáneamente en <strong>Casas de Repuestos de Mendoza</strong>, <strong>Mercado Libre</strong> y <strong>WhatsApp Mostrador</strong> con especificaciones oficiales DNRPA.
+            Conectamos tu vehículo o patente DNRPA directamente con los <strong>mostradores de repuestos de Mendoza</strong> para cotizar por WhatsApp sin intermediarios.
           </p>
         </div>
 
-        {/* 3 Pasos TurismoCity */}
+        {/* 3 Pasos Cotizador */}
         <div className="hidden lg:flex items-center gap-2 bg-white/90 backdrop-blur-xs border border-gray-200 rounded-xl px-3.5 py-2 text-xs shadow-xs shrink-0">
           <div className="flex items-center gap-1.5 font-bold text-gray-800">
             <span className="w-5 h-5 rounded-full bg-red-600 text-white flex items-center justify-center text-[10px] font-black">1</span>
@@ -372,15 +372,15 @@ export function HeroSearch({
         </>
         )}
 
-        {/* Ticker de Proveedores Comparados en Tiempo Real estilo TurismoCity */}
+        {/* Ticker de Proveedores de Cotización */}
         <div className="pt-3 mt-3 border-t border-gray-100 flex flex-wrap items-center justify-between gap-2 text-[11px] text-gray-500 relative z-10">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-bold text-gray-700">Comparamos en tiempo real:</span>
+            <span className="font-bold text-gray-700">Cotizaciones directas con:</span>
             <span className="bg-yellow-50 text-yellow-900 border border-yellow-200 px-2 py-0.5 rounded font-semibold">
               📦 Mercado Libre Mendoza
             </span>
             <span className="bg-blue-50 text-blue-900 border border-blue-200 px-2 py-0.5 rounded font-semibold">
-              💬 Facebook Marketplace MZA
+              💬 Mostradores Oficiales MZA
             </span>
             <span className="bg-emerald-50 text-emerald-900 border border-emerald-200 px-2 py-0.5 rounded font-semibold">
               🏢 Casas Carril Rodríguez Peña
@@ -390,7 +390,7 @@ export function HeroSearch({
             </span>
           </div>
           <span className="font-bold text-emerald-700 flex items-center gap-1">
-            🛡️ Ahorro promedio garantizado de hasta 35%
+            🛡️ Precios reales de mostrador en Mendoza
           </span>
         </div>
 

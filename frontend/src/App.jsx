@@ -618,7 +618,7 @@ export function App() {
               </span>
             </div>
             <p className="text-xs text-blue-200 mt-1 max-w-sm">
-              Comparador de precios de repuestos para autos, motos y camiones en Mendoza. Formato Mercado Libre, casas de repuestos del Carril Rodríguez Peña y WhatsApp directo.
+              Cotizador Express de repuestos y Libreta de Mantenimiento Inteligente para autos, motos y camiones en Mendoza. Conexión directa por WhatsApp con casas de repuestos del Carril Rodríguez Peña y Gran Mendoza.
             </p>
           </div>
 

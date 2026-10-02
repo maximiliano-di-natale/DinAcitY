@@ -265,7 +265,7 @@ export function PartCard({ item, onCompare, onSearchRelated }) {
                         onClick={() => onSearchRelated && onSearchRelated(sug.name)}
                         className="text-[11px] text-blue-700 hover:underline font-bold shrink-0 self-start sm:self-auto"
                       >
-                        Comparar opciones →
+                        Ver repuesto →
                       </button>
                     </div>
                   ))}
@@ -350,7 +350,7 @@ export function PartCard({ item, onCompare, onSearchRelated }) {
               onClick={() => onCompare(item)}
               className="w-full py-1.5 px-3 rounded-md bg-white hover:bg-gray-100 text-blue-700 font-semibold text-xs transition border border-gray-300 flex items-center justify-center gap-1"
             >
-              <span>Comparar precios</span>
+              <span>Ficha del repuesto</span>
             </button>
           )}
 

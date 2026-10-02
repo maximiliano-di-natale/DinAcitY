@@ -232,7 +232,7 @@ export function AuthModal({ isOpen, onClose, initialMode = 'register', onAuthSuc
           </h2>
           <p className="text-xs text-red-100 mt-0.5">
             {mode === 'register'
-              ? 'Registrate para comparar precios de repuestos, guardar favoritos y recibir alertas en Mendoza.'
+              ? 'Registrate para cotizar repuestos por WhatsApp, gestionar tu libreta de mantenimiento y guardar tus vehículos en Mendoza.'
               : 'Accedé para consultar tus repuestos, cotizaciones y ubicación en Mendoza.'}
           </p>
 

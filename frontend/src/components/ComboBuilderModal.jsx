@@ -126,7 +126,7 @@ export function ComboBuilderModal({ isOpen, onClose, vehicleParams }) {
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-blue-700 shrink-0" />
             <span>
-              <strong>Metabuscador Transparente:</strong> DinAcitY no vende directamente; agrupamos los repuestos para que cotices el kit completo en un solo paso con casas de repuestos de Mendoza o Mercado Libre.
+              <strong>Cotizador Transparente:</strong> DinAcitY no vende directamente; agrupamos los repuestos para que cotices el kit completo en un solo paso con casas de repuestos de Mendoza o Mercado Libre.
             </span>
           </div>
         </div>
