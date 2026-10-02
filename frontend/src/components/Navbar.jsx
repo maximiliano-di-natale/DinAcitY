@@ -33,7 +33,9 @@ export function Navbar({
   onOpenAlerts,
   onSearch,
   currentQuery,
-  onOpenCombos
+  onOpenCombos,
+  currentView = 'catalogo',
+  onChangeView
 }) {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [installed, setInstalled] = useState(false);
@@ -303,9 +305,35 @@ export function Navbar({
             </div>
           </div>
 
-          {/* Center Links & Dropdowns (Frenos, Refrigeración ⌵, Calefacción ⌵, Mangueras, Motor...) */}
+          {/* Center Links & Dropdowns (Cotizador, Libreta Mantenimiento, Kits, Frenos, etc.) */}
           <div className="flex items-center gap-1 sm:gap-2 text-xs shrink-0">
             
+            {/* Opción 1: Cotizador Express Mendoza WhatsApp */}
+            <button
+              onClick={() => onChangeView && onChangeView('cotizador')}
+              className={`px-2 sm:px-2.5 py-1 rounded whitespace-nowrap transition cursor-pointer font-black text-[11px] sm:text-xs flex items-center gap-1 shadow-xs border ${
+                currentView === 'cotizador'
+                  ? 'bg-white text-red-700 border-white shadow-sm'
+                  : 'bg-emerald-600/90 hover:bg-emerald-600 text-white border-emerald-400/40'
+              }`}
+              title="Pedir cotización de repuestos por WhatsApp en Mendoza"
+            >
+              <span>💬 Cotizador Express</span>
+            </button>
+
+            {/* Opción 2: Libreta de Mantenimiento Inteligente */}
+            <button
+              onClick={() => onChangeView && onChangeView('mantenimiento')}
+              className={`px-2 sm:px-2.5 py-1 rounded whitespace-nowrap transition cursor-pointer font-black text-[11px] sm:text-xs flex items-center gap-1 shadow-xs border ${
+                currentView === 'mantenimiento'
+                  ? 'bg-white text-blue-900 border-white shadow-sm'
+                  : 'bg-blue-800/90 hover:bg-blue-800 text-white border-blue-400/40'
+              }`}
+              title="Ver especificaciones de aceite, fluidos y services por kilometraje"
+            >
+              <span>📖 Pasaporte Service</span>
+            </button>
+
             {/* Kits / Paquetes Dinámicos */}
             <button
               onClick={onOpenCombos}
@@ -313,7 +341,7 @@ export function Navbar({
               title="Armar paquetes de repuestos para tu vehículo"
             >
               <Package className="w-3.5 h-3.5 text-yellow-300" />
-              <span>Kits / Combos</span>
+              <span>Kits</span>
             </button>
 
             {/* Frenos */}

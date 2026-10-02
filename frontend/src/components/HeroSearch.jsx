@@ -9,7 +9,9 @@ export function HeroSearch({
   currentSearchParams,
   currentQuality = 'todos',
   onQualityChange,
-  onOpenCombos
+  onOpenCombos,
+  onNavigateCotizador,
+  onNavigateMantenimiento
 }) {
   const [searchMode, setSearchMode] = useState('standard'); // 'standard' | 'patente'
   const [vehicleType, setVehicleType] = useState(currentSearchParams?.vehicleType || 'auto');
@@ -87,14 +89,14 @@ export function HeroSearch({
               📍 Mendoza, Argentina
             </span>
             <span className="text-[11px] font-bold text-emerald-800 bg-emerald-100/90 px-2 py-0.5 rounded-full border border-emerald-200 hidden sm:inline">
-              ✓ Comparador como TurismoCity
+              ✓ Cotizador Express & Libreta de Mantenimiento
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-gray-900 tracking-tight">
-            Compará repuestos de autos, motos y camiones como vuelos
+            Compará repuestos de autos, motos y camiones en Mendoza
           </h1>
           <p className="text-xs sm:text-sm text-gray-600 max-w-2xl mt-0.5">
-            Rastreamos simultáneamente en <strong>Mercado Libre Mendoza</strong>, <strong>Facebook Marketplace</strong> y las <strong>Casas de Repuestos físicas</strong> para que elijas siempre el precio más barato.
+            Rastreamos simultáneamente en <strong>Casas de Repuestos de Mendoza</strong>, <strong>Mercado Libre</strong> y <strong>WhatsApp Mostrador</strong> con especificaciones oficiales DNRPA.
           </p>
         </div>
 
@@ -107,27 +109,19 @@ export function HeroSearch({
           <span className="text-gray-300">➔</span>
           <div className="flex items-center gap-1.5 font-bold text-gray-800">
             <span className="w-5 h-5 rounded-full bg-blue-700 text-white flex items-center justify-center text-[10px] font-black">2</span>
-            <span>Comparamos sitios</span>
+            <span>Cotizá por WhatsApp</span>
           </div>
           <span className="text-gray-300">➔</span>
           <div className="flex items-center gap-1.5 font-bold text-emerald-700">
             <span className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-[10px] font-black">3</span>
-            <span>Pagas el más barato</span>
+            <span>Ahorrás al instante</span>
           </div>
         </div>
       </div>
 
-      {/* Mercado Libre Clean White Box con Marca de Agua Interna TurismoCity */}
-      <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 sm:p-5 relative overflow-hidden">
+      {/* Mercado Libre Clean White Box */}
+      <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-4 sm:p-5 relative overflow-hidden">
         
-        {/* Marca de agua tipográfica sutil interna (no tapa nada) */}
-        <div
-          aria-hidden="true"
-          className="absolute right-4 -bottom-6 text-7xl sm:text-9xl font-black text-gray-900/[0.03] select-none pointer-events-none tracking-tighter uppercase hidden md:block"
-        >
-          DinAcitY
-        </div>
-
         {/* Selector de Modo de Búsqueda y Botón de Paquetes Dinámicos (Kits) */}
         <div className="flex flex-wrap items-center justify-between gap-2 mb-4 relative z-10">
           <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg w-fit">
@@ -156,7 +150,7 @@ export function HeroSearch({
               <span>🇦🇷</span>
               <span>Buscar por Patente / VIN (DNRPA)</span>
               <span className="px-1.5 py-0.2 rounded text-[10px] bg-yellow-400 text-yellow-950 font-black">
-                Nuevo
+                Oficial
               </span>
             </button>
           </div>
@@ -178,6 +172,8 @@ export function HeroSearch({
               onSelectVehicle={(vehParams) => {
                 onSearch(vehParams);
               }}
+              onNavigateCotizador={onNavigateCotizador}
+              onNavigateMantenimiento={onNavigateMantenimiento}
             />
           </div>
         ) : (
