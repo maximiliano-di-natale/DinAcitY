@@ -34,7 +34,7 @@ export function Navbar({
   onSearch,
   currentQuery,
   onOpenCombos,
-  currentView = 'catalogo',
+  currentView = 'cotizador',
   onChangeView
 }) {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
@@ -332,6 +332,19 @@ export function Navbar({
               title="Ver especificaciones de aceite, fluidos y services por kilometraje"
             >
               <span>📖 Pasaporte Service</span>
+            </button>
+
+            {/* Consulta DNRPA Patente */}
+            <button
+              onClick={() => onChangeView && onChangeView('patente')}
+              className={`px-2 sm:px-2.5 py-1 rounded whitespace-nowrap transition cursor-pointer font-black text-[11px] sm:text-xs flex items-center gap-1 shadow-xs border ${
+                currentView === 'patente'
+                  ? 'bg-white text-blue-950 border-white shadow-sm'
+                  : 'bg-slate-700/90 hover:bg-slate-700 text-white border-slate-500/40'
+              }`}
+              title="Buscar vehículo por patente DNRPA"
+            >
+              <span>🇦🇷 Patente DNRPA</span>
             </button>
 
             {/* Kits / Paquetes Dinámicos */}

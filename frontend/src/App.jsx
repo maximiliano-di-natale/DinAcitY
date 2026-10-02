@@ -22,7 +22,7 @@ export function App() {
     query: {}
   });
 
-  // Vista activa principal: 'cotizador' (Opción 1) | 'mantenimiento' (Opción 2) | 'catalogo'
+  // Vista activa principal: 'cotizador' (Opción 1) | 'mantenimiento' (Opción 2) | 'patente' (DNRPA)
   const [activeView, setActiveView] = useState('cotizador');
 
   // Vehículo sincronizado entre Patente DNRPA, Cotizador Express y Libreta de Mantenimiento
@@ -321,18 +321,18 @@ export function App() {
               <span>Opción 2: Libreta & Ficha Técnica</span>
             </button>
 
-            {/* Tab 3: Búsqueda & Catálogo de Precios */}
+            {/* Tab 3: Identificador por Patente DNRPA */}
             <button
               type="button"
-              onClick={() => setActiveView('catalogo')}
+              onClick={() => setActiveView('patente')}
               className={`flex-1 min-w-[200px] py-3 px-4 rounded-xl text-xs sm:text-sm font-black transition flex items-center justify-center gap-2 border ${
-                activeView === 'catalogo'
+                activeView === 'patente'
                   ? 'bg-slate-700 text-white border-slate-500 shadow-md'
                   : 'bg-transparent text-slate-300 hover:text-white hover:bg-slate-700/60 border-transparent'
               }`}
             >
-              <span className="text-base">🔍</span>
-              <span>Catálogo & DNRPA Patente</span>
+              <span className="text-base">🇦🇷</span>
+              <span>Identificar por Patente (DNRPA)</span>
             </button>
 
           </div>
@@ -343,13 +343,9 @@ export function App() {
           <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 w-full flex-1">
             <QuoteRequestWidget
               vehicle={selectedVehicle}
-              onOpenPatenteModal={() => setActiveView('catalogo')}
+              onOpenPatenteModal={() => setActiveView('patente')}
               onSelectPart={(part) => {
-                handleSearchFromHero({
-                  ...currentSearchParams,
-                  query: part
-                });
-                setActiveView('catalogo');
+                setActiveView('cotizador');
               }}
             />
           </main>
@@ -360,7 +356,7 @@ export function App() {
           <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 w-full flex-1">
             <MaintenanceBookWidget
               vehicle={selectedVehicle}
-              onOpenPatenteModal={() => setActiveView('catalogo')}
+              onOpenPatenteModal={() => setActiveView('patente')}
               onQuoteService={(serviceData) => {
                 if (serviceData?.vehicle) {
                   setSelectedVehicle(serviceData.vehicle);
@@ -371,17 +367,16 @@ export function App() {
           </main>
         )}
 
-        {/* Vista Catálogo & Metabuscador con Identificación Patente DNRPA */}
-        {activeView === 'catalogo' && (
-          <>
-            {/* Hero Search Box con tarjeta blanca y selectores */}
+        {/* Vista Identificación de Patente DNRPA */}
+        {activeView === 'patente' && (
+          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 w-full flex-1">
             <HeroSearch
-              taxonomy={taxonomy}
-              onSearch={handleSearchFromHero}
-              loading={loading}
-              currentSearchParams={currentSearchParams}
-              currentQuality={filters.partQuality || 'todos'}
-              onQualityChange={(q) => handleFilterChange('partQuality', q)}
+              onSelectVehicle={(veh) => {
+                if (veh) {
+                  const data = veh.data || veh;
+                  setSelectedVehicle(data);
+                }
+              }}
               onOpenCombos={() => setIsComboOpen(true)}
               onNavigateCotizador={(veh) => {
                 if (veh) setSelectedVehicle(veh);
@@ -392,187 +387,7 @@ export function App() {
                 setActiveView('mantenimiento');
               }}
             />
-
-            {/* Main Content Area */}
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 w-full flex-1">
-            
-            {/* Results Overview Bar (Mercado Libre Style) */}
-            <div className="bg-slate-800/90 border border-slate-700 rounded-xl p-3.5 sm:p-4 mb-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3 text-slate-100">
-              
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="text-base sm:text-lg font-bold text-white">
-                    Repuestos en Mendoza para <span className="text-red-400">"{currentSearchParams.query || currentSearchParams.model || 'Repuestos'}"</span>
-                  </h2>
-                  <span className="px-2 py-0.5 rounded-full bg-slate-700 text-slate-200 text-xs font-bold border border-slate-600">
-                    {searchData.stats?.totalResults || 0} resultados
-                  </span>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-1 text-xs text-slate-400">
-                  <span className="text-emerald-400 font-bold flex items-center gap-1">
-                    ✓ Ordenados del más barato al más caro
-                  </span>
-                  <span>•</span>
-                  <span className="text-slate-300">
-                    🏢 {mendozaSources.casasRepuestosMendoza || 0} en Casas de Repuestos
-                  </span>
-                  <span>•</span>
-                  <span className="text-slate-300">
-                    💬 {mendozaSources.facebookMarketplaceMendoza || 0} en Marketplace MZA
-                  </span>
-                  <span>•</span>
-                  <span className="text-slate-300">
-                    📦 {mendozaSources.mercadoLibreMendoza || 0} en Mercado Libre MZA
-                  </span>
-                </div>
-              </div>
-
-              {/* Stats Badges */}
-              <div className="flex flex-wrap items-center gap-2">
-                {searchData.stats?.minPrice > 0 && (
-                  <div className="px-3 py-1.5 rounded-lg bg-red-950/80 border border-red-700/60 text-red-200 text-xs font-semibold flex items-center gap-1.5 shadow-xs">
-                    <Flame className="w-4 h-4 text-red-400 fill-red-400" />
-                    <div>
-                      <span className="block text-[10px] text-red-400 uppercase font-black">Más Barato en MZA</span>
-                      <span className="text-sm font-black text-white">{formattedMoney(searchData.stats.minPrice)}</span>
-                    </div>
-                  </div>
-                )}
-
-                {searchData.stats?.maxSavingsPossible > 0 && (
-                  <div className="px-3 py-1.5 rounded-lg bg-blue-950/80 border border-blue-700/60 text-blue-200 text-xs font-semibold hidden sm:flex items-center gap-1.5 shadow-xs">
-                    <Sparkles className="w-4 h-4 text-blue-400" />
-                    <div>
-                      <span className="block text-[10px] text-blue-400 uppercase font-black">Ahorro Máximo</span>
-                      <span className="text-sm font-black text-white">Hasta {formattedMoney(searchData.stats.maxSavingsPossible)}</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Mobile Filter Toggle */}
-                <button
-                  onClick={() => setIsMobileFiltersOpen(true)}
-                  className="lg:hidden px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs border border-slate-600 flex items-center gap-1.5 shadow-sm"
-                >
-                  <SlidersHorizontal className="w-3.5 h-3.5 text-red-400" />
-                  <span>Filtros</span>
-                </button>
-              </div>
-
-            </div>
-
-            {/* Layout with Sidebar and Cards */}
-            <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 items-start">
-              
-              {/* Sidebar */}
-              <FilterSidebar
-                filters={filters}
-                onChangeFilter={handleFilterChange}
-                onResetFilters={handleResetFilters}
-                filtersMeta={searchData.filtersMeta}
-                isOpenMobile={isMobileFiltersOpen}
-                onCloseMobile={() => setIsMobileFiltersOpen(false)}
-              />
-
-              {/* Cards List */}
-              <div className="flex-1 w-full space-y-3">
-                
-                {loading ? (
-                  <div className="bg-slate-800 border border-slate-700 rounded-xl p-12 text-center space-y-3 shadow-sm">
-                    <div className="w-10 h-10 border-4 border-red-500 border-t-transparent rounded-full animate-spin mx-auto" />
-                    <p className="text-white font-bold text-sm sm:text-base">
-                      Rastreando en casas de repuestos de Mendoza, Marketplace y Mercado Libre...
-                    </p>
-                    <p className="text-xs text-slate-400">
-                      Normalizando títulos y clasificando del más barato al más caro
-                    </p>
-                  </div>
-                ) : searchData.results?.length === 0 ? (
-                  <div className="bg-slate-800 border border-slate-700 rounded-xl p-10 text-center space-y-3 shadow-sm">
-                    <AlertCircle className="w-10 h-10 text-red-400 mx-auto" />
-                    <h3 className="text-base sm:text-lg font-bold text-white">
-                      No se encontraron ofertas en Mendoza con estos filtros
-                    </h3>
-                    <p className="text-xs text-slate-400 max-w-md mx-auto">
-                      Prueba modificando la zona de Mendoza, el rango de precios o eliminando filtros para ver más opciones disponibles.
-                    </p>
-                    <button
-                      onClick={handleResetFilters}
-                      className="px-4 py-2 bg-red-600 text-white text-xs font-bold rounded-lg shadow-sm hover:bg-red-700"
-                    >
-                      Restablecer filtros
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    {/* Ficha de Radicación en Mendoza y Patente Conectada */}
-                    {searchData.vehicleRegistry && (
-                      <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-blue-950 text-white rounded-xl p-4 shadow-sm border border-blue-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 mb-3">
-                        <div className="flex items-start sm:items-center gap-3">
-                          <div className="bg-white/10 p-2.5 rounded-lg border border-white/20 shrink-0">
-                            <Car className="w-5 h-5 text-yellow-400" />
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-black text-sm sm:text-base text-white tracking-tight">
-                                {searchData.vehicleRegistry.brand?.toUpperCase()} {searchData.vehicleRegistry.model} ({searchData.vehicleRegistry.year})
-                              </span>
-                              <span className="px-2 py-0.5 rounded text-[11px] font-black bg-blue-500 text-white border border-blue-300">
-                                🇦🇷 Patente: {searchData.vehicleRegistry.patente}
-                              </span>
-                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500 text-white">
-                                ✓ Radicado en Mendoza
-                              </span>
-                            </div>
-                            <p className="text-xs text-blue-200 mt-1">
-                              {searchData.vehicleRegistry.radicacion} • Motor: <strong className="text-white">{searchData.vehicleRegistry.engine}</strong>
-                            </p>
-                            {searchData.officialDealer && (
-                              <p className="text-xs text-yellow-300 font-semibold mt-0.5 flex flex-wrap items-center gap-1">
-                                <span>Concesionario Oficial Designado:</span>
-                                <strong className="text-white underline">{searchData.officialDealer.dealerName}</strong>
-                                <span>({searchData.officialDealer.address})</span>
-                              </p>
-                            )}
-                          </div>
-                        </div>
-
-                        {searchData.officialDealer?.officialWebsite && (
-                          <a
-                            href={searchData.officialDealer.officialWebsite}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="shrink-0 px-3.5 py-2 rounded-lg bg-white text-blue-950 hover:bg-blue-50 font-extrabold text-xs flex items-center gap-1.5 shadow-sm transition border border-white/40"
-                          >
-                            <span>Sitio Oficial {searchData.officialDealer.brandName} ↗</span>
-                          </a>
-                        )}
-                      </div>
-                    )}
-
-                    {searchData.results?.map((item) => (
-                      <PartCard
-                        key={item.id}
-                        item={item}
-                        onCompare={(it) => setComparingItem(it)}
-                        onSearchRelated={(term) => {
-                          handleSearchFromHero({
-                            ...currentSearchParams,
-                            query: term
-                          });
-                        }}
-                      />
-                    ))}
-                  </>
-                )}
-
-              </div>
-
-            </div>
-
           </main>
-          </>
         )}
 
       {/* Comparison Modal */}

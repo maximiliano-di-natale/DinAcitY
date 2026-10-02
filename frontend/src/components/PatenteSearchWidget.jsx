@@ -399,7 +399,7 @@ export function PatenteSearchWidget({
 
           </div>
 
-          {/* Tres Acciones Principales Clarísimas: Cotizador Express (Opción 1), Libreta de Mantenimiento (Opción 2) y Catálogo */}
+          {/* Dos Acciones Principales Clarísimas: Cotizador Express (Opción 1) y Libreta de Mantenimiento (Opción 2) */}
           <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
             
             {onNavigateCotizador && (
@@ -423,15 +423,6 @@ export function PatenteSearchWidget({
                 <span>Ver Libreta de Mantenimiento (Opción 2)</span>
               </button>
             )}
-
-            <button
-              type="button"
-              onClick={() => handleApplyVehicle()}
-              className="w-full sm:w-auto py-3 px-5 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs sm:text-sm shadow-sm transition flex items-center justify-center gap-2"
-            >
-              <Sparkles className="w-4 h-4 text-yellow-300" />
-              <span>Ver Catálogo</span>
-            </button>
 
           </div>
 
