@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Lock, Mail, User, MapPin, Eye, EyeOff, ShieldCheck, CheckCircle2, AlertCircle } from 'lucide-react';
 import { clientFallbackService } from '../services/clientFallbackService.js';
 
@@ -8,6 +8,13 @@ export function AuthModal({ isOpen, onClose, initialMode = 'register', onAuthSuc
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+
+  useEffect(() => {
+    if (isOpen) {
+      setMode(initialMode);
+      setErrorMessage('');
+    }
+  }, [isOpen, initialMode]);
 
   // Form fields
   const [formData, setFormData] = useState({

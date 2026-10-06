@@ -1522,15 +1522,51 @@ export const clientFallbackService = {
       };
     }
 
-    // Default / Volkswagen Gol Trend
+    if (brand.includes('ford') || model.includes('ranger') || model.includes('ecosport') || model.includes('ka')) {
+      return {
+        oil: { spec: isDiesel ? '5W-30 Sintético WSS-M2C913-D' : '5W-20 / 5W-30 Sintético Motorcraft', norm: 'Ford WSS-M2C913-D / WSS-M2C948-B', capacity: isDiesel ? '9.8 Litros (Ranger 3.2/2.2)' : '4.1 Litros', interval: '10.000 km o 1 año' },
+        coolant: { type: 'Motorcraft Naranja / Amarillo Orgánico OAT', capacity: isDiesel ? '11.5 Litros' : '6.2 Litros', interval: '80.000 km o 4 años' },
+        brakeFluid: { type: 'DOT 4 LV (Baja Viscosidad ESP)', interval: '40.000 km o 2 años' },
+        transmission: { type: isDiesel ? 'Mercon LV (AT 6R80) / 75W-90 (Manual)' : '75W FE Sintético', interval: '60.000 km' },
+        timing: { type: isDiesel ? 'Cadena de Distribución con tensor hidráulico' : 'Correa dentada con tensor', interval: isDiesel ? 'Inspección a 180.000 km' : '60.000 km' },
+        tires: { size: isDiesel ? '265/65 R17' : '195/55 R15', pressureCity: '30 PSI', pressureLoaded: '35 PSI' },
+        battery: { spec: isDiesel ? '12V 80Ah 720A' : '12V 60Ah 540A' }
+      };
+    }
+
+    if (brand.includes('renault') || model.includes('kangoo') || model.includes('sandero') || model.includes('duster') || model.includes('logan')) {
+      return {
+        oil: { spec: '10W-40 Semisintético / 5W-40 Sintético Motrio/Elf', norm: 'Renault RN0700 / RN0710', capacity: '4.5 Litros con filtro', interval: '10.000 km o 1 año' },
+        coolant: { type: 'Glaceol RX Type D (Amarillo Orgánico)', capacity: '6.5 Litros', interval: '60.000 km o 3 años' },
+        brakeFluid: { type: 'DOT 4 Sintético', interval: '40.000 km o 2 años' },
+        transmission: { type: 'Elf Tranself 75W-80 NFJ / NFP GL-4', interval: '60.000 km' },
+        timing: { type: model.includes('sce') || model.includes('h4m') ? 'Cadena de Distribución' : 'Kit Correa Dentada + Bomba de Agua', interval: '60.000 km o 4 años' },
+        tires: { size: '185/65 R15', pressureCity: '31 PSI', pressureLoaded: '34 PSI' },
+        battery: { spec: '12V 60Ah 540A' }
+      };
+    }
+
+    if (brand.includes('peugeot') || brand.includes('citroen') || model.includes('208') || model.includes('partner') || model.includes('berlingo') || model.includes('c3') || model.includes('308')) {
+      return {
+        oil: { spec: '5W-30 / 0W-30 Sintético Total Quartz Ineo', norm: 'PSA B71 2290 / B71 2312', capacity: '3.75 Litros con filtro', interval: '10.000 km o 1 año' },
+        coolant: { type: 'Refrigerante Azul-Verde / Rosa Orgánico PSA', capacity: '5.8 Litros', interval: '60.000 km o 3 años' },
+        brakeFluid: { type: 'DOT 4 Sintético Alta Temperatura', interval: '40.000 km o 2 años' },
+        transmission: { type: 'Total Transmission Gear 8 75W-80', interval: '60.000 km' },
+        timing: { type: 'Kit Distribución + Bomba de Agua (1.6 VTi / HDi)', interval: '60.000 - 80.000 km' },
+        tires: { size: '195/55 R16', pressureCity: '32 PSI', pressureLoaded: '35 PSI' },
+        battery: { spec: '12V 60Ah 540A' }
+      };
+    }
+
+    // Default / Volkswagen Gol Trend / Amarok / Fox / Suran
     return {
-      oil: { spec: isDiesel ? '5W-30 Sintético 507.00' : '5W-40 Sintético Homologado', norm: 'VW 502.00 / 505.00', capacity: '4.2 Litros con filtro', interval: '10.000 km o 1 año' },
-      coolant: { type: 'Refrigerante G12evo / G13 Rosa Orgánico', capacity: '6.0 Litros', interval: '60.000 km o 4 años' },
+      oil: { spec: isDiesel ? '5W-30 Sintético 507.00' : '5W-40 Sintético Homologado', norm: isDiesel ? 'VW 504.00 / 507.00' : 'VW 502.00 / 505.00', capacity: isDiesel ? '7.0 Litros con filtro (Amarok)' : '4.2 Litros con filtro', interval: '10.000 km o 1 año' },
+      coolant: { type: 'Refrigerante G12evo / G13 Rosa Orgánico', capacity: isDiesel ? '8.5 Litros' : '6.0 Litros', interval: '60.000 km o 4 años' },
       brakeFluid: { type: 'DOT 4 Sintético', interval: '40.000 km o 2 años' },
       transmission: { type: '75W-90 GL-4 Sintético', interval: '60.000 km' },
       timing: { type: 'Kit Correa Dentada de Distribución + Tensor + Bomba', interval: '60.000 km o 4 años' },
-      tires: { size: '175/70 R14 / 195/55 R15', pressureCity: '30 PSI', pressureLoaded: '32 PSI' },
-      battery: { spec: '12V 60Ah 540A Polo Positivo Derecho' }
+      tires: { size: isDiesel ? '245/65 R17' : '175/70 R14 / 195/55 R15', pressureCity: '30 PSI', pressureLoaded: '35 PSI' },
+      battery: { spec: isDiesel ? '12V 80Ah 720A' : '12V 60Ah 540A Polo Positivo Derecho' }
     };
   },
 

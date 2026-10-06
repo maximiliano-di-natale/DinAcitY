@@ -20,7 +20,8 @@ import { clientFallbackService } from '../services/clientFallbackService.js';
 export function PatenteSearchWidget({
   onSelectVehicle,
   onNavigateCotizador,
-  onNavigateMantenimiento
+  onNavigateMantenimiento,
+  onNavigateLibreta
 }) {
   const [patenteInput, setPatenteInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -399,17 +400,17 @@ export function PatenteSearchWidget({
 
           </div>
 
-          {/* Dos Acciones Principales Clarísimas: Cotizador Express (Opción 1) y Libreta de Mantenimiento (Opción 2) */}
-          <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
+          {/* Acciones Rápidas: Cotizador Express, Pasaporte Service y Libreta de Mantenimiento */}
+          <div className="pt-2 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
             
             {onNavigateCotizador && (
               <button
                 type="button"
                 onClick={() => onNavigateCotizador(vehicleData.data)}
-                className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-black text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2 transform active:scale-98"
+                className="py-3 px-3 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-black text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2 transform active:scale-98 cursor-pointer"
               >
                 <MessageCircle className="w-4 h-4 fill-white" />
-                <span>Pedir Cotización por WhatsApp (Opción 1)</span>
+                <span>Cotizar por WhatsApp</span>
               </button>
             )}
 
@@ -417,10 +418,21 @@ export function PatenteSearchWidget({
               <button
                 type="button"
                 onClick={() => onNavigateMantenimiento(vehicleData.data)}
-                className="w-full sm:flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-600 hover:to-indigo-600 text-white font-black text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2 transform active:scale-98"
+                className="py-3 px-3 rounded-xl bg-gradient-to-r from-blue-700 to-indigo-700 hover:from-blue-600 hover:to-indigo-600 text-white font-black text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2 transform active:scale-98 cursor-pointer"
               >
                 <BookOpen className="w-4 h-4" />
-                <span>Ver Libreta de Mantenimiento (Opción 2)</span>
+                <span>Pasaporte Service</span>
+              </button>
+            )}
+
+            {onNavigateLibreta && (
+              <button
+                type="button"
+                onClick={() => onNavigateLibreta(vehicleData.data)}
+                className="py-3 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2 transform active:scale-98 cursor-pointer"
+              >
+                <Bookmark className="w-4 h-4 fill-slate-950" />
+                <span>Abrir Libreta Service</span>
               </button>
             )}
 

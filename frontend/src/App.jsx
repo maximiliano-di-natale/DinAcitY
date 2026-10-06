@@ -9,6 +9,7 @@ import { AuthModal } from './components/AuthModal.jsx';
 import { ComboBuilderModal } from './components/ComboBuilderModal.jsx';
 import { QuoteRequestWidget } from './components/QuoteRequestWidget.jsx';
 import { MaintenanceBookWidget } from './components/MaintenanceBookWidget.jsx';
+import { ServiceNotebookWidget } from './components/ServiceNotebookWidget.jsx';
 import { clientFallbackService } from './services/clientFallbackService.js';
 import { Flame, SlidersHorizontal, Sparkles, AlertCircle, MapPin, Store, Car, MessageCircle, BookOpen, Search } from 'lucide-react';
 
@@ -292,7 +293,7 @@ export function App() {
           onChangeView={(v) => setActiveView(v)}
         />
 
-        {/* Barra Superior de Navegación de Vistas: Opción 1, Opción 2 y Catálogo */}
+        {/* Barra Superior de Navegación de Vistas: Opción 1, Opción 2, Catálogo y Libreta */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2 w-full">
           <div className="bg-[#0b1b38]/90 border border-[#1d3d78]/80 rounded-2xl p-1.5 shadow-2xl backdrop-blur-md flex items-center justify-between gap-2 overflow-x-auto">
             
@@ -300,42 +301,56 @@ export function App() {
             <button
               type="button"
               onClick={() => setActiveView('cotizador')}
-              className={`flex-1 min-w-[200px] py-3 px-4 rounded-xl text-xs sm:text-sm font-black transition flex items-center justify-center gap-2 border cursor-pointer ${
+              className={`flex-1 min-w-[170px] py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-black transition flex items-center justify-center gap-2 border cursor-pointer ${
                 activeView === 'cotizador'
                   ? 'bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white border-blue-400 shadow-lg shadow-blue-600/35 ring-2 ring-blue-400/40'
                   : 'bg-[#10244c]/70 hover:bg-[#18366e]/90 text-blue-100 hover:text-white border-blue-500/30 hover:border-blue-400/60 shadow-sm'
               }`}
             >
               <span className="text-base">💬</span>
-              <span>Opción 1: Cotizador WhatsApp Mendoza</span>
+              <span>Cotizador WhatsApp</span>
             </button>
 
-            {/* Tab 2: Libreta de Mantenimiento & Ficha Técnica (Opción 2) */}
+            {/* Tab 2: Pasaporte Service & Ficha Técnica (Opción 2) */}
             <button
               type="button"
               onClick={() => setActiveView('mantenimiento')}
-              className={`flex-1 min-w-[200px] py-3 px-4 rounded-xl text-xs sm:text-sm font-black transition flex items-center justify-center gap-2 border cursor-pointer ${
+              className={`flex-1 min-w-[170px] py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-black transition flex items-center justify-center gap-2 border cursor-pointer ${
                 activeView === 'mantenimiento'
                   ? 'bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white border-blue-400 shadow-lg shadow-blue-600/35 ring-2 ring-blue-400/40'
                   : 'bg-[#10244c]/70 hover:bg-[#18366e]/90 text-blue-100 hover:text-white border-blue-500/30 hover:border-blue-400/60 shadow-sm'
               }`}
             >
               <span className="text-base">📖</span>
-              <span>Opción 2: Libreta & Ficha Técnica</span>
+              <span>Pasaporte Service</span>
             </button>
 
             {/* Tab 3: Identificador por Patente DNRPA */}
             <button
               type="button"
               onClick={() => setActiveView('patente')}
-              className={`flex-1 min-w-[200px] py-3 px-4 rounded-xl text-xs sm:text-sm font-black transition flex items-center justify-center gap-2 border cursor-pointer ${
+              className={`flex-1 min-w-[170px] py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-black transition flex items-center justify-center gap-2 border cursor-pointer ${
                 activeView === 'patente'
                   ? 'bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white border-blue-400 shadow-lg shadow-blue-600/35 ring-2 ring-blue-400/40'
                   : 'bg-[#10244c]/70 hover:bg-[#18366e]/90 text-blue-100 hover:text-white border-blue-500/30 hover:border-blue-400/60 shadow-sm'
               }`}
             >
               <span className="text-base">🇦🇷</span>
-              <span>Identificar por Patente (DNRPA)</span>
+              <span>Patente DNRPA</span>
+            </button>
+
+            {/* Tab 4: Libreta Digital de Mantenimiento & Services */}
+            <button
+              type="button"
+              onClick={() => setActiveView('libreta')}
+              className={`flex-1 min-w-[170px] py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-black transition flex items-center justify-center gap-2 border cursor-pointer ${
+                activeView === 'libreta'
+                  ? 'bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-slate-950 border-yellow-300 shadow-lg shadow-amber-500/35 ring-2 ring-amber-400/40'
+                  : 'bg-[#10244c]/70 hover:bg-[#18366e]/90 text-blue-100 hover:text-white border-blue-500/30 hover:border-blue-400/60 shadow-sm'
+              }`}
+            >
+              <span className="text-base">📒</span>
+              <span>Libreta de Services</span>
             </button>
 
           </div>
@@ -366,6 +381,7 @@ export function App() {
                 }
                 setActiveView('cotizador');
               }}
+              onNavigateLibreta={() => setActiveView('libreta')}
             />
           </main>
         )}
@@ -389,6 +405,27 @@ export function App() {
                 if (veh) setSelectedVehicle(veh);
                 setActiveView('mantenimiento');
               }}
+              onNavigateLibreta={(veh) => {
+                if (veh) setSelectedVehicle(veh);
+                setActiveView('libreta');
+              }}
+            />
+          </main>
+        )}
+
+        {/* Vista Opción 4: Libreta Digital de Mantenimiento & Services */}
+        {activeView === 'libreta' && (
+          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 w-full flex-1">
+            <ServiceNotebookWidget
+              vehicle={selectedVehicle}
+              onOpenPatenteModal={() => setActiveView('patente')}
+              onNavigateCotizador={(serviceData) => {
+                if (serviceData?.vehicle) {
+                  setSelectedVehicle(serviceData.vehicle);
+                }
+                setActiveView('cotizador');
+              }}
+              onNavigatePasaporte={() => setActiveView('mantenimiento')}
             />
           </main>
         )}
