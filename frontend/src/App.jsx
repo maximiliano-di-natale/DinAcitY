@@ -293,64 +293,102 @@ export function App() {
           onChangeView={(v) => setActiveView(v)}
         />
 
-        {/* Barra Superior de Navegación de Vistas: Opción 1, Opción 2, Catálogo y Libreta */}
+        {/* Barra Superior de Navegación de Vistas: Modo Tablero Digital Deportivo */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2 w-full">
-          <div className="bg-[#0b1b38]/90 border border-[#1d3d78]/80 rounded-2xl p-1.5 shadow-2xl backdrop-blur-md flex items-center justify-between gap-2 overflow-x-auto">
+          <div className="bg-gradient-to-r from-[#0a1835]/95 via-[#0e224b]/95 to-[#0a1835]/95 border border-blue-500/30 rounded-2xl p-2 shadow-[0_15px_35px_rgba(0,0,0,0.6),0_0_30px_rgba(37,99,235,0.2)] backdrop-blur-xl flex items-center justify-between gap-2.5 overflow-x-auto scrollbar-none">
             
             {/* Tab 1: Cotizador Express WhatsApp (Opción 1) */}
             <button
               type="button"
               onClick={() => setActiveView('cotizador')}
-              className={`flex-1 min-w-[170px] py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-black transition flex items-center justify-center gap-2 border cursor-pointer ${
+              className={`group flex-1 min-w-[190px] py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-black transition-all duration-200 flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2.5 border cursor-pointer relative overflow-hidden ${
                 activeView === 'cotizador'
-                  ? 'bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white border-blue-400 shadow-lg shadow-blue-600/35 ring-2 ring-blue-400/40'
-                  : 'bg-[#10244c]/70 hover:bg-[#18366e]/90 text-blue-100 hover:text-white border-blue-500/30 hover:border-blue-400/60 shadow-sm'
+                  ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white border-blue-300 shadow-[0_0_25px_rgba(59,130,246,0.5),inset_0_1px_1px_rgba(255,255,255,0.4)] ring-2 ring-blue-400/40 scale-[1.02]'
+                  : 'bg-[#0d1e3f]/80 hover:bg-[#142d5e]/95 text-blue-100/90 hover:text-white border-blue-500/25 hover:border-blue-400/60 shadow-sm hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] hover:scale-[1.01]'
               }`}
             >
-              <span className="text-base">💬</span>
-              <span>Cotizador WhatsApp</span>
+              <div className="flex items-center gap-2">
+                <span className="text-base group-hover:scale-110 transition-transform">💬</span>
+                <span className="tracking-tight">Cotizador WhatsApp</span>
+              </div>
+              <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-full border transition flex items-center gap-1 shadow-xs ${
+                activeView === 'cotizador'
+                  ? 'bg-emerald-400 text-slate-950 border-emerald-300 font-extrabold shadow-[0_0_12px_rgba(52,211,153,0.6)]'
+                  : 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40 group-hover:bg-emerald-500/30'
+              }`}>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                1-Click
+              </span>
             </button>
 
             {/* Tab 2: Pasaporte Service & Ficha Técnica (Opción 2) */}
             <button
               type="button"
               onClick={() => setActiveView('mantenimiento')}
-              className={`flex-1 min-w-[170px] py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-black transition flex items-center justify-center gap-2 border cursor-pointer ${
+              className={`group flex-1 min-w-[190px] py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-black transition-all duration-200 flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2.5 border cursor-pointer relative overflow-hidden ${
                 activeView === 'mantenimiento'
-                  ? 'bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white border-blue-400 shadow-lg shadow-blue-600/35 ring-2 ring-blue-400/40'
-                  : 'bg-[#10244c]/70 hover:bg-[#18366e]/90 text-blue-100 hover:text-white border-blue-500/30 hover:border-blue-400/60 shadow-sm'
+                  ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white border-blue-300 shadow-[0_0_25px_rgba(59,130,246,0.5),inset_0_1px_1px_rgba(255,255,255,0.4)] ring-2 ring-blue-400/40 scale-[1.02]'
+                  : 'bg-[#0d1e3f]/80 hover:bg-[#142d5e]/95 text-blue-100/90 hover:text-white border-blue-500/25 hover:border-blue-400/60 shadow-sm hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] hover:scale-[1.01]'
               }`}
             >
-              <span className="text-base">📖</span>
-              <span>Pasaporte Service</span>
+              <div className="flex items-center gap-2">
+                <span className="text-base group-hover:scale-110 transition-transform">📖</span>
+                <span className="tracking-tight">Pasaporte Service</span>
+              </div>
+              <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-full border transition flex items-center gap-1 shadow-xs ${
+                activeView === 'mantenimiento'
+                  ? 'bg-cyan-400 text-slate-950 border-cyan-300 font-extrabold shadow-[0_0_12px_rgba(34,211,238,0.6)]'
+                  : 'bg-cyan-500/20 text-cyan-300 border-cyan-400/40 group-hover:bg-cyan-500/30'
+              }`}>
+                ⚡ Fluidos
+              </span>
             </button>
 
             {/* Tab 3: Identificador por Patente DNRPA */}
             <button
               type="button"
               onClick={() => setActiveView('patente')}
-              className={`flex-1 min-w-[170px] py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-black transition flex items-center justify-center gap-2 border cursor-pointer ${
+              className={`group flex-1 min-w-[190px] py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-black transition-all duration-200 flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2.5 border cursor-pointer relative overflow-hidden ${
                 activeView === 'patente'
-                  ? 'bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 text-white border-blue-400 shadow-lg shadow-blue-600/35 ring-2 ring-blue-400/40'
-                  : 'bg-[#10244c]/70 hover:bg-[#18366e]/90 text-blue-100 hover:text-white border-blue-500/30 hover:border-blue-400/60 shadow-sm'
+                  ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white border-blue-300 shadow-[0_0_25px_rgba(59,130,246,0.5),inset_0_1px_1px_rgba(255,255,255,0.4)] ring-2 ring-blue-400/40 scale-[1.02]'
+                  : 'bg-[#0d1e3f]/80 hover:bg-[#142d5e]/95 text-blue-100/90 hover:text-white border-blue-500/25 hover:border-blue-400/60 shadow-sm hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] hover:scale-[1.01]'
               }`}
             >
-              <span className="text-base">🇦🇷</span>
-              <span>Patente DNRPA</span>
+              <div className="flex items-center gap-2">
+                <span className="text-base group-hover:scale-110 transition-transform">🇦🇷</span>
+                <span className="tracking-tight">Patente DNRPA</span>
+              </div>
+              <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-full border transition flex items-center gap-1 shadow-xs ${
+                activeView === 'patente'
+                  ? 'bg-sky-400 text-slate-950 border-sky-300 font-extrabold shadow-[0_0_12px_rgba(56,189,248,0.6)]'
+                  : 'bg-sky-500/20 text-sky-200 border-sky-400/40 group-hover:bg-sky-500/30'
+              }`}>
+                🔍 Oficial
+              </span>
             </button>
 
             {/* Tab 4: Libreta Digital de Mantenimiento & Services */}
             <button
               type="button"
               onClick={() => setActiveView('libreta')}
-              className={`flex-1 min-w-[170px] py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-black transition flex items-center justify-center gap-2 border cursor-pointer ${
+              className={`group flex-1 min-w-[190px] py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-black transition-all duration-200 flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2.5 border cursor-pointer relative overflow-hidden ${
                 activeView === 'libreta'
-                  ? 'bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-slate-950 border-yellow-300 shadow-lg shadow-amber-500/35 ring-2 ring-amber-400/40'
-                  : 'bg-[#10244c]/70 hover:bg-[#18366e]/90 text-blue-100 hover:text-white border-blue-500/30 hover:border-blue-400/60 shadow-sm'
+                  ? 'bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-slate-950 border-amber-300 shadow-[0_0_25px_rgba(245,158,11,0.55),inset_0_1px_1px_rgba(255,255,255,0.5)] ring-2 ring-amber-400/50 scale-[1.02]'
+                  : 'bg-[#0d1e3f]/80 hover:bg-[#142d5e]/95 text-blue-100/90 hover:text-white border-blue-500/25 hover:border-blue-400/60 shadow-sm hover:shadow-[0_0_15px_rgba(245,158,11,0.25)] hover:scale-[1.01]'
               }`}
             >
-              <span className="text-base">📒</span>
-              <span>Libreta de Services</span>
+              <div className="flex items-center gap-2">
+                <span className="text-base group-hover:scale-110 transition-transform">📒</span>
+                <span className="tracking-tight">Libreta de Services</span>
+              </div>
+              <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-full border transition flex items-center gap-1 shadow-xs ${
+                activeView === 'libreta'
+                  ? 'bg-slate-950 text-amber-300 border-amber-400 font-extrabold shadow-[0_0_10px_rgba(0,0,0,0.5)]'
+                  : 'bg-amber-500/20 text-amber-300 border-amber-400/40 group-hover:bg-amber-500/30'
+              }`}>
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+                Historial
+              </span>
             </button>
 
           </div>

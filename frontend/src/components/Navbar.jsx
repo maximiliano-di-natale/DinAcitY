@@ -417,53 +417,61 @@ export function Navbar({
             {/* Opción 1: Cotizador Express Mendoza WhatsApp */}
             <button
               onClick={() => onChangeView && onChangeView('cotizador')}
-              className={`px-2 sm:px-2.5 py-1 rounded whitespace-nowrap transition cursor-pointer font-black text-[11px] sm:text-xs flex items-center gap-1 shadow-xs border ${
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg whitespace-nowrap transition-all duration-200 cursor-pointer font-black text-[11px] sm:text-xs flex items-center gap-1.5 border ${
                 currentView === 'cotizador'
-                  ? 'bg-white text-blue-950 border-white shadow-sm'
-                  : 'bg-blue-950/80 hover:bg-blue-900 text-white border-blue-400/40'
+                  ? 'bg-white text-blue-950 border-white shadow-[0_0_15px_rgba(255,255,255,0.7)] scale-[1.04]'
+                  : 'bg-black/30 hover:bg-black/50 text-white border-white/20 hover:border-white/40 shadow-xs hover:scale-[1.02]'
               }`}
               title="Pedir cotización de repuestos por WhatsApp en Mendoza"
             >
-              <span>💬 Cotizador Express</span>
+              <span>💬</span>
+              <span>Cotizador Express</span>
+              {currentView === 'cotizador' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse inline-block"></span>}
             </button>
 
             {/* Opción 2: Libreta de Mantenimiento Inteligente */}
             <button
               onClick={() => onChangeView && onChangeView('mantenimiento')}
-              className={`px-2 sm:px-2.5 py-1 rounded whitespace-nowrap transition cursor-pointer font-black text-[11px] sm:text-xs flex items-center gap-1 shadow-xs border ${
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg whitespace-nowrap transition-all duration-200 cursor-pointer font-black text-[11px] sm:text-xs flex items-center gap-1.5 border ${
                 currentView === 'mantenimiento'
-                  ? 'bg-white text-blue-950 border-white shadow-sm'
-                  : 'bg-blue-950/80 hover:bg-blue-900 text-white border-blue-400/40'
+                  ? 'bg-white text-blue-950 border-white shadow-[0_0_15px_rgba(255,255,255,0.7)] scale-[1.04]'
+                  : 'bg-black/30 hover:bg-black/50 text-white border-white/20 hover:border-white/40 shadow-xs hover:scale-[1.02]'
               }`}
               title="Ver especificaciones de aceite, fluidos y services por kilometraje"
             >
-              <span>📖 Pasaporte Service</span>
+              <span>📖</span>
+              <span>Pasaporte Service</span>
+              {currentView === 'mantenimiento' && <span className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse inline-block"></span>}
             </button>
 
             {/* Consulta DNRPA Patente */}
             <button
               onClick={() => onChangeView && onChangeView('patente')}
-              className={`px-2 sm:px-2.5 py-1 rounded whitespace-nowrap transition cursor-pointer font-black text-[11px] sm:text-xs flex items-center gap-1 shadow-xs border ${
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg whitespace-nowrap transition-all duration-200 cursor-pointer font-black text-[11px] sm:text-xs flex items-center gap-1.5 border ${
                 currentView === 'patente'
-                  ? 'bg-white text-blue-950 border-white shadow-sm'
-                  : 'bg-blue-950/80 hover:bg-blue-900 text-white border-blue-400/40'
+                  ? 'bg-white text-blue-950 border-white shadow-[0_0_15px_rgba(255,255,255,0.7)] scale-[1.04]'
+                  : 'bg-black/30 hover:bg-black/50 text-white border-white/20 hover:border-white/40 shadow-xs hover:scale-[1.02]'
               }`}
               title="Buscar vehículo por patente DNRPA"
             >
-              <span>🇦🇷 Patente DNRPA</span>
+              <span>🇦🇷</span>
+              <span>Patente DNRPA</span>
+              {currentView === 'patente' && <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse inline-block"></span>}
             </button>
 
             {/* Opción 4: Libreta de Mantenimiento & Services (Reemplaza a Kits) */}
             <button
               onClick={() => onChangeView && onChangeView('libreta')}
-              className={`px-2 sm:px-2.5 py-1 rounded whitespace-nowrap transition cursor-pointer font-black text-[11px] sm:text-xs flex items-center gap-1 shadow-xs border ${
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg whitespace-nowrap transition-all duration-200 cursor-pointer font-black text-[11px] sm:text-xs flex items-center gap-1.5 border ${
                 currentView === 'libreta'
-                  ? 'bg-white text-blue-950 border-white shadow-sm'
-                  : 'bg-blue-950/80 hover:bg-blue-900 text-white border-blue-400/40'
+                  ? 'bg-white text-blue-950 border-white shadow-[0_0_15px_rgba(255,255,255,0.7)] scale-[1.04]'
+                  : 'bg-black/30 hover:bg-black/50 text-white border-white/20 hover:border-white/40 shadow-xs hover:scale-[1.02]'
               }`}
               title="Libreta de Service: Anotar y consultar qué le hiciste y qué le falta a tu auto"
             >
-              <span>📒 Libreta</span>
+              <span>📒</span>
+              <span>Libreta</span>
+              {currentView === 'libreta' && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse inline-block"></span>}
             </button>
 
             {/* Kits / Paquetes Dinámicos (Idea preservada para el futuro)

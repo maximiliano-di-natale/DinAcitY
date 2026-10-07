@@ -298,10 +298,11 @@ export function QuoteRequestWidget({ vehicle, onOpenPatenteModal, onSelectPart }
                 <button
                   type="button"
                   onClick={() => handleOpenWhatsApp(store)}
-                  className="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2 transform active:scale-98"
+                  className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 via-emerald-500 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-black text-xs sm:text-sm shadow-[0_0_18px_rgba(16,185,129,0.35)] hover:shadow-[0_0_25px_rgba(16,185,129,0.55)] border border-emerald-400/50 transition-all flex items-center justify-center gap-2 transform active:scale-95 cursor-pointer"
                 >
                   <MessageCircle className="w-4 h-4 fill-white" />
                   <span>Cotizar por WhatsApp</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-200 animate-ping"></span>
                 </button>
 
                 <button
