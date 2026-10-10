@@ -21,7 +21,8 @@ export function PatenteSearchWidget({
   onSelectVehicle,
   onNavigateCotizador,
   onNavigateMantenimiento,
-  onNavigateLibreta
+  onNavigateLibreta,
+  onNavigateGuantera
 }) {
   const [patenteInput, setPatenteInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -400,8 +401,8 @@ export function PatenteSearchWidget({
 
           </div>
 
-          {/* Acciones Rápidas: Cotizador Express, Pasaporte Service y Libreta de Mantenimiento */}
-          <div className="pt-2 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+          {/* Acciones Rápidas: Cotizador Express, Pasaporte Service, Libreta de Mantenimiento y Guantera Digital */}
+          <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
             
             {onNavigateCotizador && (
               <button
@@ -432,7 +433,18 @@ export function PatenteSearchWidget({
                 className="py-3 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2 transform active:scale-98 cursor-pointer"
               >
                 <Bookmark className="w-4 h-4 fill-slate-950" />
-                <span>Abrir Libreta Service</span>
+                <span>Libreta de Service</span>
+              </button>
+            )}
+
+            {onNavigateGuantera && (
+              <button
+                type="button"
+                onClick={() => onNavigateGuantera(vehicleData.data)}
+                className="py-3 px-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2 transform active:scale-98 cursor-pointer"
+              >
+                <span>📂</span>
+                <span>Guantera (RTO • Seguro)</span>
               </button>
             )}
 

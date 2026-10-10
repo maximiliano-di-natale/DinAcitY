@@ -10,6 +10,7 @@ import { ComboBuilderModal } from './components/ComboBuilderModal.jsx';
 import { QuoteRequestWidget } from './components/QuoteRequestWidget.jsx';
 import { MaintenanceBookWidget } from './components/MaintenanceBookWidget.jsx';
 import { ServiceNotebookWidget } from './components/ServiceNotebookWidget.jsx';
+import { GuanteraDigitalWidget } from './components/GuanteraDigitalWidget.jsx';
 import { clientFallbackService } from './services/clientFallbackService.js';
 import { Flame, SlidersHorizontal, Sparkles, AlertCircle, MapPin, Store, Car, MessageCircle, BookOpen, Search } from 'lucide-react';
 
@@ -391,6 +392,30 @@ export function App() {
               </span>
             </button>
 
+            {/* Tab 5: Guantera Digital (Alertas de Vencimientos Mendoza) */}
+            <button
+              type="button"
+              onClick={() => setActiveView('guantera')}
+              className={`group flex-1 min-w-[190px] py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-black transition-all duration-200 flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2.5 border cursor-pointer relative overflow-hidden ${
+                activeView === 'guantera'
+                  ? 'bg-gradient-to-r from-purple-600 via-indigo-600 to-indigo-700 text-white border-purple-300 shadow-[0_0_25px_rgba(168,85,247,0.55),inset_0_1px_1px_rgba(255,255,255,0.4)] ring-2 ring-purple-400/40 scale-[1.02]'
+                  : 'bg-[#0d1e3f]/80 hover:bg-[#142d5e]/95 text-blue-100/90 hover:text-white border-blue-500/25 hover:border-blue-400/60 shadow-sm hover:shadow-[0_0_15px_rgba(168,85,247,0.25)] hover:scale-[1.01]'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-base group-hover:scale-110 transition-transform">📂</span>
+                <span className="tracking-tight">Guantera Digital</span>
+              </div>
+              <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-full border transition flex items-center gap-1 shadow-xs ${
+                activeView === 'guantera'
+                  ? 'bg-purple-300 text-slate-950 border-purple-200 font-extrabold shadow-[0_0_10px_rgba(0,0,0,0.5)]'
+                  : 'bg-purple-500/20 text-purple-300 border-purple-400/40 group-hover:bg-purple-500/30'
+              }`}>
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse"></span>
+                RTO • Seguro
+              </span>
+            </button>
+
           </div>
         </div>
 
@@ -447,6 +472,10 @@ export function App() {
                 if (veh) setSelectedVehicle(veh);
                 setActiveView('libreta');
               }}
+              onNavigateGuantera={(veh) => {
+                if (veh) setSelectedVehicle(veh);
+                setActiveView('guantera');
+              }}
             />
           </main>
         )}
@@ -465,6 +494,18 @@ export function App() {
                 setActiveView('cotizador');
               }}
               onNavigatePasaporte={() => setActiveView('mantenimiento')}
+            />
+          </main>
+        )}
+
+        {/* Vista Opción 5: Guantera Digital & Alertas de Vencimientos Mendoza */}
+        {activeView === 'guantera' && (
+          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 w-full flex-1">
+            <GuanteraDigitalWidget
+              vehicle={selectedVehicle}
+              onOpenPatenteModal={() => setActiveView('patente')}
+              onNavigateCotizador={() => setActiveView('cotizador')}
+              onNavigateMantenimiento={() => setActiveView('mantenimiento')}
             />
           </main>
         )}

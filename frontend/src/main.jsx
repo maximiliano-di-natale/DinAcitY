@@ -4,12 +4,23 @@ import App from './App.jsx';
 import './index.css';
 
 // Registrar Service Worker para PWA (instalación en celular y desktop)
-if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch((err) => {
-      console.log('Service Worker registration failed:', err);
+if ('serviceWorker' in navigator) {
+  if (import.meta.env?.PROD) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').then((reg) => {
+        reg.update();
+      }).catch((err) => {
+        console.log('Service Worker registration failed:', err);
+      });
     });
-  });
+  } else {
+    // En desarrollo local, desregistrar service worker previo para que no sirva archivos cacheados viejos
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      for (const registration of registrations) {
+        registration.unregister();
+      }
+    });
+  }
 }
 
 class ErrorBoundary extends React.Component {

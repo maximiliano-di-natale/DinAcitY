@@ -7,7 +7,8 @@ export function HeroSearch({
   onOpenCombos,
   onNavigateCotizador,
   onNavigateMantenimiento,
-  onNavigateLibreta
+  onNavigateLibreta,
+  onNavigateGuantera
 }) {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
@@ -54,6 +55,7 @@ export function HeroSearch({
           onNavigateCotizador={onNavigateCotizador}
           onNavigateMantenimiento={onNavigateMantenimiento}
           onNavigateLibreta={onNavigateLibreta}
+          onNavigateGuantera={onNavigateGuantera}
         />
       </div>
     </div>
