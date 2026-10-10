@@ -38,6 +38,7 @@ import {
   Shield
 } from 'lucide-react';
 import { clientFallbackService } from '../services/clientFallbackService.js';
+import { MaintenanceCertificateModal } from './MaintenanceCertificateModal.jsx';
 
 // Vehículos de ejemplo inscriptos por defecto si la cochera está vacía
 const DEFAULT_USER_VEHICLES = [
@@ -247,6 +248,7 @@ export function ServiceNotebookWidget({
   // Modal para agregar o editar service
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingServiceId, setEditingServiceId] = useState(null);
+  const [isCertModalOpen, setIsCertModalOpen] = useState(false);
 
   // Form State para el service
   const [formData, setFormData] = useState({
@@ -1099,12 +1101,12 @@ export function ServiceNotebookWidget({
 
               <button
                 type="button"
-                onClick={handlePrint}
-                className="px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition border border-white/20 flex items-center gap-1.5 cursor-pointer"
-                title="Imprimir libreta oficial o guardar en PDF"
+                onClick={() => setIsCertModalOpen(true)}
+                className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 hover:from-amber-400 hover:to-yellow-300 text-slate-950 font-black text-xs transition shadow-lg shadow-amber-500/20 flex items-center gap-1.5 cursor-pointer transform active:scale-95"
+                title="Generar Certificado Oficial de Historial de Mantenimiento en PDF"
               >
-                <Printer className="w-3.5 h-3.5 text-yellow-300" />
-                <span>Imprimir Libreta</span>
+                <FileText className="w-4 h-4 fill-slate-950" />
+                <span>📄 Certificado Oficial (PDF)</span>
               </button>
             </div>
           </div>
@@ -2138,6 +2140,15 @@ export function ServiceNotebookWidget({
           </div>
         </div>
       )}
+
+      {/* Modal de Certificado y Pasaporte de Mantenimiento Oficial en PDF */}
+      <MaintenanceCertificateModal
+        isOpen={isCertModalOpen}
+        onClose={() => setIsCertModalOpen(false)}
+        vehicle={currentVehicle}
+        currentKm={currentKm}
+        services={services}
+      />
 
     </div>
   );

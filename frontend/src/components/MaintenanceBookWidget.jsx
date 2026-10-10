@@ -29,12 +29,14 @@ import {
   Shield
 } from 'lucide-react';
 import { clientFallbackService } from '../services/clientFallbackService.js';
+import { MaintenanceCertificateModal } from './MaintenanceCertificateModal.jsx';
 
 export function MaintenanceBookWidget({ vehicle, onOpenPatenteModal, onQuoteService, onNavigateLibreta }) {
   const [currentKm, setCurrentKm] = useState(60000);
   const [customKmInput, setCustomKmInput] = useState('60000');
   const [selectedStage, setSelectedStage] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [isCertModalOpen, setIsCertModalOpen] = useState(false);
 
   const currentVehicleTitle = vehicle
     ? `${vehicle.brand || ''} ${vehicle.model || ''} ${vehicle.version || ''} (${vehicle.year || ''})`.trim()
@@ -469,17 +471,24 @@ export function MaintenanceBookWidget({ vehicle, onOpenPatenteModal, onQuoteServ
               En Argentina los autos recorren cientos de miles de kilómetros. Por eso, calculamos con precisión matemática el service exacto desde los <strong>10.000 km hasta los 500.000 km</strong>: distribución, <strong>kit de embrague, caja de cambios, suspensión, retenes y mantenimiento mayor de motor</strong>.
             </p>
 
-            {onNavigateLibreta && (
-              <div className="pt-1">
+            <div className="pt-1 flex items-center gap-2 flex-wrap">
+              {onNavigateLibreta && (
                 <button
                   type="button"
                   onClick={onNavigateLibreta}
                   className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md transition cursor-pointer"
                 >
-                  <span>📒 Abrir mi Libreta de Services Realizados</span>
+                  <span>📒 Abrir mi Libreta de Services</span>
                 </button>
-              </div>
-            )}
+              )}
+              <button
+                type="button"
+                onClick={() => setIsCertModalOpen(true)}
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-xs shadow-md transition cursor-pointer border border-blue-400/30"
+              >
+                <span>📄 Generar Certificado / Pasaporte PDF</span>
+              </button>
+            </div>
           </div>
 
           {/* Ficha del Vehículo */}
@@ -985,8 +994,16 @@ export function MaintenanceBookWidget({ vehicle, onOpenPatenteModal, onQuoteServ
           </div>
 
         </div>
-
       </div>
+
+      {/* Modal de Certificado y Pasaporte de Mantenimiento Oficial en PDF */}
+      <MaintenanceCertificateModal
+        isOpen={isCertModalOpen}
+        onClose={() => setIsCertModalOpen(false)}
+        vehicle={vehicle}
+        currentKm={currentKm}
+        services={[]}
+      />
 
     </div>
   );

@@ -29,3 +29,40 @@
 .ml-card-shadow:hover {
   box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.15);
 }
+
+/* Reglas de impresión profesional para el Pasaporte / Certificado PDF */
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  #printable-certificate,
+  #printable-certificate * {
+    visibility: visible;
+  }
+
+  #printable-certificate {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 20px !important;
+    border: 2px solid #1e3a6a !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+}
