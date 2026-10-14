@@ -473,6 +473,21 @@ export function Navbar({
               {currentView === 'guantera' && <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse inline-block"></span>}
             </button>
 
+            {/* Opción 6: Mapa de Mostradores Mendoza */}
+            <button
+              onClick={() => onChangeView && onChangeView('mapa')}
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg whitespace-nowrap transition-all duration-200 cursor-pointer font-black text-[11px] sm:text-xs flex items-center gap-1.5 border ${
+                currentView === 'mapa'
+                  ? 'bg-white text-blue-950 border-white shadow-[0_0_15px_rgba(255,255,255,0.7)] scale-[1.04]'
+                  : 'bg-black/30 hover:bg-black/50 text-white border-white/20 hover:border-white/40 shadow-xs hover:scale-[1.02]'
+              }`}
+              title="Mapa de Mostradores: Circuito Carril Rodríguez Peña, Godoy Cruz y Guaymallén"
+            >
+              <span>📍</span>
+              <span>Mapa MZA</span>
+              {currentView === 'mapa' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block"></span>}
+            </button>
+
             {/* Kits / Paquetes Dinámicos (Idea preservada para el futuro)
             <button
               onClick={onOpenCombos}

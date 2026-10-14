@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { MENDOZA_QUOTE_STORES } from '../services/clientFallbackService.js';
 
-export function QuoteRequestWidget({ vehicle, onOpenPatenteModal, onSelectPart }) {
+export function QuoteRequestWidget({ vehicle, onOpenPatenteModal, onSelectPart, onNavigateMapa }) {
   const [partName, setPartName] = useState('Kit de Distribución con Bomba de Agua');
   const [selectedZone, setSelectedZone] = useState('todos');
   const [copiedStoreId, setCopiedStoreId] = useState(null);
@@ -220,21 +220,34 @@ export function QuoteRequestWidget({ vehicle, onOpenPatenteModal, onSelectPart }
             </h3>
           </div>
 
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
-            {zones.map((z) => (
+          <div className="flex items-center gap-2 flex-wrap">
+            {onNavigateMapa && (
               <button
-                key={z.id}
                 type="button"
-                onClick={() => setSelectedZone(z.id)}
-                className={`px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition border ${
-                  selectedZone === z.id
-                    ? 'bg-red-600 text-white border-red-500'
-                    : 'bg-slate-900 text-slate-300 hover:bg-slate-700 border-slate-700'
-                }`}
+                onClick={onNavigateMapa}
+                className="px-3 py-1 rounded-lg text-xs font-black bg-blue-600 hover:bg-blue-500 text-white transition border border-blue-400 shadow-sm flex items-center gap-1 cursor-pointer"
+                title="Ver casas de repuestos en el mapa del Gran Mendoza"
               >
-                {z.label}
+                <span>📍 Ver Mapa</span>
               </button>
-            ))}
+            )}
+
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+              {zones.map((z) => (
+                <button
+                  key={z.id}
+                  type="button"
+                  onClick={() => setSelectedZone(z.id)}
+                  className={`px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition border ${
+                    selectedZone === z.id
+                      ? 'bg-red-600 text-white border-red-500'
+                      : 'bg-slate-900 text-slate-300 hover:bg-slate-700 border-slate-700'
+                  }`}
+                >
+                  {z.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
