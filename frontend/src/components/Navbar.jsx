@@ -500,21 +500,7 @@ export function Navbar({
             */}
           </div>
 
-          {/* Right: Notificaciones */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0 text-xs">
-            {/* Notification Bell Badge */}
-            <button
-              type="button"
-              onClick={onOpenAlerts}
-              className="relative p-1 text-white hover:text-yellow-200 transition cursor-pointer"
-              title="Notificaciones de precios en Mendoza"
-            >
-              <Bell className="w-4 h-4" />
-              <span className="absolute -top-1 -right-1 bg-blue-900 border border-white text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
-                6
-              </span>
-            </button>
-          </div>
+
 
         </div>
       </div>
