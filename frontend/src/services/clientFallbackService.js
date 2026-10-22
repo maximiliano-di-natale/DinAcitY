@@ -932,399 +932,632 @@ export const clientFallbackService = {
     };
   },
 
-  lookupPatente(patenteStr = '') {
+  // Identificación y Normalización de Patentes y VINs DNRPA Argentina
+  detectInputType(cleaned) {
+    if (cleaned.length === 17) return 'vin';
+    if (/^[A-Z]{2}[0-9]{3}[A-Z]{2}$/.test(cleaned)) return 'patente_mercosur_auto';
+    if (/^[A-Z]{1}[0-9]{3}[A-Z]{3}$/.test(cleaned)) return 'patente_mercosur_moto';
+    if (/^[A-Z]{3}[0-9]{3}$/.test(cleaned)) return 'patente_clasica_auto';
+    if (/^[0-9]{3}[A-Z]{3,4}$/.test(cleaned)) return 'patente_clasica_moto';
+    if (/^[A-Z]{1}[0-9]{6,7}$/.test(cleaned)) return 'patente_antigua_provincial';
+    return 'unknown';
+  },
+
+  formatDisplayPatente(cleaned) {
+    if (/^[A-Z]{2}[0-9]{3}[A-Z]{2}$/.test(cleaned)) {
+      return `${cleaned.slice(0, 2)} ${cleaned.slice(2, 5)} ${cleaned.slice(5, 7)}`;
+    }
+    if (/^[A-Z]{3}[0-9]{3}$/.test(cleaned)) {
+      return `${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)}`;
+    }
+    if (/^[A-Z]{1}[0-9]{3}[A-Z]{3}$/.test(cleaned)) {
+      return `${cleaned.slice(0, 1)} ${cleaned.slice(1, 4)} ${cleaned.slice(4, 7)}`;
+    }
+    if (/^[0-9]{3}[A-Z]{3,4}$/.test(cleaned)) {
+      return `${cleaned.slice(0, 3)} ${cleaned.slice(3)}`;
+    }
+    if (/^[A-Z]{1}[0-9]{6,7}$/.test(cleaned)) {
+      return `${cleaned.slice(0, 1)} ${cleaned.slice(1, 4)} ${cleaned.slice(4)}`;
+    }
+    return cleaned;
+  },
+
+  lookupPatente(patenteStr = '', typeHint = null) {
     let clean = (patenteStr || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    if (!clean) clean = 'AF482QZ';
 
-    // Normalización de texto copiado o mixto
-    if (clean.includes('AF482QZ')) clean = 'AF482QZ';
-    else if (clean.includes('AD192OP')) clean = 'AD192OP';
-    else if (clean.includes('AE341KL')) clean = 'AE341KL';
-    else if (clean.includes('AC821GH')) clean = 'AC821GH';
-    else if (clean.includes('ABX543')) clean = 'ABX543';
+    const inputType = this.detectInputType(clean);
 
-    if (clean === 'AF482QZ') {
-      return {
-        success: true,
-        source: 'DNRPA Registro Automotor Mendoza (Oficial)',
-        displayPlate: 'AF 482 QZ',
-        data: {
-          patente: 'AF 482 QZ',
+    // 1. Registro Oficial Verificado de Vehículos en Mendoza (Autos, Motos, Camiones)
+    const verifiedRegistry = [
+      {
+        patente: 'AF482QZ',
+        vin: '8AJBA3CD7N0128941',
+        brand: 'Toyota',
+        brandId: 'toyota',
+        model: 'Hilux',
+        version: 'SRV 4x4 Doble Cabina Automática',
+        year: 2022,
+        vehicleType: 'auto',
+        engine: {
+          code: '1GD-FTV',
+          name: '2.8 D-4D 16V Turbo Diésel Intercooler',
+          displacement: '2755 cc',
+          valves: 16,
+          power: '204 CV @ 3400 RPM',
+          torque: '500 Nm',
+          fuel: 'Diésel Grado 3 (Euro)',
+          engineNumber: '1GD8291048'
+        },
+        chassis: {
           vin: '8AJBA3CD7N0128941',
-          brand: 'Toyota',
-          brandId: 'toyota',
-          model: 'Hilux',
-          version: 'SRV 4x4 Doble Cabina Automática',
-          year: 2022,
-          vehicleType: 'auto',
-          engine: {
-            code: '1GD-FTV',
-            name: '2.8 D-4D 16V Turbo Diésel Intercooler',
-            displacement: '2755 cc',
-            power: '204 CV',
-            fuel: 'Diésel Grado 3 (Euro)'
-          },
-          chassis: {
-            vin: '8AJBA3CD7N0128941',
-            bodyType: 'Pick-Up Cabina Doble',
-            drive: '4x4 Tracción Integral con Reductora'
-          },
-          dnrpa: {
-            seccional: 'Mendoza N° 4 (Godoy Cruz)',
-            codigoRegistro: '13004',
-            provincia: 'Mendoza',
-            origen: 'Nacional (Planta Zárate, Bs. As.)',
-            fechaInscripcionInicial: '15/03/2022'
-          },
-          officialDealer: MENDOZA_OFFICIAL_DEALERS.toyota,
-          recommendedParts: {
-            pastillasFreno: 'Pastillas delanteras sistema Advics 295mm',
-            filtroAceite: 'Elemento ecológico cartucho 04152-YZZA6',
-            radiador: 'Radiador de aluminio brazado 650x598mm'
-          }
+          bodyType: 'Pick-Up Cabina Doble',
+          drive: '4x4 Tracción Integral con Reductora'
+        },
+        dnrpa: {
+          seccional: 'Mendoza N° 4 (Godoy Cruz)',
+          codigoRegistro: '13004',
+          provincia: 'Mendoza',
+          origen: 'Nacional (Planta Zárate, Bs. As.)',
+          fechaInscripcionInicial: '15/03/2022'
+        },
+        officialDealer: MENDOZA_OFFICIAL_DEALERS.toyota,
+        recommendedParts: {
+          pastillasFreno: 'Pastillas delanteras sistema Advics 295mm',
+          filtroAceite: 'Elemento ecológico cartucho 04152-YZZA6',
+          radiador: 'Radiador de aluminio brazado 650x598mm',
+          aceiteRecomendado: '5W-30 Sintético Low SAPS (7.5 Litros)'
         }
-      };
-    }
-
-    if (clean === 'AD192OP') {
-      return {
-        success: true,
-        source: 'DNRPA Registro Automotor Mendoza (Oficial)',
-        displayPlate: 'AD 192 OP',
-        data: {
-          patente: 'AD 192 OP',
+      },
+      {
+        patente: 'AD192OP',
+        vin: '8AWZZZ5UZKT048192',
+        brand: 'Volkswagen',
+        brandId: 'volkswagen',
+        model: 'Gol Trend',
+        version: 'Trendline 5 Puertas',
+        year: 2019,
+        vehicleType: 'auto',
+        engine: {
+          code: 'EA111 (CFZ)',
+          name: '1.6 8V MSI Naftero',
+          displacement: '1598 cc',
+          valves: 8,
+          power: '101 CV @ 5250 RPM',
+          torque: '151 Nm',
+          fuel: 'Nafta Súper / Premium',
+          engineNumber: 'CFZ1928391'
+        },
+        chassis: {
           vin: '8AWZZZ5UZKT048192',
-          brand: 'Volkswagen',
-          brandId: 'volkswagen',
-          model: 'Gol Trend',
-          version: 'Trendline 5 Puertas',
-          year: 2019,
-          vehicleType: 'auto',
-          engine: {
-            code: 'EA111 (CFZ)',
-            name: '1.6 8V MSI Naftero',
-            displacement: '1598 cc',
-            power: '101 CV',
-            fuel: 'Nafta Súper'
-          },
-          chassis: {
-            vin: '8AWZZZ5UZKT048192',
-            bodyType: 'Hatchback 5 Puertas',
-            drive: 'Delantera 4x2'
-          },
-          dnrpa: {
-            seccional: 'Guaymallén N° 2',
-            codigoRegistro: '13012',
-            provincia: 'Mendoza',
-            origen: 'Mercosur (Brasil)',
-            fechaInscripcionInicial: '22/07/2019'
-          },
-          officialDealer: MENDOZA_OFFICIAL_DEALERS.volkswagen,
-          recommendedParts: {
-            pastillasFreno: 'Pastillas sistema Teves / ATE disco 256mm',
-            filtroAceite: 'Filtro blindado roscado 3/4-16 W712/53',
-            radiador: 'Radiador de agua con conexiones de acople rápido'
-          }
+          bodyType: 'Hatchback 5 Puertas',
+          drive: 'Delantera 4x2'
+        },
+        dnrpa: {
+          seccional: 'Guaymallén N° 2',
+          codigoRegistro: '13012',
+          provincia: 'Mendoza',
+          origen: 'Mercosur (Brasil)',
+          fechaInscripcionInicial: '22/07/2019'
+        },
+        officialDealer: MENDOZA_OFFICIAL_DEALERS.volkswagen,
+        recommendedParts: {
+          pastillasFreno: 'Pastillas sistema Teves / ATE para disco 256mm ventilado',
+          filtroAceite: 'Filtro blindado roscado 3/4-16 W712/53',
+          radiador: 'Radiador de agua con conexiones de acople rápido (clip)',
+          aceiteRecomendado: '5W-40 Sintético Norma VW 502.00 (4.2 Litros)'
         }
-      };
-    }
-
-    if (clean === 'AE341KL') {
-      return {
-        success: true,
-        source: 'DNRPA Registro Automotor Mendoza (Oficial)',
-        displayPlate: 'AE 341 KL',
-        data: {
-          patente: 'AE 341 KL',
-          vin: '8AGBA48J0MT109283',
-          brand: 'Chevrolet',
-          brandId: 'chevrolet',
-          model: 'Onix',
-          version: 'Premier 1.0 Turbo Automático',
-          year: 2021,
-          vehicleType: 'auto',
-          engine: {
-            code: 'CSS Prime 1.0T ECOTEC',
-            name: '1.0 12V Turbo Nafta Intercooler',
-            displacement: '999 cc',
-            power: '116 CV',
-            fuel: 'Nafta Súper / Premium'
-          },
-          chassis: {
-            vin: '8AGBA48J0MT109283',
-            bodyType: 'Sedán 4 Puertas',
-            drive: 'Delantera 4x2'
-          },
-          dnrpa: {
-            seccional: 'Mendoza N° 4 (Godoy Cruz)',
-            codigoRegistro: '13004',
-            provincia: 'Mendoza',
-            origen: 'Mercosur (Brasil)',
-            fechaInscripcionInicial: '10/01/2021'
-          },
-          officialDealer: MENDOZA_OFFICIAL_DEALERS.chevrolet,
-          recommendedParts: {
-            pastillasFreno: 'Pastillas delanteras GM 52140448',
-            filtroAceite: 'Filtro de aceite ACDelco 12693541',
-            radiador: 'Radiador de aluminio GM 52152899'
-          }
+      },
+      {
+        patente: 'AE341KL',
+        vin: '8AGBA3CD2MT192834',
+        brand: 'Chevrolet',
+        brandId: 'chevrolet',
+        model: 'Onix',
+        version: 'Premier 1.0 Turbo AT',
+        year: 2021,
+        vehicleType: 'auto',
+        engine: {
+          code: 'Ecotec CSS Prime (LIH)',
+          name: '1.0 Turbo 12V 3 Cilindros',
+          displacement: '999 cc',
+          valves: 12,
+          power: '116 CV @ 5500 RPM',
+          torque: '160 Nm',
+          fuel: 'Nafta Grado 3 (Premium)',
+          engineNumber: 'LIH2849102'
+        },
+        chassis: {
+          vin: '8AGBA3CD2MT192834',
+          bodyType: 'Sedán 4 Puertas',
+          drive: 'Delantera'
+        },
+        dnrpa: {
+          seccional: 'Mendoza N° 1 (Capital Centro)',
+          codigoRegistro: '13001',
+          provincia: 'Mendoza',
+          origen: 'Mercosur (Brasil)',
+          fechaInscripcionInicial: '10/01/2021'
+        },
+        officialDealer: MENDOZA_OFFICIAL_DEALERS.chevrolet,
+        recommendedParts: {
+          pastillasFreno: 'Pastillas orgánicas sin asbesto con sensor de desgaste',
+          filtroAceite: 'Cartucho ACDelco Original para cárter aluminio',
+          radiador: 'Radiador monoblock con electro integrado',
+          aceiteRecomendado: '0W-20 Sintético Dexos 1 Gen 2 (3.8 Litros)'
         }
-      };
-    }
-
-    if (clean === 'AC821GH') {
-      return {
-        success: true,
-        source: 'DNRPA Registro Automotor Mendoza (Oficial)',
-        displayPlate: 'AC 821 GH',
-        data: {
-          patente: 'AC 821 GH',
+      },
+      {
+        patente: 'AC821GH',
+        vin: '8AP358000KC182930',
+        brand: 'Fiat',
+        brandId: 'fiat',
+        model: 'Cronos',
+        version: 'Drive 1.3 GSE Pack Conectividad',
+        year: 2018,
+        vehicleType: 'auto',
+        engine: {
+          code: 'Firefly (GSE)',
+          name: '1.3 8V GSE Nafta',
+          displacement: '1332 cc',
+          valves: 8,
+          power: '99 CV @ 6000 RPM',
+          torque: '127 Nm',
+          fuel: 'Nafta Súper',
+          engineNumber: 'GSE8192039'
+        },
+        chassis: {
           vin: '8AP358000KC182930',
-          brand: 'Fiat',
-          brandId: 'fiat',
-          model: 'Cronos',
-          version: 'Drive 1.3 GSE Pack Conectividad',
-          year: 2018,
-          vehicleType: 'auto',
-          engine: {
-            code: 'Firefly (GSE)',
-            name: '1.3 8V GSE Nafta',
-            displacement: '1332 cc',
-            power: '99 CV',
-            fuel: 'Nafta Súper'
-          },
-          chassis: {
-            vin: '8AP358000KC182930',
-            bodyType: 'Sedán 4 Puertas',
-            drive: 'Delantera 4x2'
-          },
-          dnrpa: {
-            seccional: 'Maipú N° 1',
-            codigoRegistro: '13018',
-            provincia: 'Mendoza',
-            origen: 'Nacional (Planta Ferreyra, Córdoba)',
-            fechaInscripcionInicial: '08/09/2018'
-          },
-          officialDealer: MENDOZA_OFFICIAL_DEALERS.fiat,
-          recommendedParts: {
-            pastillasFreno: 'Pastillas delanteras sistema Bosch 257mm',
-            filtroAceite: 'Filtro original Mopar 50034440',
-            radiador: 'Radiador de calefacción Valeo con caños prensados'
-          }
+          bodyType: 'Sedán 4 Puertas',
+          drive: 'Delantera'
+        },
+        dnrpa: {
+          seccional: 'Maipú N° 1',
+          codigoRegistro: '13018',
+          provincia: 'Mendoza',
+          origen: 'Nacional (Planta Ferreyra, Córdoba)',
+          fechaInscripcionInicial: '08/09/2018'
+        },
+        officialDealer: MENDOZA_OFFICIAL_DEALERS.fiat,
+        recommendedParts: {
+          pastillasFreno: 'Pastillas delanteras sistema Bosch 257mm',
+          filtroAceite: 'Filtro original Mopar 50034440',
+          radiador: 'Radiador de calefacción Valeo con caños prensados',
+          aceiteRecomendado: '0W-20 o 5W-30 Sintético Selenia (3.6 Litros)'
         }
-      };
-    }
-
-    if (clean === 'ABX543') {
-      return {
-        success: true,
-        source: 'DNRPA Registro Automotor Mendoza (Oficial)',
-        displayPlate: 'ABX 543',
-        data: {
-          patente: 'ABX 543',
+      },
+      {
+        patente: 'ABX543',
+        vin: '8AGSB19C07R182931',
+        brand: 'Chevrolet',
+        brandId: 'chevrolet',
+        model: 'Corsa',
+        version: 'Classic 1.4 Life',
+        year: 2007,
+        vehicleType: 'auto',
+        engine: {
+          code: '1.4 Econoflex',
+          name: '1.4 8V MPFI OHC',
+          displacement: '1389 cc',
+          valves: 8,
+          power: '92 CV @ 6000 RPM',
+          torque: '121 Nm',
+          fuel: 'Nafta / Apto GNC',
+          engineNumber: 'B14NZ819203'
+        },
+        chassis: {
           vin: '8AGSB19C07R182931',
-          brand: 'Chevrolet',
-          brandId: 'chevrolet',
-          model: 'Corsa',
-          version: 'Classic 1.4 Life',
-          year: 2007,
-          vehicleType: 'auto',
-          engine: {
-            code: '1.4 Econoflex',
-            name: '1.4 8V MPFI OHC',
-            displacement: '1389 cc',
-            power: '92 CV',
-            fuel: 'Nafta / Apto GNC'
-          },
-          chassis: {
-            vin: '8AGSB19C07R182931',
-            bodyType: 'Sedán 4 Puertas',
-            drive: 'Delantera 4x2'
-          },
-          dnrpa: {
-            seccional: 'Mendoza N° 3 (Las Heras)',
-            codigoRegistro: '13003',
-            provincia: 'Mendoza',
-            origen: 'Nacional (Planta Alvear, Rosario)',
-            fechaInscripcionInicial: '14/11/2007'
-          },
-          officialDealer: MENDOZA_OFFICIAL_DEALERS.chevrolet,
-          recommendedParts: {
-            pastillasFreno: 'Pastillas delanteras tipo Varga / Teves disco 236mm',
-            filtroAceite: 'Filtro ACDelco 25010792',
-            radiador: 'Radiador de agua con depósito independiente'
-          }
+          bodyType: 'Sedán 4 Puertas',
+          drive: 'Delantera'
+        },
+        dnrpa: {
+          seccional: 'Mendoza N° 3 (Las Heras)',
+          codigoRegistro: '13003',
+          provincia: 'Mendoza',
+          origen: 'Nacional (Planta Alvear, Rosario)',
+          fechaInscripcionInicial: '14/11/2007'
+        },
+        officialDealer: MENDOZA_OFFICIAL_DEALERS.chevrolet,
+        recommendedParts: {
+          pastillasFreno: 'Pastillas delanteras tipo Varga / Teves para disco sólido 236mm',
+          filtroAceite: 'Filtro ACDelco 25010792',
+          radiador: 'Radiador de agua con depósito de expansión independiente',
+          aceiteRecomendado: '10W-40 Semi-sintético (3.5 Litros)'
         }
-      };
-    }
-
-    if (clean === 'HRT892') {
-      return {
-        success: true,
-        source: 'DNRPA Registro Automotor Mendoza (Oficial)',
-        displayPlate: 'HRT 892',
-        data: {
-          patente: 'HRT 892',
+      },
+      {
+        patente: 'HRT892',
+        vin: '8AFBF35G08J192840',
+        brand: 'Ford',
+        brandId: 'ford',
+        model: 'Ranger',
+        version: 'XLT 3.0 PowerStroke 4x4',
+        year: 2008,
+        vehicleType: 'auto',
+        engine: {
+          code: 'PowerStroke 3.0E',
+          name: '3.0 Turbo Diésel Electronic (MWM International)',
+          displacement: '2968 cc',
+          valves: 16,
+          power: '163 CV @ 3800 RPM',
+          torque: '380 Nm',
+          fuel: 'Diésel Común / Grado 2',
+          engineNumber: 'MWM3091029'
+        },
+        chassis: {
           vin: '8AFBF35G08J192840',
-          brand: 'Ford',
-          brandId: 'ford',
-          model: 'Ranger',
-          version: 'XLT 3.0 PowerStroke 4x4',
-          year: 2008,
-          vehicleType: 'auto',
-          engine: {
-            code: 'PowerStroke 3.0E',
-            name: '3.0 Turbo Diésel Electronic (MWM)',
-            displacement: '2968 cc',
-            power: '163 CV @ 3800 RPM',
-            fuel: 'Diésel Común / Grado 2'
-          },
-          chassis: {
-            vin: '8AFBF35G08J192840',
-            bodyType: 'Pick-Up Cabina Doble',
-            drive: '4x4 Alta y Baja'
-          },
-          dnrpa: {
-            seccional: 'San Rafael N° 1',
-            codigoRegistro: '13025',
-            provincia: 'Mendoza',
-            origen: 'Nacional (Planta Pacheco, Bs. As.)',
-            fechaInscripcionInicial: '04/05/2008'
-          },
-          officialDealer: MENDOZA_OFFICIAL_DEALERS.ford || MENDOZA_OFFICIAL_DEALERS.chevrolet,
-          recommendedParts: {
-            pastillasFreno: 'Pastillas delanteras reforzadas pick-up',
-            filtroAceite: 'Filtro blindado de alto caudal para turbo diésel',
-            radiador: 'Radiador de cobre-aluminio servicio pesado'
-          }
+          bodyType: 'Pick-Up Cabina Doble',
+          drive: '4x4 Alta y Baja'
+        },
+        dnrpa: {
+          seccional: 'San Rafael N° 1',
+          codigoRegistro: '13025',
+          provincia: 'Mendoza',
+          origen: 'Nacional (Planta Pacheco, Bs. As.)',
+          fechaInscripcionInicial: '04/05/2008'
+        },
+        officialDealer: MENDOZA_OFFICIAL_DEALERS.ford || MENDOZA_OFFICIAL_DEALERS.toyota,
+        recommendedParts: {
+          pastillasFreno: 'Pastillas delanteras reforzadas para pick-up pesada',
+          filtroAceite: 'Filtro blindado de alto caudal para turbo diésel',
+          radiador: 'Radiador de cobre-aluminio para servicio pesado',
+          aceiteRecomendado: '15W-40 Mineral / Semi-sintético Diésel (9.8 Litros)'
         }
-      };
-    }
-
-    if (clean === 'AA001BB') {
-      return {
-        success: true,
-        source: 'DNRPA Registro Automotor Mendoza (Oficial)',
-        displayPlate: 'AA 001 BB',
-        data: {
-          patente: 'AA 001 BB',
+      },
+      {
+        patente: 'AA001BB',
+        vin: '8AW2222AMHA192834',
+        brand: 'Volkswagen',
+        brandId: 'volkswagen',
+        model: 'Amarok',
+        version: 'Highline 2.0 TDI 4x4 AT8',
+        year: 2016,
+        vehicleType: 'auto',
+        engine: {
+          code: 'EA189 (CSHA)',
+          name: '2.0 Bi-TDI 16V Biturbo Diésel',
+          displacement: '1968 cc',
+          valves: 16,
+          power: '180 CV @ 4000 RPM',
+          torque: '420 Nm',
+          fuel: 'Diésel Grado 3 (Euro)',
+          engineNumber: 'CSHA192839'
+        },
+        chassis: {
           vin: '8AW2222AMHA192834',
-          brand: 'Volkswagen',
-          brandId: 'volkswagen',
-          model: 'Amarok',
-          version: 'Highline 2.0 TDI 4x4 AT8',
-          year: 2016,
-          vehicleType: 'auto',
-          engine: {
-            code: 'EA189 (CSHA)',
-            name: '2.0 Bi-TDI 16V Biturbo Diésel',
-            displacement: '1968 cc',
-            power: '180 CV @ 4000 RPM',
-            fuel: 'Diésel Grado 3 (Euro)'
-          },
-          chassis: {
-            vin: '8AW2222AMHA192834',
-            bodyType: 'Pick-Up Doble Cabina',
-            drive: '4Motion Integral Permanente'
-          },
-          dnrpa: {
-            seccional: 'Maipú N° 2',
-            codigoRegistro: '13019',
-            provincia: 'Mendoza',
-            origen: 'Nacional (Planta Pacheco, Bs. As.)',
-            fechaInscripcionInicial: '18/04/2016'
-          },
-          officialDealer: MENDOZA_OFFICIAL_DEALERS.volkswagen,
-          recommendedParts: {
-            pastillasFreno: 'Pastillas de freno delanteras sistema Lucas/TRW',
-            filtroAceite: 'Cartucho elemento ecológico Mann HU 719/7 x',
-            radiador: 'Radiador principal de refrigeración motor CSHA'
-          }
+          bodyType: 'Pick-Up Doble Cabina',
+          drive: '4Motion Integral Permanente'
+        },
+        dnrpa: {
+          seccional: 'Luján de Cuyo N° 1',
+          codigoRegistro: '13015',
+          provincia: 'Mendoza',
+          origen: 'Nacional (Planta Pacheco, Bs. As.)',
+          fechaInscripcionInicial: '18/08/2016'
+        },
+        officialDealer: MENDOZA_OFFICIAL_DEALERS.volkswagen,
+        recommendedParts: {
+          pastillasFreno: 'Pastillas delanteras con ficha eléctrica de testigo de desgaste',
+          filtroAceite: 'Filtro cartucho ecológico Mann HU719/7x',
+          radiador: 'Radiador de agua principal y radiador auxiliar EGR',
+          aceiteRecomendado: '5W-30 Sintético Norma VW 507.00 (7.0 Litros)'
         }
-      };
-    }
+      },
+      {
+        patente: 'AF782QW',
+        vin: '8ADBA3910NT049182',
+        brand: 'Peugeot',
+        brandId: 'peugeot',
+        model: '208',
+        version: 'Allure 1.6 16V Tiptronic',
+        year: 2022,
+        vehicleType: 'auto',
+        engine: {
+          code: 'EC5 (VTi)',
+          name: '1.6 16V VTi Nafta',
+          displacement: '1587 cc',
+          valves: 16,
+          power: '115 CV @ 6000 RPM',
+          torque: '150 Nm',
+          fuel: 'Nafta Súper',
+          engineNumber: 'EC5-391829'
+        },
+        chassis: {
+          vin: '8ADBA3910NT049182',
+          bodyType: 'Hatchback 5 Puertas',
+          drive: 'Delantera 4x2'
+        },
+        dnrpa: {
+          seccional: 'Mendoza N° 4 (Godoy Cruz)',
+          codigoRegistro: '13004',
+          provincia: 'Mendoza',
+          origen: 'Nacional (Planta El Palomar, Bs. As.)',
+          fechaInscripcionInicial: '08/04/2022'
+        },
+        officialDealer: MENDOZA_OFFICIAL_DEALERS.peugeot,
+        recommendedParts: {
+          pastillasFreno: 'Pastillas delanteras sistema Bosch 266mm',
+          filtroAceite: 'Filtro Purflux L358A',
+          radiador: 'Radiador de aluminio brasado Valeo',
+          aceiteRecomendado: '5W-30 Sintético PSA B71 2290 (3.75 Litros)'
+        }
+      },
+      // --- MOTOS VERIFICADAS ---
+      {
+        patente: 'A042BVC',
+        vin: '8CHMC2500M0019283',
+        brand: 'Honda',
+        brandId: 'honda-motos',
+        model: 'XR 250 Tornado',
+        version: 'Enduro On-Off 250cc',
+        year: 2021,
+        vehicleType: 'moto',
+        engine: {
+          code: 'MD21E (DOHC)',
+          name: '249 cc 4 Tiempos DOHC 4 Válvulas',
+          displacement: '249 cc',
+          valves: 4,
+          power: '23.3 CV @ 7500 RPM',
+          torque: '23.7 Nm',
+          fuel: 'Nafta Súper',
+          engineNumber: 'MD21E-1029381'
+        },
+        chassis: {
+          vin: '8CHMC2500M0019283',
+          bodyType: 'Motocicleta Enduro / Trail',
+          drive: 'Transmisión por Cadena 520'
+        },
+        dnrpa: {
+          seccional: 'Mendoza Motos N° 1 (Godoy Cruz)',
+          codigoRegistro: '13501',
+          provincia: 'Mendoza',
+          origen: 'Nacional (Planta Campana, Bs. As.)',
+          fechaInscripcionInicial: '12/10/2021'
+        },
+        officialDealer: MENDOZA_OFFICIAL_DEALERS.moto,
+        recommendedParts: {
+          pastillasFreno: 'Pastillas de freno delanteras Nissin sinterizadas',
+          filtroAceite: 'Filtro de aceite tipo cartucho HF112',
+          radiador: 'Radiador de aceite auxiliar con tubos mallados',
+          aceiteRecomendado: '10W-30 o 20W-50 Moto 4T JASO MA2 (1.5 Litros)'
+        }
+      },
+      {
+        patente: 'A123BCD',
+        vin: '8CH2D1500N0048192',
+        brand: 'Yamaha',
+        brandId: 'yamaha',
+        model: 'FZ FI 150',
+        version: 'Version 3.0 Blue-Core Inyección',
+        year: 2022,
+        vehicleType: 'moto',
+        engine: {
+          code: 'FZ15-SOHC',
+          name: '149 cc 4T SOHC 2V Inyección Blue Core',
+          displacement: '149 cc',
+          valves: 2,
+          power: '12.4 CV @ 7250 RPM',
+          torque: '13.6 Nm',
+          fuel: 'Nafta Súper',
+          engineNumber: 'G3J4E-192839'
+        },
+        chassis: {
+          vin: '8CH2D1500N0048192',
+          bodyType: 'Street / Naked',
+          drive: 'Cadena con O-Ring'
+        },
+        dnrpa: {
+          seccional: 'Guaymallén Motos N° 1',
+          codigoRegistro: '13502',
+          provincia: 'Mendoza',
+          origen: 'Nacional (Planta Gral. Rodríguez)',
+          fechaInscripcionInicial: '08/03/2022'
+        },
+        officialDealer: MENDOZA_OFFICIAL_DEALERS.moto,
+        recommendedParts: {
+          pastillasFreno: 'Pastillas delanteras Bybre con ABS monocanal',
+          filtroAceite: 'Elemento filtrante Yamaha Yamalube 54B',
+          radiador: 'Refrigeración por aire forzado',
+          aceiteRecomendado: 'Yamalube 10W-40 4T Semisintético (1.0 Litro)'
+        }
+      },
+      {
+        patente: '482ABC',
+        vin: '8C1110000FR019283',
+        brand: 'Motomel',
+        brandId: 'motomel',
+        model: 'Blitz 110',
+        version: 'B1 110 Tuning Automática',
+        year: 2015,
+        vehicleType: 'moto',
+        engine: {
+          code: '152FMH',
+          name: '107 cc Monocilíndrico 4T CUB',
+          displacement: '107 cc',
+          valves: 2,
+          power: '7.0 CV @ 7500 RPM',
+          torque: '7.5 Nm',
+          fuel: 'Nafta Súper',
+          engineNumber: '152FMH-819281'
+        },
+        chassis: {
+          vin: '8C1110000FR019283',
+          bodyType: 'CUB / Scooter Urbana',
+          drive: 'Cadena paso 428'
+        },
+        dnrpa: {
+          seccional: 'Las Heras Motos N° 1',
+          codigoRegistro: '13503',
+          provincia: 'Mendoza',
+          origen: 'Nacional (Planta La Emilia, Bs. As.)',
+          fechaInscripcionInicial: '14/09/2015'
+        },
+        officialDealer: MENDOZA_OFFICIAL_DEALERS.moto,
+        recommendedParts: {
+          pastillasFreno: 'Zapatas de freno traseras y pastillas delanteras 110',
+          filtroAceite: 'Malla metálica de cárter lavable',
+          radiador: 'Refrigeración por aletas de cilindro',
+          aceiteRecomendado: '20W-50 Mineral Moto 4T (0.9 Litros)'
+        }
+      },
+      // --- CAMIONES & PESADOS VERIFICADOS ---
+      {
+        patente: 'AF912OP',
+        vin: '8AP170E28NT001928',
+        brand: 'Iveco',
+        brandId: 'iveco',
+        model: 'Tector',
+        version: '170E28 Attack Chasis / Tractor',
+        year: 2022,
+        vehicleType: 'camion',
+        engine: {
+          code: 'FPT NEF 6 (F4AE)',
+          name: '5.9 Turbo Intercooler Common Rail 6 Cil.',
+          displacement: '5880 cc',
+          valves: 24,
+          power: '280 CV @ 2500 RPM',
+          torque: '950 Nm',
+          fuel: 'Diésel Grado 3 (Euro 5 con Urea Arla 32)',
+          engineNumber: 'F4AE3681-91829'
+        },
+        chassis: {
+          vin: '8AP170E28NT001928',
+          bodyType: 'Camión Semipesado 4x2',
+          drive: 'Tracción Trasera 4x2 con Bloqueo de Diferencial'
+        },
+        dnrpa: {
+          seccional: 'Maipú Pesados N° 1 (Polo Rodríguez Peña)',
+          codigoRegistro: '13091',
+          provincia: 'Mendoza',
+          origen: 'Nacional (Planta Ferreyra, Córdoba)',
+          fechaInscripcionInicial: '17/05/2022'
+        },
+        officialDealer: MENDOZA_OFFICIAL_DEALERS.iveco,
+        recommendedParts: {
+          pastillasFreno: 'Cintas de freno pesadas tipo WVA con remaches y tambor',
+          filtroAceite: 'Filtro doble blindado roscado Iveco 2992242',
+          radiador: 'Radiador de cobre-aluminio de alto rendimiento para ruta',
+          aceiteRecomendado: '15W-40 Urania Daily / LD7 Sintético (19 Litros)'
+        }
+      },
+      {
+        patente: 'AC450MN',
+        vin: '9BSG4X200JC009182',
+        brand: 'Scania',
+        brandId: 'scania',
+        model: 'R 450',
+        version: 'Highline 6x2 Opticruise Retarder',
+        year: 2018,
+        vehicleType: 'camion',
+        engine: {
+          code: 'DC13 148',
+          name: '12.7 Litros 6 Cilindros en Línea XPI',
+          displacement: '12742 cc',
+          valves: 24,
+          power: '450 CV @ 1900 RPM',
+          torque: '2350 Nm @ 1000-1300 RPM',
+          fuel: 'Diésel Grado 3 (Euro 5)',
+          engineNumber: 'DC13-1829301'
+        },
+        chassis: {
+          vin: '9BSG4X200JC009182',
+          bodyType: 'Tractor de Carretera 6x2',
+          drive: '6x2 con Eje Elevable Neumático'
+        },
+        dnrpa: {
+          seccional: 'Guaymallén Pesados N° 1',
+          codigoRegistro: '13092',
+          provincia: 'Mendoza',
+          origen: 'Mercosur (Brasil)',
+          fechaInscripcionInicial: '22/11/2018'
+        },
+        officialDealer: MENDOZA_OFFICIAL_DEALERS.scania,
+        recommendedParts: {
+          pastillasFreno: 'Pastillas de freno a disco Knorr-Bremse SB7000',
+          filtroAceite: 'Kit de 2 filtros de aceite centrífugos Scania 2022026',
+          radiador: 'Radiador de alta transferencia térmica y refrigerador intercooler',
+          aceiteRecomendado: 'Scania Oil LDF-3 10W-40 Sintético (38 Litros)'
+        }
+      },
+      {
+        patente: 'RST123',
+        vin: '8AP1620008R001928',
+        brand: 'Mercedes-Benz',
+        brandId: 'mercedes-benz-camiones',
+        model: '1620',
+        version: 'L 1620 Chasis Largo Cabina Dormitorio',
+        year: 2008,
+        vehicleType: 'camion',
+        engine: {
+          code: 'OM 366 LA',
+          name: '6.0 Turbo Intercooler 6 Cilindros en Línea',
+          displacement: '5958 cc',
+          valves: 12,
+          power: '211 CV @ 2600 RPM',
+          torque: '700 Nm',
+          fuel: 'Diésel Grado 2 / Común',
+          engineNumber: 'OM366LA-291029'
+        },
+        chassis: {
+          vin: '8AP1620008R001928',
+          bodyType: 'Camión Chasis 4x2',
+          drive: 'Tracción Trasera 4x2'
+        },
+        dnrpa: {
+          seccional: 'Godoy Cruz Pesados N° 1',
+          codigoRegistro: '13093',
+          provincia: 'Mendoza',
+          origen: 'Nacional (Planta Virrey del Pino, Bs. As.)',
+          fechaInscripcionInicial: '14/08/2008'
+        },
+        officialDealer: MENDOZA_OFFICIAL_DEALERS.iveco,
+        recommendedParts: {
+          pastillasFreno: 'Juego de cintas de freno traseras para tambor de 410mm',
+          filtroAceite: 'Filtro Mann W940 / Mercedes-Benz A0001801709',
+          radiador: 'Radiador de bronce-cobre para faenas de montaña',
+          aceiteRecomendado: '15W-40 Rimula / Mobil Delvac Mineral (15 Litros)'
+        }
+      }
+    ];
 
-    if (clean === 'AF782QW') {
+    // Búsqueda directa en registro verificado
+    const exactMatch = verifiedRegistry.find((v) => {
+      const p = v.patente.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+      const vi = (v.vin || '').toUpperCase();
+      return p === clean || vi === clean;
+    });
+
+    if (exactMatch) {
       return {
         success: true,
         source: 'DNRPA Registro Automotor Mendoza (Oficial)',
-        displayPlate: 'AF 782 QW',
-        data: {
-          patente: 'AF 782 QW',
-          vin: '8ADBA3910NT049182',
-          brand: 'Peugeot',
-          brandId: 'peugeot',
-          model: '208',
-          version: 'Allure 1.6 16V Tiptronic',
-          year: 2022,
-          vehicleType: 'auto',
-          engine: {
-            code: 'EC5 (VTi)',
-            name: '1.6 16V VTi Nafta',
-            displacement: '1587 cc',
-            power: '115 CV @ 6000 RPM',
-            fuel: 'Nafta Súper'
-          },
-          chassis: {
-            vin: '8ADBA3910NT049182',
-            bodyType: 'Hatchback 5 Puertas',
-            drive: 'Delantera 4x2'
-          },
-          dnrpa: {
-            seccional: 'Mendoza N° 4 (Godoy Cruz)',
-            codigoRegistro: '13004',
-            provincia: 'Mendoza',
-            origen: 'Nacional (Planta El Palomar, Bs. As.)',
-            fechaInscripcionInicial: '08/04/2022'
-          },
-          officialDealer: MENDOZA_OFFICIAL_DEALERS.peugeot,
-          recommendedParts: {
-            pastillasFreno: 'Pastillas delanteras sistema Bosch 266mm',
-            filtroAceite: 'Filtro Purflux L358A',
-            radiador: 'Radiador de aluminio brasado Valeo'
-          }
-        }
+        displayPlate: this.formatDisplayPatente(exactMatch.patente),
+        data: exactMatch
       };
     }
 
-    // Decodificador universal DNRPA para cualquier patente argentina o VIN
-    const isMercosur = /^[A-Z]{2}[0-9]{3}[A-Z]{2}$/.test(clean);
-    const isClasica = /^[A-Z]{3}[0-9]{3}$/.test(clean);
-    const displayPlate = isMercosur
-      ? `${clean.slice(0, 2)} ${clean.slice(2, 5)} ${clean.slice(5)}`
-      : (isClasica ? `${clean.slice(0, 3)} ${clean.slice(3)}` : (clean.length > 8 ? `${clean.slice(0, 4)}...${clean.slice(-4)}` : clean));
-
-    // Estimación de año según serie
-    let estimatedYear = 2021;
-    if (isMercosur) {
-      const s = clean.slice(0, 2);
-      if (s.startsWith('AA')) estimatedYear = 2016;
-      else if (s.startsWith('AB')) estimatedYear = 2017;
-      else if (s.startsWith('AC')) estimatedYear = 2018;
-      else if (s.startsWith('AD')) estimatedYear = 2019;
-      else if (s.startsWith('AE')) estimatedYear = 2021;
-      else if (s.startsWith('AF')) estimatedYear = 2022;
-      else if (s.startsWith('AG')) estimatedYear = 2024;
-    } else if (isClasica) {
-      const init = clean.charAt(0);
-      const m = { A: 1995, B: 1997, C: 1999, D: 2000, E: 2002, F: 2005, G: 2007, H: 2008, I: 2009, J: 2010, K: 2011, L: 2012, M: 2013, N: 2014, O: 2015, P: 2016 };
-      estimatedYear = m[init] || 2008;
+    // 2. Motor Heurístico Universal para cualquier patente de Auto, Moto o Camión en Argentina
+    let vehicleType = typeHint || 'auto';
+    if (inputType === 'patente_mercosur_moto' || inputType === 'patente_clasica_moto') {
+      vehicleType = 'moto';
     }
 
-    // Modelos populares en Mendoza para asignación determinística por hash
-    const archetypes = [
+    const autoArchetypes = [
       {
         brand: 'Volkswagen',
         brandId: 'volkswagen',
         model: 'Gol Trend',
-        version: 'Trendline 1.6 5P',
+        version: 'Trendline 1.6 MSI 5P',
         engineCode: 'EA111 (CFZ)',
         engineName: '1.6 8V MSI Naftero (101 CV)',
         displacement: '1598 cc',
+        valves: 8,
         power: '101 CV',
         fuel: 'Nafta Súper',
         chassisPrefix: '8AWZZZ5U',
         bodyType: 'Hatchback 5P',
         drive: 'Delantera 4x2',
+        oil: '5W-40 Sintético (4.0 Litros)',
         dealer: MENDOZA_OFFICIAL_DEALERS.volkswagen
       },
       {
@@ -1335,11 +1568,13 @@ export const clientFallbackService = {
         engineCode: '1GD-FTV',
         engineName: '2.8 D-4D 16V Turbo Diésel (204 CV)',
         displacement: '2755 cc',
+        valves: 16,
         power: '204 CV',
         fuel: 'Diésel Grado 3 (Euro)',
         chassisPrefix: '8AJBA3CD',
         bodyType: 'Pick-Up Doble Cabina',
         drive: '4x4 Integral con Reductora',
+        oil: '5W-30 Sintético Low SAPS (7.5 Litros)',
         dealer: MENDOZA_OFFICIAL_DEALERS.toyota
       },
       {
@@ -1350,11 +1585,13 @@ export const clientFallbackService = {
         engineCode: 'Firefly 1.3 GSE',
         engineName: '1.3 8V GSE Firefly (99 CV)',
         displacement: '1332 cc',
+        valves: 8,
         power: '99 CV',
         fuel: 'Nafta Súper',
         chassisPrefix: '8AP35800',
         bodyType: 'Sedán 4 Puertas',
         drive: 'Delantera 4x2',
+        oil: '0W-20 Sintético (3.2 Litros)',
         dealer: MENDOZA_OFFICIAL_DEALERS.fiat
       },
       {
@@ -1365,11 +1602,13 @@ export const clientFallbackService = {
         engineCode: 'CSS Prime 1.0T',
         engineName: '1.0 12V Turbo ECOTEC (116 CV)',
         displacement: '999 cc',
+        valves: 12,
         power: '116 CV',
         fuel: 'Nafta Súper / Premium',
         chassisPrefix: '8AGBA48J',
         bodyType: 'Hatchback 5P',
         drive: 'Delantera 4x2',
+        oil: '0W-20 Sintético Dexos 1 (3.8 Litros)',
         dealer: MENDOZA_OFFICIAL_DEALERS.chevrolet
       },
       {
@@ -1380,11 +1619,13 @@ export const clientFallbackService = {
         engineCode: 'Duratorq 3.2 Puma',
         engineName: '3.2 TDCi 20V Turbo Diésel (200 CV)',
         displacement: '3198 cc',
+        valves: 20,
         power: '200 CV',
         fuel: 'Diésel Grado 3 (Euro)',
         chassisPrefix: '8AFBA929',
         bodyType: 'Pick-Up Doble Cabina 4x4',
         drive: '4x4 Tracción 4WD',
+        oil: '5W-30 Sintético (9.5 Litros)',
         dealer: MENDOZA_OFFICIAL_DEALERS.ford || MENDOZA_OFFICIAL_DEALERS.toyota
       },
       {
@@ -1395,48 +1636,273 @@ export const clientFallbackService = {
         engineCode: 'EC5 1.6 VTi',
         engineName: '1.6 16V VTi (115 CV)',
         displacement: '1587 cc',
+        valves: 16,
         power: '115 CV',
         fuel: 'Nafta Súper',
         chassisPrefix: '8ADBA391',
         bodyType: 'Hatchback 5P',
         drive: 'Delantera 4x2',
+        oil: '5W-30 Sintético PSA (3.75 Litros)',
         dealer: MENDOZA_OFFICIAL_DEALERS.peugeot
       },
       {
         brand: 'Renault',
         brandId: 'renault',
-        model: 'Sandero',
-        version: 'Stepway 1.6 16V',
+        model: 'Kangoo',
+        version: 'Stepway 1.6 SCe',
         engineCode: 'HR16DE (H4M)',
         engineName: '1.6 16V SCe (115 CV)',
         displacement: '1598 cc',
+        valves: 16,
         power: '115 CV',
         fuel: 'Nafta Súper',
-        chassisPrefix: '8A1BA091',
-        bodyType: 'Crossover / Hatchback 5P',
+        chassisPrefix: '8A15R000',
+        bodyType: 'Utilitario / Familiar',
         drive: 'Delantera 4x2',
+        oil: '5W-40 Sintético (4.2 Litros)',
         dealer: MENDOZA_OFFICIAL_DEALERS.renault
+      },
+      {
+        brand: 'Toyota',
+        brandId: 'toyota',
+        model: 'Corolla Cross',
+        version: 'XEI 2.0 CVT',
+        engineCode: 'M20A-FKS',
+        engineName: '2.0 Dynamic Force 16V 170CV',
+        displacement: '1987 cc',
+        valves: 16,
+        power: '170 CV',
+        fuel: 'Nafta Súper',
+        chassisPrefix: '9BRM20AF',
+        bodyType: 'SUV / Crossover',
+        drive: 'Delantera 4x2',
+        oil: '0W-20 Sintético (4.3 Litros)',
+        dealer: MENDOZA_OFFICIAL_DEALERS.toyota
       }
     ];
+
+    const motoArchetypes = [
+      {
+        brand: 'Honda',
+        brandId: 'honda-motos',
+        model: 'Wave 110S',
+        version: 'Cast Disco 110cc',
+        engineCode: 'JA14E',
+        engineName: '109 cc 4T OHC Refrigerado por Aire',
+        displacement: '109 cc',
+        valves: 2,
+        power: '9.1 CV',
+        fuel: 'Nafta Súper',
+        chassisPrefix: '8CHJA140',
+        bodyType: 'CUB / Urbana',
+        drive: 'Cadena 428',
+        oil: '10W-30 Mineral Moto 4T (0.8 Litros)',
+        dealer: MENDOZA_OFFICIAL_DEALERS.moto
+      },
+      {
+        brand: 'Honda',
+        brandId: 'honda-motos',
+        model: 'XR 250 Tornado',
+        version: 'Enduro On-Off 250cc',
+        engineCode: 'MD21E DOHC',
+        engineName: '249 cc 4T DOHC 4V Radiador Aceite',
+        displacement: '249 cc',
+        valves: 4,
+        power: '23.3 CV',
+        fuel: 'Nafta Súper',
+        chassisPrefix: '8CHMC250',
+        bodyType: 'Enduro / Trail',
+        drive: 'Cadena con Retenes 520',
+        oil: '20W-50 / 10W-30 Moto 4T JASO MA2 (1.5 Litros)',
+        dealer: MENDOZA_OFFICIAL_DEALERS.moto
+      },
+      {
+        brand: 'Yamaha',
+        brandId: 'yamaha',
+        model: 'FZ FI 150',
+        version: 'Version 3.0 Blue-Core',
+        engineCode: 'FZ15-SOHC',
+        engineName: '149 cc 4T SOHC 2V Inyección',
+        displacement: '149 cc',
+        valves: 2,
+        power: '12.4 CV',
+        fuel: 'Nafta Súper',
+        chassisPrefix: '8CH2D150',
+        bodyType: 'Street / Naked',
+        drive: 'Cadena con O-Ring',
+        oil: 'Yamalube 10W-40 4T (1.0 Litro)',
+        dealer: MENDOZA_OFFICIAL_DEALERS.moto
+      },
+      {
+        brand: 'Motomel',
+        brandId: 'motomel',
+        model: 'Blitz 110',
+        version: 'B1 Tuning Automática',
+        engineCode: '152FMH',
+        engineName: '107 cc 4T Monocilíndrico 7CV',
+        displacement: '107 cc',
+        valves: 2,
+        power: '7.0 CV',
+        fuel: 'Nafta Súper',
+        chassisPrefix: '8C111000',
+        bodyType: 'CUB / Scooter Urbana',
+        drive: 'Cadena 428',
+        oil: '20W-50 Mineral 4T (0.9 Litros)',
+        dealer: MENDOZA_OFFICIAL_DEALERS.moto
+      },
+      {
+        brand: 'Bajaj',
+        brandId: 'bajaj',
+        model: 'Rouser NS 200',
+        version: 'Carburada / Fi ABS',
+        engineCode: 'JL36E Triple Chispa',
+        engineName: '199.5 cc 4T DTS-i 4V Refrigeración Líquida',
+        displacement: '199.5 cc',
+        valves: 4,
+        power: '24.5 CV',
+        fuel: 'Nafta Súper',
+        chassisPrefix: 'MD2A36AY',
+        bodyType: 'Street Deportiva',
+        drive: 'Cadena 520',
+        oil: '20W-50 Sintético Moto 4T (1.2 Litros)',
+        dealer: MENDOZA_OFFICIAL_DEALERS.moto
+      }
+    ];
+
+    const camionArchetypes = [
+      {
+        brand: 'Iveco',
+        brandId: 'iveco',
+        model: 'Tector',
+        version: '170E28 Attack 4x2',
+        engineCode: 'FPT NEF 6',
+        engineName: '5.9 Turbo Intercooler Common Rail 280CV Euro 5',
+        displacement: '5880 cc',
+        valves: 24,
+        power: '280 CV',
+        fuel: 'Diésel Grado 3 (Euro)',
+        chassisPrefix: '8AP170E2',
+        bodyType: 'Camión Semipesado 4x2',
+        drive: 'Trasera 4x2 con Bloqueo',
+        oil: '15W-40 Diésel Pesado (19 Litros)',
+        dealer: MENDOZA_OFFICIAL_DEALERS.iveco
+      },
+      {
+        brand: 'Scania',
+        brandId: 'scania',
+        model: 'R 450',
+        version: 'Highline 6x2 Opticruise',
+        engineCode: 'DC13 148',
+        engineName: '12.7 Litros 6 Cilindros 450CV 2350Nm',
+        displacement: '12742 cc',
+        valves: 24,
+        power: '450 CV',
+        fuel: 'Diésel Grado 3',
+        chassisPrefix: '9BSG4X20',
+        bodyType: 'Tractor de Carretera 6x2',
+        drive: '6x2 con Eje Elevable',
+        oil: 'Scania LDF-3 10W-40 (38 Litros)',
+        dealer: MENDOZA_OFFICIAL_DEALERS.scania
+      },
+      {
+        brand: 'Mercedes-Benz',
+        brandId: 'mercedes-benz-camiones',
+        model: '1620',
+        version: 'L 1620 Chasis Largo',
+        engineCode: 'OM 366 LA',
+        engineName: '6.0 Turbo Intercooler 6 Cilindros 211CV',
+        displacement: '5958 cc',
+        valves: 12,
+        power: '211 CV',
+        fuel: 'Diésel Grado 2 / Común',
+        chassisPrefix: '8AP16200',
+        bodyType: 'Camión Chasis 4x2',
+        drive: 'Trasera 4x2',
+        oil: '15W-40 Mineral Pesado (15 Litros)',
+        dealer: MENDOZA_OFFICIAL_DEALERS.iveco
+      },
+      {
+        brand: 'Volkswagen',
+        brandId: 'volkswagen-camiones',
+        model: 'Constellation',
+        version: '17.280 Tractor 4x2 Advantech',
+        engineCode: 'MAN D08 36',
+        engineName: '6.9 Litros 6 Cilindros MAN 280CV EGR',
+        displacement: '6871 cc',
+        valves: 24,
+        power: '280 CV',
+        fuel: 'Diésel Grado 3',
+        chassisPrefix: '9BW28000',
+        bodyType: 'Camión Tractor 4x2',
+        drive: 'Trasera 4x2',
+        oil: '10W-40 Sintético MAN 3277 (27 Litros)',
+        dealer: MENDOZA_OFFICIAL_DEALERS.volkswagen
+      }
+    ];
+
+    // Estimación cronológica oficial según serie de patentamiento
+    let estimatedYear = 2021;
+    if (inputType === 'patente_mercosur_auto') {
+      const s = clean.slice(0, 2);
+      if (s.startsWith('AA')) estimatedYear = 2016;
+      else if (s.startsWith('AB')) estimatedYear = 2017;
+      else if (s.startsWith('AC')) estimatedYear = 2018;
+      else if (s.startsWith('AD')) estimatedYear = 2019;
+      else if (s.startsWith('AE')) estimatedYear = 2021;
+      else if (s.startsWith('AF')) estimatedYear = 2022;
+      else if (s.startsWith('AG')) estimatedYear = 2024;
+      else estimatedYear = 2025;
+    } else if (inputType === 'patente_mercosur_moto') {
+      const numPrefix = parseInt(clean.slice(1, 3), 10) || 0;
+      if (numPrefix <= 2) estimatedYear = 2017;
+      else if (numPrefix <= 5) estimatedYear = 2019;
+      else if (numPrefix <= 8) estimatedYear = 2021;
+      else if (numPrefix <= 12) estimatedYear = 2023;
+      else estimatedYear = 2025;
+    } else if (inputType === 'patente_clasica_auto') {
+      const init = clean.charAt(0);
+      const m = { A: 1995, B: 1997, C: 1999, D: 2000, E: 2002, F: 2005, G: 2007, H: 2008, I: 2009, J: 2010, K: 2011, L: 2012, M: 2013, N: 2014, O: 2015, P: 2016 };
+      estimatedYear = m[init] || 2008;
+    } else if (inputType === 'patente_clasica_moto') {
+      const numVal = parseInt(clean.slice(0, 3), 10) || 0;
+      estimatedYear = 2000 + Math.min(15, Math.floor(numVal / 60));
+    } else if (inputType === 'patente_antigua_provincial') {
+      estimatedYear = 1990;
+    } else if (inputType === 'vin') {
+      const yearChar = clean.charAt(9);
+      const vinYears = {
+        'A': 2010, 'B': 2011, 'C': 2012, 'D': 2013, 'E': 2014,
+        'F': 2015, 'G': 2016, 'H': 2017, 'J': 2018, 'K': 2019,
+        'L': 2020, 'M': 2021, 'N': 2022, 'P': 2023, 'R': 2024,
+        'S': 2025, 'T': 2026
+      };
+      estimatedYear = vinYears[yearChar] || 2021;
+    }
+
+    let targetArchetypes = autoArchetypes;
+    if (vehicleType === 'moto') targetArchetypes = motoArchetypes;
+    else if (vehicleType === 'camion') targetArchetypes = camionArchetypes;
 
     let hash = 0;
     for (let i = 0; i < clean.length; i++) {
       hash = (hash << 5) - hash + clean.charCodeAt(i);
       hash |= 0;
     }
-    const idx = Math.abs(hash) % archetypes.length;
-    const arch = archetypes[idx];
+    const idx = Math.abs(hash) % targetArchetypes.length;
+    const arch = targetArchetypes[idx];
 
     const seccionales = [
       { name: 'Mendoza N° 4 (Godoy Cruz)', code: '13004' },
       { name: 'Guaymallén N° 2', code: '13012' },
       { name: 'Maipú N° 1', code: '13018' },
-      { name: 'Mendoza N° 1 (Capital)', code: '13001' },
+      { name: 'Mendoza N° 1 (Capital Centro)', code: '13001' },
       { name: 'Mendoza N° 3 (Las Heras)', code: '13003' },
       { name: 'San Martín N° 1', code: '13022' },
-      { name: 'San Rafael N° 2', code: '13026' }
+      { name: 'San Rafael N° 1', code: '13025' },
+      { name: 'Luján de Cuyo N° 1', code: '13015' }
     ];
     const sec = seccionales[Math.abs(hash) % seccionales.length];
+    const displayPlate = this.formatDisplayPatente(clean);
     const syntheticVIN = `${arch.chassisPrefix}${clean.slice(0, 4)}${estimatedYear.toString().slice(2)}0${Math.abs(hash % 90000 + 10000)}`;
 
     return {
@@ -1451,13 +1917,15 @@ export const clientFallbackService = {
         model: arch.model,
         version: arch.version,
         year: estimatedYear,
-        vehicleType: 'auto',
+        vehicleType: vehicleType,
         engine: {
           code: arch.engineCode,
           name: arch.engineName,
           displacement: arch.displacement,
+          valves: arch.valves || (arch.engineName.includes('16V') ? 16 : 8),
           power: arch.power,
-          fuel: arch.fuel
+          fuel: arch.fuel,
+          engineNumber: `${arch.engineCode.split(' ')[0]}-${Math.abs(hash % 800000 + 100000)}`
         },
         chassis: {
           vin: syntheticVIN,
@@ -1475,10 +1943,171 @@ export const clientFallbackService = {
         recommendedParts: {
           pastillasFreno: `Pastillas delanteras específicas ${arch.model}`,
           filtroAceite: `Filtro de aceite calibrado para ${arch.engineName}`,
-          radiador: `Radiador de aluminio específico para motor ${arch.engineCode}`
+          radiador: `Radiador de aluminio específico para motor ${arch.engineCode}`,
+          aceiteRecomendado: arch.oil || (estimatedYear >= 2018 ? '5W-30 Sintético' : '10W-40 Semi-sintético')
         }
       }
     };
+  },
+
+  // ==========================================
+  // Cochera Digital Local (Mis Vehículos Guardados)
+  // ==========================================
+  getCocheraVehicles() {
+    try {
+      const saved = localStorage.getItem('dinacity_user_vehicles');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {
+      console.warn('Error leyendo cochera local:', e);
+    }
+
+    const defaults = [
+      {
+        id: 'veh_default_1',
+        patente: 'AF 482 QZ',
+        brand: 'Toyota',
+        model: 'Hilux',
+        version: 'SRV 4x4 Doble Cabina Automática',
+        year: 2022,
+        vehicleType: 'auto',
+        engine: {
+          code: '1GD-FTV',
+          name: '2.8 D-4D 16V Turbo Diésel (204 CV)',
+          displacement: '2755 cc',
+          power: '204 CV',
+          fuel: 'Diésel Grado 3 (Euro)'
+        },
+        chassis: { vin: '8AJBA3CD7N0128941', drive: '4x4 Integral con Reductora' },
+        dnrpa: { seccional: 'Mendoza N° 4 (Godoy Cruz)', codigoRegistro: '13004' },
+        isPrimary: true
+      },
+      {
+        id: 'veh_default_2',
+        patente: 'AD 192 OP',
+        brand: 'Volkswagen',
+        model: 'Gol Trend',
+        version: 'Trendline 1.6 MSI 5P',
+        year: 2019,
+        vehicleType: 'auto',
+        engine: {
+          code: 'EA111 (CFZ)',
+          name: '1.6 8V MSI Naftero (101 CV)',
+          displacement: '1598 cc',
+          power: '101 CV',
+          fuel: 'Nafta Súper'
+        },
+        chassis: { vin: '8AWZZZ5UZKT048192', drive: 'Delantera 4x2' },
+        dnrpa: { seccional: 'Guaymallén N° 2', codigoRegistro: '13012' }
+      },
+      {
+        id: 'veh_default_3',
+        patente: 'A 042 BVC',
+        brand: 'Honda',
+        model: 'XR 250 Tornado',
+        version: 'Enduro On-Off 250cc',
+        year: 2021,
+        vehicleType: 'moto',
+        engine: {
+          code: 'MD21E (DOHC)',
+          name: '249 cc 4T DOHC 4 Válvulas (23.3 CV)',
+          displacement: '249 cc',
+          power: '23.3 CV',
+          fuel: 'Nafta Súper'
+        },
+        chassis: { vin: '8CHMC2500M0019283', drive: 'Cadena 520' },
+        dnrpa: { seccional: 'Mendoza Motos N° 1 (Godoy Cruz)', codigoRegistro: '13501' }
+      },
+      {
+        id: 'veh_default_4',
+        patente: 'AF 912 OP',
+        brand: 'Iveco',
+        model: 'Tector',
+        version: '170E28 Attack Chasis / Tractor',
+        year: 2022,
+        vehicleType: 'camion',
+        engine: {
+          code: 'FPT NEF 6',
+          name: '5.9 Turbo Intercooler Common Rail 280CV Euro 5',
+          displacement: '5880 cc',
+          power: '280 CV',
+          fuel: 'Diésel Grado 3 (Euro)'
+        },
+        chassis: { vin: '8AP170E28NT001928', drive: 'Trasera 4x2 con Bloqueo' },
+        dnrpa: { seccional: 'Maipú Pesados N° 1 (Polo Rodríguez Peña)', codigoRegistro: '13091' }
+      }
+    ];
+
+    try {
+      localStorage.setItem('dinacity_user_vehicles', JSON.stringify(defaults));
+    } catch {}
+    return defaults;
+  },
+
+  saveToCochera(vehicle) {
+    if (!vehicle) return;
+    const current = this.getCocheraVehicles();
+    const cleanPlate = (vehicle.patente || vehicle.displayPlate || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    
+    const filtered = current.filter(v => {
+      const vp = (v.patente || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+      return vp !== cleanPlate;
+    });
+
+    const newEntry = {
+      id: vehicle.id || `veh_${Date.now()}`,
+      patente: vehicle.displayPlate || vehicle.patente || cleanPlate,
+      brand: vehicle.brand || 'Vehículo',
+      model: vehicle.model || 'Registrado',
+      version: vehicle.version || '',
+      year: vehicle.year || 2022,
+      vehicleType: vehicle.vehicleType || 'auto',
+      engine: vehicle.engine || { name: 'Motor Homologado DNRPA' },
+      chassis: vehicle.chassis || { vin: vehicle.vin || '-' },
+      dnrpa: vehicle.dnrpa || { seccional: 'Mendoza' },
+      isPrimary: true
+    };
+
+    const updated = [newEntry, ...filtered.map(f => ({ ...f, isPrimary: false }))];
+    try {
+      localStorage.setItem('dinacity_user_vehicles', JSON.stringify(updated));
+      localStorage.setItem('dinacity_active_vehicle', JSON.stringify(newEntry));
+    } catch (e) {
+      console.warn('Error guardando en cochera local:', e);
+    }
+    return updated;
+  },
+
+  removeFromCochera(patenteOrId) {
+    const current = this.getCocheraVehicles();
+    const clean = (patenteOrId || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    const updated = current.filter(v => {
+      if (v.id === patenteOrId) return false;
+      const vp = (v.patente || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+      return vp !== clean;
+    });
+    try {
+      localStorage.setItem('dinacity_user_vehicles', JSON.stringify(updated));
+    } catch (e) {}
+    return updated;
+  },
+
+  setActiveCocheraVehicle(vehicle) {
+    if (!vehicle) return;
+    try {
+      localStorage.setItem('dinacity_active_vehicle', JSON.stringify(vehicle));
+    } catch (e) {}
+  },
+
+  getActiveCocheraVehicle() {
+    try {
+      const saved = localStorage.getItem('dinacity_active_vehicle');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    const list = this.getCocheraVehicles();
+    return list[0] || null;
   },
 
   getMaintenanceSpecs(vehicle = {}) {

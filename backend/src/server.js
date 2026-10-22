@@ -42,9 +42,9 @@ app.get('/api/health', (req, res) => {
 // Identificación Vehicular por Patente o VIN (DNRPA Argentina)
 app.get('/api/vehicles/lookup-patente', (req, res) => {
   try {
-    const { patente, vin } = req.query;
+    const { patente, vin, vehicleType } = req.query;
     const query = patente || vin || '';
-    const result = patenteService.lookup(query);
+    const result = patenteService.lookup(query, vehicleType);
     res.json(result);
   } catch (error) {
     res.status(400).json({ error: error.message });

@@ -8,7 +8,9 @@ export function HeroSearch({
   onNavigateCotizador,
   onNavigateMantenimiento,
   onNavigateLibreta,
-  onNavigateGuantera
+  onNavigateGuantera,
+  onNavigateKits,
+  onNavigateMapa
 }) {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2">
@@ -23,7 +25,7 @@ export function HeroSearch({
               📍 Mendoza, Argentina
             </span>
             <span className="text-[11px] font-bold text-emerald-300 bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-500/30 hidden sm:inline">
-              ✓ Cotizador Express & Libreta de Mantenimiento
+              ✓ Autos • Motos • Camiones • Eje Central
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight">
@@ -43,6 +45,8 @@ export function HeroSearch({
           onNavigateMantenimiento={onNavigateMantenimiento}
           onNavigateLibreta={onNavigateLibreta}
           onNavigateGuantera={onNavigateGuantera}
+          onNavigateKits={onNavigateKits}
+          onNavigateMapa={onNavigateMapa}
         />
       </div>
     </div>

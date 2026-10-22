@@ -270,6 +270,236 @@ export class PatenteService {
           radiador: 'Radiador de agua principal y radiador auxiliar de enfriamiento EGR',
           aceiteRecomendado: '5W-30 Sintético Norma VW 507.00'
         }
+      },
+      // --- MOTOS & SCOOTERS ---
+      {
+        patente: 'A042BVC',
+        vin: '8CHMC2500M0019283',
+        brand: 'Honda',
+        brandId: 'honda-motos',
+        model: 'XR 250 Tornado',
+        version: 'Enduro On-Off 250cc',
+        year: 2021,
+        vehicleType: 'moto',
+        engine: {
+          code: 'MD21E (DOHC)',
+          name: '249 cc 4 Tiempos DOHC 4 Válvulas',
+          displacement: '249 cc',
+          valves: 4,
+          power: '23.3 CV @ 7500 RPM',
+          torque: '23.7 Nm',
+          fuel: 'Nafta Súper',
+          engineNumber: 'MD21E-1029381'
+        },
+        chassis: {
+          vin: '8CHMC2500M0019283',
+          bodyType: 'Motocicleta Enduro / Trail',
+          drive: 'Transmisión por Cadena 520'
+        },
+        dnrpa: {
+          seccional: 'Mendoza Motos N° 1 (Godoy Cruz)',
+          codigoRegistro: '13501',
+          provincia: 'Mendoza',
+          origen: 'Nacional (Planta Campana, Bs. As.)',
+          fechaInscripcionInicial: '12/10/2021'
+        },
+        recommendedParts: {
+          pastillasFreno: 'Pastillas de freno delanteras Nissin sinterizadas',
+          filtroAceite: 'Filtro de aceite tipo cartucho HF112',
+          radiador: 'Radiador de aceite auxiliar con tubos mallados',
+          aceiteRecomendado: '10W-30 o 20W-50 Moto 4T JASO MA2 (1.5 Litros)'
+        }
+      },
+      {
+        patente: 'A123BCD',
+        vin: '8CH2D1500N0048192',
+        brand: 'Yamaha',
+        brandId: 'yamaha',
+        model: 'FZ FI 150',
+        version: 'Version 3.0 Blue-Core Inyección',
+        year: 2022,
+        vehicleType: 'moto',
+        engine: {
+          code: 'FZ15-SOHC',
+          name: '149 cc 4T SOHC 2V Inyección Blue Core',
+          displacement: '149 cc',
+          valves: 2,
+          power: '12.4 CV @ 7250 RPM',
+          torque: '13.6 Nm',
+          fuel: 'Nafta Súper',
+          engineNumber: 'G3J4E-192839'
+        },
+        chassis: {
+          vin: '8CH2D1500N0048192',
+          bodyType: 'Street / Naked',
+          drive: 'Cadena con O-Ring'
+        },
+        dnrpa: {
+          seccional: 'Guaymallén Motos N° 1',
+          codigoRegistro: '13502',
+          provincia: 'Mendoza',
+          origen: 'Nacional (Planta Gral. Rodríguez)',
+          fechaInscripcionInicial: '08/03/2022'
+        },
+        recommendedParts: {
+          pastillasFreno: 'Pastillas delanteras Bybre con ABS monocanal',
+          filtroAceite: 'Elemento filtrante Yamaha Yamalube 54B',
+          radiador: 'Refrigeración por aire forzado',
+          aceiteRecomendado: 'Yamalube 10W-40 4T Semisintético (1.0 Litro)'
+        }
+      },
+      {
+        patente: '482ABC',
+        vin: '8C1110000FR019283',
+        brand: 'Motomel',
+        brandId: 'motomel',
+        model: 'Blitz 110',
+        version: 'B1 110 Tuning Automática',
+        year: 2015,
+        vehicleType: 'moto',
+        engine: {
+          code: '152FMH',
+          name: '107 cc Monocilíndrico 4T CUB',
+          displacement: '107 cc',
+          valves: 2,
+          power: '7.0 CV @ 7500 RPM',
+          torque: '7.5 Nm',
+          fuel: 'Nafta Súper',
+          engineNumber: '152FMH-819281'
+        },
+        chassis: {
+          vin: '8C1110000FR019283',
+          bodyType: 'CUB / Scooter Urbana',
+          drive: 'Cadena paso 428'
+        },
+        dnrpa: {
+          seccional: 'Las Heras Motos N° 1',
+          codigoRegistro: '13503',
+          provincia: 'Mendoza',
+          origen: 'Nacional (Planta La Emilia, Bs. As.)',
+          fechaInscripcionInicial: '14/09/2015'
+        },
+        recommendedParts: {
+          pastillasFreno: 'Zapatas de freno traseras y pastillas delanteras 110',
+          filtroAceite: 'Malla metálica de cárter lavable',
+          radiador: 'Refrigeración por aletas de cilindro',
+          aceiteRecomendado: '20W-50 Mineral Moto 4T (0.9 Litros)'
+        }
+      },
+      // --- CAMIONES & PESADOS ---
+      {
+        patente: 'AF912OP',
+        vin: '8AP170E28NT001928',
+        brand: 'Iveco',
+        brandId: 'iveco',
+        model: 'Tector',
+        version: '170E28 Attack Chasis / Tractor',
+        year: 2022,
+        vehicleType: 'camion',
+        engine: {
+          code: 'FPT NEF 6 (F4AE)',
+          name: '5.9 Turbo Intercooler Common Rail 6 Cil.',
+          displacement: '5880 cc',
+          valves: 24,
+          power: '280 CV @ 2500 RPM',
+          torque: '950 Nm',
+          fuel: 'Diésel Grado 3 (Euro 5 con Urea Arla 32)',
+          engineNumber: 'F4AE3681-91829'
+        },
+        chassis: {
+          vin: '8AP170E28NT001928',
+          bodyType: 'Camión Semipesado 4x2',
+          drive: 'Tracción Trasera 4x2 con Bloqueo de Diferencial'
+        },
+        dnrpa: {
+          seccional: 'Maipú Pesados N° 1 (Polo Rodríguez Peña)',
+          codigoRegistro: '13091',
+          provincia: 'Mendoza',
+          origen: 'Nacional (Planta Ferreyra, Córdoba)',
+          fechaInscripcionInicial: '17/05/2022'
+        },
+        recommendedParts: {
+          pastillasFreno: 'Cintas de freno pesadas tipo WVA con remaches y tambor',
+          filtroAceite: 'Filtro doble blindado roscado Iveco 2992242',
+          radiador: 'Radiador de cobre-aluminio de alto rendimiento para ruta',
+          aceiteRecomendado: '15W-40 Urania Daily / LD7 Sintético (19 Litros)'
+        }
+      },
+      {
+        patente: 'AC450MN',
+        vin: '9BSG4X200JC009182',
+        brand: 'Scania',
+        brandId: 'scania',
+        model: 'R 450',
+        version: 'Highline 6x2 Opticruise Retarder',
+        year: 2018,
+        vehicleType: 'camion',
+        engine: {
+          code: 'DC13 148',
+          name: '12.7 Litros 6 Cilindros en Línea XPI',
+          displacement: '12742 cc',
+          valves: 24,
+          power: '450 CV @ 1900 RPM',
+          torque: '2350 Nm @ 1000-1300 RPM',
+          fuel: 'Diésel Grado 3 (Euro 5)',
+          engineNumber: 'DC13-1829301'
+        },
+        chassis: {
+          vin: '9BSG4X200JC009182',
+          bodyType: 'Tractor de Carretera 6x2',
+          drive: '6x2 con Eje Elevable Neumático'
+        },
+        dnrpa: {
+          seccional: 'Guaymallén Pesados N° 1',
+          codigoRegistro: '13092',
+          provincia: 'Mendoza',
+          origen: 'Mercosur (Brasil)',
+          fechaInscripcionInicial: '22/11/2018'
+        },
+        recommendedParts: {
+          pastillasFreno: 'Pastillas de freno a disco Knorr-Bremse SB7000',
+          filtroAceite: 'Kit de 2 filtros de aceite centrífugos Scania 2022026',
+          radiador: 'Radiador de alta transferencia térmica y refrigerador intercooler',
+          aceiteRecomendado: 'Scania Oil LDF-3 10W-40 Sintético (38 Litros)'
+        }
+      },
+      {
+        patente: 'RST123',
+        vin: '8AP1620008R001928',
+        brand: 'Mercedes-Benz',
+        brandId: 'mercedes-benz-camiones',
+        model: '1620',
+        version: 'L 1620 Chasis Largo Cabina Dormitorio',
+        year: 2008,
+        vehicleType: 'camion',
+        engine: {
+          code: 'OM 366 LA',
+          name: '6.0 Turbo Intercooler 6 Cilindros en Línea',
+          displacement: '5958 cc',
+          valves: 12,
+          power: '211 CV @ 2600 RPM',
+          torque: '700 Nm',
+          fuel: 'Diésel Grado 2 / Común',
+          engineNumber: 'OM366LA-291029'
+        },
+        chassis: {
+          vin: '8AP1620008R001928',
+          bodyType: 'Camión Chasis 4x2',
+          drive: 'Tracción Trasera 4x2'
+        },
+        dnrpa: {
+          seccional: 'Godoy Cruz Pesados N° 1',
+          codigoRegistro: '13093',
+          provincia: 'Mendoza',
+          origen: 'Nacional (Planta Virrey del Pino, Bs. As.)',
+          fechaInscripcionInicial: '14/08/2008'
+        },
+        recommendedParts: {
+          pastillasFreno: 'Juego de cintas de freno traseras para tambor de 410mm',
+          filtroAceite: 'Filtro Mann W940 / Mercedes-Benz A0001801709',
+          radiador: 'Radiador de bronce-cobre para faenas de montaña',
+          aceiteRecomendado: '15W-40 Rimula / Mobil Delvac Mineral (15 Litros)'
+        }
       }
     ];
 
@@ -284,7 +514,335 @@ export class PatenteService {
       'Luján de Cuyo N° 1',
       'Las Heras N° 1',
       'San Martín N° 1',
-      'San Rafael N° 1'
+      'San Rafael N° 1',
+      'Tunuyán N° 1 (Valle de Uco)'
+    ];
+
+    // Catálogo de Arquetipos DNRPA Argentinos: AUTOS
+    this.autoArchetypes = [
+      {
+        brand: 'Volkswagen',
+        brandId: 'volkswagen',
+        model: 'Gol Trend',
+        version: 'Trendline 1.6 MSI 5P',
+        engineCode: 'EA111 MSI',
+        engineName: '1.6 8V MSI 101CV',
+        displacement: '1598 cc',
+        power: '101 CV',
+        fuel: 'Nafta Súper',
+        chassisPrefix: '8AWZZZ5U',
+        bodyType: 'Hatchback 5P',
+        drive: 'Delantera 4x2',
+        oil: '5W-40 Sintético (4.0 Litros)'
+      },
+      {
+        brand: 'Toyota',
+        brandId: 'toyota',
+        model: 'Hilux',
+        version: 'SRV 2.8 TDI 4x4',
+        engineCode: '1GD-FTV',
+        engineName: '2.8 D-4D 16V Turbo Diésel 204CV',
+        displacement: '2755 cc',
+        power: '204 CV',
+        fuel: 'Diésel Grado 3 (Euro)',
+        chassisPrefix: '8AJBA3CD',
+        bodyType: 'Pick-Up Cabina Doble',
+        drive: '4x4 Integral con Reductora',
+        oil: '5W-30 Sintético Low SAPS (7.5 Litros)'
+      },
+      {
+        brand: 'Fiat',
+        brandId: 'fiat',
+        model: 'Cronos',
+        version: 'Drive 1.3 GSE',
+        engineCode: 'Firefly 1.3',
+        engineName: '1.3 8V GSE Firefly 99CV',
+        displacement: '1332 cc',
+        power: '99 CV',
+        fuel: 'Nafta Súper',
+        chassisPrefix: '8AP35800',
+        bodyType: 'Sedán 4 Puertas',
+        drive: 'Delantera 4x2',
+        oil: '0W-20 Sintético (3.2 Litros)'
+      },
+      {
+        brand: 'Chevrolet',
+        brandId: 'chevrolet',
+        model: 'Onix',
+        version: 'LTZ 1.0 Turbo',
+        engineCode: 'CSS Prime 1.0T',
+        engineName: '1.0 Turbo 12V 116CV',
+        displacement: '999 cc',
+        power: '116 CV',
+        fuel: 'Nafta Grado 3',
+        chassisPrefix: '8AGBA3CD',
+        bodyType: 'Hatchback 5P',
+        drive: 'Delantera 4x2',
+        oil: '0W-20 Sintético Dexos 1 (3.8 Litros)'
+      },
+      {
+        brand: 'Ford',
+        brandId: 'ford',
+        model: 'Ranger',
+        version: 'XLT 3.2 TDCi 4x4',
+        engineCode: 'Puma 3.2',
+        engineName: '3.2 Duratorq TDCi 5 Cilindros 200CV',
+        displacement: '3198 cc',
+        power: '200 CV',
+        fuel: 'Diésel Grado 3',
+        chassisPrefix: '8AFBF35G',
+        bodyType: 'Pick-Up Cabina Doble',
+        drive: '4x4 Alta y Baja',
+        oil: '5W-30 Sintético (9.5 Litros)'
+      },
+      {
+        brand: 'Peugeot',
+        brandId: 'peugeot',
+        model: '208',
+        version: 'Allure 1.6 VTi',
+        engineCode: 'EC5',
+        engineName: '1.6 16V VTi 115CV',
+        displacement: '1587 cc',
+        power: '115 CV',
+        fuel: 'Nafta Súper',
+        chassisPrefix: '8AD2C5FS',
+        bodyType: 'Hatchback 5P',
+        drive: 'Delantera 4x2',
+        oil: '5W-30 Sintético (3.75 Litros)'
+      },
+      {
+        brand: 'Renault',
+        brandId: 'renault',
+        model: 'Kangoo',
+        version: 'Stepway 1.6 SCe',
+        engineCode: 'HR16DE (H4M)',
+        engineName: '1.6 16V SCe 115CV',
+        displacement: '1598 cc',
+        power: '115 CV',
+        fuel: 'Nafta Súper',
+        chassisPrefix: '8A15R000',
+        bodyType: 'Utilitario / Familiar',
+        drive: 'Delantera 4x2',
+        oil: '5W-40 Sintético (4.2 Litros)'
+      },
+      {
+        brand: 'Toyota',
+        brandId: 'toyota',
+        model: 'Corolla Cross',
+        version: 'XEI 2.0 CVT',
+        engineCode: 'M20A-FKS',
+        engineName: '2.0 Dynamic Force 16V Dual VVT-iE 170CV',
+        displacement: '1987 cc',
+        power: '170 CV',
+        fuel: 'Nafta Súper',
+        chassisPrefix: '9BRM20AF',
+        bodyType: 'SUV / Crossover',
+        drive: 'Delantera 4x2',
+        oil: '0W-20 Sintético (4.3 Litros)'
+      },
+      {
+        brand: 'Fiat',
+        brandId: 'fiat',
+        model: 'Toro',
+        version: 'Freedom 2.0 Multijet 4x4 AT9',
+        engineCode: 'MultiJet II 2.0',
+        engineName: '2.0 16V Turbo Diésel 170CV',
+        displacement: '1956 cc',
+        power: '170 CV',
+        fuel: 'Diésel Grado 3 (Euro)',
+        chassisPrefix: '9BD22600',
+        bodyType: 'Pick-Up Compacta',
+        drive: '4x4 Integral con Selector',
+        oil: '5W-30 Sintético Selenia (4.8 Litros)'
+      },
+      {
+        brand: 'Volkswagen',
+        brandId: 'volkswagen',
+        model: 'Amarok',
+        version: 'Comfortline 2.0 TDI 4x2',
+        engineCode: 'EA189',
+        engineName: '2.0 TDI 16V 140CV Monoturbal',
+        displacement: '1968 cc',
+        power: '140 CV',
+        fuel: 'Diésel Grado 3',
+        chassisPrefix: '8AW2222A',
+        bodyType: 'Pick-Up Doble Cabina',
+        drive: 'Trasera 4x2',
+        oil: '5W-30 Sintético VW 507.00 (7.0 Litros)'
+      }
+    ];
+
+    // Catálogo de Arquetipos DNRPA Argentinos: MOTOS
+    this.motoArchetypes = [
+      {
+        brand: 'Honda',
+        brandId: 'honda-motos',
+        model: 'Wave 110S',
+        version: 'Base / Cast Disco',
+        engineCode: 'JA14E',
+        engineName: '109 cc 4T OHC Refrigerado por Aire',
+        displacement: '109 cc',
+        power: '9.1 CV',
+        fuel: 'Nafta Súper',
+        chassisPrefix: '8CHJA140',
+        bodyType: 'CUB / Urbana',
+        drive: 'Cadena 428',
+        oil: '10W-30 Mineral Moto 4T (0.8 Litros)'
+      },
+      {
+        brand: 'Honda',
+        brandId: 'honda-motos',
+        model: 'XR 250 Tornado',
+        version: 'Enduro On-Off 250cc',
+        engineCode: 'MD21E DOHC',
+        engineName: '249 cc 4T DOHC 4V Radiador Aceite',
+        displacement: '249 cc',
+        power: '23.3 CV',
+        fuel: 'Nafta Súper',
+        chassisPrefix: '8CHMC250',
+        bodyType: 'Enduro / Trail',
+        drive: 'Cadena con Retenes 520',
+        oil: '20W-50 / 10W-30 Moto 4T JASO MA2 (1.5 Litros)'
+      },
+      {
+        brand: 'Yamaha',
+        brandId: 'yamaha',
+        model: 'FZ FI 150',
+        version: 'Version 3.0 Blue-Core',
+        engineCode: 'FZ15-SOHC',
+        engineName: '149 cc 4T SOHC 2V Inyección',
+        displacement: '149 cc',
+        power: '12.4 CV',
+        fuel: 'Nafta Súper',
+        chassisPrefix: '8CH2D150',
+        bodyType: 'Street / Naked',
+        drive: 'Cadena con O-Ring',
+        oil: 'Yamalube 10W-40 4T (1.0 Litro)'
+      },
+      {
+        brand: 'Motomel',
+        brandId: 'motomel',
+        model: 'Blitz 110',
+        version: 'B1 Tuning Automática',
+        engineCode: '152FMH',
+        engineName: '107 cc 4T Monocilíndrico 7CV',
+        displacement: '107 cc',
+        power: '7.0 CV',
+        fuel: 'Nafta Súper',
+        chassisPrefix: '8C111000',
+        bodyType: 'CUB / Scooter Urbana',
+        drive: 'Cadena 428',
+        oil: '20W-50 Mineral 4T (0.9 Litros)'
+      },
+      {
+        brand: 'Bajaj',
+        brandId: 'bajaj',
+        model: 'Rouser NS 200',
+        version: 'Carburada / Fi ABS',
+        engineCode: 'JL36E Triple Chispa',
+        engineName: '199.5 cc 4T DTS-i 4V Refrigeración Líquida',
+        displacement: '199.5 cc',
+        power: '24.5 CV',
+        fuel: 'Nafta Súper',
+        chassisPrefix: 'MD2A36AY',
+        bodyType: 'Street Deportiva',
+        drive: 'Cadena 520',
+        oil: '20W-50 Sintético Moto 4T (1.2 Litros)'
+      },
+      {
+        brand: 'Corven',
+        brandId: 'corven',
+        model: 'Triax 150',
+        version: 'R3 Enduro On-Off',
+        engineCode: '162FMJ',
+        engineName: '149 cc Monocilíndrico 4T 5 Velocidades',
+        displacement: '149 cc',
+        power: '12.0 CV',
+        fuel: 'Nafta Súper',
+        chassisPrefix: '8C415000',
+        bodyType: 'Enduro On-Off',
+        drive: 'Cadena reforzada',
+        oil: '20W-50 Mineral 4T (1.0 Litro)'
+      }
+    ];
+
+    // Catálogo de Arquetipos DNRPA Argentinos: CAMIONES Y PESADOS
+    this.camionArchetypes = [
+      {
+        brand: 'Iveco',
+        brandId: 'iveco',
+        model: 'Tector',
+        version: '170E28 Attack 4x2',
+        engineCode: 'FPT NEF 6',
+        engineName: '5.9 Turbo Intercooler Common Rail 280CV Euro 5',
+        displacement: '5880 cc',
+        power: '280 CV',
+        fuel: 'Diésel Grado 3 (Euro)',
+        chassisPrefix: '8AP170E2',
+        bodyType: 'Camión Semipesado 4x2',
+        drive: 'Trasera 4x2 con Bloqueo',
+        oil: '15W-40 Diésel Pesado (19 Litros)'
+      },
+      {
+        brand: 'Scania',
+        brandId: 'scania',
+        model: 'R 450',
+        version: 'Highline 6x2 Opticruise',
+        engineCode: 'DC13 148',
+        engineName: '12.7 Litros 6 Cilindros 450CV 2350Nm',
+        displacement: '12742 cc',
+        power: '450 CV',
+        fuel: 'Diésel Grado 3',
+        chassisPrefix: '9BSG4X20',
+        bodyType: 'Tractor de Carretera 6x2',
+        drive: '6x2 con Eje Elevable',
+        oil: 'Scania LDF-3 10W-40 (38 Litros)'
+      },
+      {
+        brand: 'Mercedes-Benz',
+        brandId: 'mercedes-benz-camiones',
+        model: '1620',
+        version: 'L 1620 Chasis Largo',
+        engineCode: 'OM 366 LA',
+        engineName: '6.0 Turbo Intercooler 6 Cilindros 211CV',
+        displacement: '5958 cc',
+        power: '211 CV',
+        fuel: 'Diésel Grado 2 / Común',
+        chassisPrefix: '8AP16200',
+        bodyType: 'Camión Chasis 4x2',
+        drive: 'Trasera 4x2',
+        oil: '15W-40 Mineral Pesado (15 Litros)'
+      },
+      {
+        brand: 'Mercedes-Benz',
+        brandId: 'mercedes-benz-camiones',
+        model: 'Sprinter',
+        version: '415 CDI Furgón Mixto',
+        engineCode: 'OM 651 DE22',
+        engineName: '2.2 CDI 16V Bi-Turbo 150CV',
+        displacement: '2143 cc',
+        power: '150 CV',
+        fuel: 'Diésel Grado 3 (Euro)',
+        chassisPrefix: '8AP90663',
+        bodyType: 'Utilitario / Furgón Grande',
+        drive: 'Trasera 4x2',
+        oil: '5W-30 Sintético MB 229.51 (9.0 Litros)'
+      },
+      {
+        brand: 'Volkswagen',
+        brandId: 'volkswagen-camiones',
+        model: 'Constellation',
+        version: '17.280 Tractor 4x2 Advantech',
+        engineCode: 'MAN D08 36',
+        engineName: '6.9 Litros 6 Cilindros MAN 280CV EGR (Sin Urea)',
+        displacement: '6871 cc',
+        power: '280 CV',
+        fuel: 'Diésel Grado 3',
+        chassisPrefix: '9BW28000',
+        bodyType: 'Camión Tractor 4x2',
+        drive: 'Trasera 4x2 con Reducción Simple',
+        oil: '10W-40 Sintético MAN 3277 (27 Litros)'
+      }
     ];
   }
 
@@ -301,26 +859,30 @@ export class PatenteService {
     if (cleaned.length === 17) {
       return 'vin';
     }
-    // Formato Mercosur Autos: 2 letras, 3 números, 2 letras (ej: AF482QZ)
+    // Formato Mercosur Autos/Camiones: 2 letras, 3 números, 2 letras (ej: AF482QZ)
     if (/^[A-Z]{2}[0-9]{3}[A-Z]{2}$/.test(cleaned)) {
       return 'patente_mercosur_auto';
     }
-    // Formato Mercosur Motos: 1 letra, 3 números, 3 letras (ej: A123BCD)
+    // Formato Mercosur Motos: 1 letra, 3 números, 3 letras (ej: A042BVC)
     if (/^[A-Z]{1}[0-9]{3}[A-Z]{3}$/.test(cleaned)) {
       return 'patente_mercosur_moto';
     }
-    // Formato Clásico (1995-2016): 3 letras, 3 números (ej: ABX543)
+    // Formato Clásico Autos/Camiones (1995-2016): 3 letras, 3 números (ej: ABX543)
     if (/^[A-Z]{3}[0-9]{3}$/.test(cleaned)) {
       return 'patente_clasica_auto';
     }
-    // Formato Clásico Motos: 3 números, 3 letras (ej: 123ABC)
-    if (/^[0-9]{3}[A-Z]{3}$/.test(cleaned)) {
+    // Formato Clásico Motos: 3 números, 3 letras (ej: 482ABC)
+    if (/^[0-9]{3}[A-Z]{3,4}$/.test(cleaned)) {
       return 'patente_clasica_moto';
+    }
+    // Formato Antiguo Provincial Pre-1995: 1 letra + 6 o 7 números (ej: M123456)
+    if (/^[A-Z]{1}[0-9]{6,7}$/.test(cleaned)) {
+      return 'patente_antigua_provincial';
     }
     return 'unknown';
   }
 
-  // Formato para mostrar en pantalla estilo chapa patente
+  // Formato para mostrar en pantalla estilo chapa patente oficial
   formatDisplayPatente(cleaned) {
     if (/^[A-Z]{2}[0-9]{3}[A-Z]{2}$/.test(cleaned)) {
       return `${cleaned.slice(0, 2)} ${cleaned.slice(2, 5)} ${cleaned.slice(5, 7)}`;
@@ -331,19 +893,25 @@ export class PatenteService {
     if (/^[A-Z]{1}[0-9]{3}[A-Z]{3}$/.test(cleaned)) {
       return `${cleaned.slice(0, 1)} ${cleaned.slice(1, 4)} ${cleaned.slice(4, 7)}`;
     }
+    if (/^[0-9]{3}[A-Z]{3,4}$/.test(cleaned)) {
+      return `${cleaned.slice(0, 3)} ${cleaned.slice(3)}`;
+    }
+    if (/^[A-Z]{1}[0-9]{6,7}$/.test(cleaned)) {
+      return `${cleaned.slice(0, 1)} ${cleaned.slice(1, 4)} ${cleaned.slice(4)}`;
+    }
     return cleaned;
   }
 
   // Consulta por Patente o VIN
-  lookup(rawInput) {
+  lookup(rawInput, typeHint = null) {
     const cleaned = this.normalizeInput(rawInput);
     if (!cleaned) {
       throw new Error('Debe ingresar una patente o número de chasis VIN.');
     }
 
     const inputType = this.detectInputType(cleaned);
-    if (inputType === 'unknown' && cleaned.length < 6) {
-      throw new Error('Formato de patente no reconocido. Ingrese patente argentina (ej: AF 482 QZ o ABX 543) o VIN de 17 caracteres.');
+    if (inputType === 'unknown' && cleaned.length < 5) {
+      throw new Error('Formato de patente no reconocido. Ingrese una patente argentina válida (ej: AF 482 QZ, ABX 543, A 042 BVC) o VIN de 17 caracteres.');
     }
 
     // 1. Búsqueda exacta en registro verificado
@@ -363,7 +931,7 @@ export class PatenteService {
     }
 
     // 2. Motor Heurístico DNRPA para cualquier patente argentina o VIN ingresado
-    const generated = this.inferVehicleFromPlateOrVIN(cleaned, inputType);
+    const generated = this.inferVehicleFromPlateOrVIN(cleaned, inputType, typeHint);
     return {
       success: true,
       source: 'dnrpa_algorithmic_decoder',
@@ -373,10 +941,16 @@ export class PatenteService {
   }
 
   // Decodifica y genera especificaciones técnicas certeras según la serie de la patente y normativas DNRPA
-  inferVehicleFromPlateOrVIN(cleaned, inputType) {
+  inferVehicleFromPlateOrVIN(cleaned, inputType, typeHint = null) {
     let year = 2020;
-    let vehicleType = 'auto';
+    let vehicleType = typeHint || 'auto';
 
+    // Detección automática de categoría según el formato del registro
+    if (inputType === 'patente_mercosur_moto' || inputType === 'patente_clasica_moto') {
+      vehicleType = 'moto';
+    }
+
+    // Cálculo cronológico de año según series oficiales DNRPA
     if (inputType === 'patente_mercosur_auto') {
       const series = cleaned.slice(0, 2);
       if (series.startsWith('AA')) year = 2016;
@@ -386,6 +960,14 @@ export class PatenteService {
       else if (series.startsWith('AE')) year = 2020;
       else if (series.startsWith('AF')) year = 2022;
       else if (series.startsWith('AG')) year = 2024;
+      else year = 2025;
+    } else if (inputType === 'patente_mercosur_moto') {
+      const numPrefix = parseInt(cleaned.slice(1, 3), 10) || 0;
+      if (numPrefix <= 2) year = 2017;
+      else if (numPrefix <= 5) year = 2019;
+      else if (numPrefix <= 8) year = 2021;
+      else if (numPrefix <= 12) year = 2023;
+      else year = 2025;
     } else if (inputType === 'patente_clasica_auto') {
       const initial = cleaned.charAt(0);
       const yearMap = {
@@ -393,103 +975,39 @@ export class PatenteService {
         F: 2005, G: 2007, H: 2008, I: 2009, J: 2010,
         K: 2011, L: 2012, M: 2013, N: 2014, O: 2015, P: 2016
       };
-      year = yearMap[initial] || 2010;
+      year = yearMap[initial] || 2009;
+    } else if (inputType === 'patente_clasica_moto') {
+      const numVal = parseInt(cleaned.slice(0, 3), 10) || 0;
+      year = 2000 + Math.min(15, Math.floor(numVal / 60));
+    } else if (inputType === 'patente_antigua_provincial') {
+      year = 1988;
     } else if (inputType === 'vin') {
-      // Carácter 10 del VIN indica el año de modelo (ISO 3779)
       const yearChar = cleaned.charAt(9);
       const vinYears = {
         'A': 2010, 'B': 2011, 'C': 2012, 'D': 2013, 'E': 2014,
         'F': 2015, 'G': 2016, 'H': 2017, 'J': 2018, 'K': 2019,
         'L': 2020, 'M': 2021, 'N': 2022, 'P': 2023, 'R': 2024,
-        'S': 2025
+        'S': 2025, 'T': 2026
       };
       year = vinYears[yearChar] || 2020;
     }
 
-    // Catálogo representativo de asignación según el año
-    const popularArchetypes = [
-      {
-        brand: 'Volkswagen',
-        brandId: 'volkswagen',
-        model: 'Gol Trend',
-        version: 'Trendline 1.6 5P',
-        engineCode: 'EA111 MSI',
-        engineName: '1.6 8V MSI 101CV',
-        displacement: '1598 cc',
-        power: '101 CV',
-        fuel: 'Nafta',
-        chassisPrefix: '8AWZZZ5U'
-      },
-      {
-        brand: 'Toyota',
-        brandId: 'toyota',
-        model: 'Hilux',
-        version: 'SRV 2.8 TDI 4x4',
-        engineCode: '1GD-FTV',
-        engineName: '2.8 D-4D 16V Turbo Diésel 204CV',
-        displacement: '2755 cc',
-        power: '204 CV',
-        fuel: 'Diésel Grado 3',
-        chassisPrefix: '8AJBA3CD'
-      },
-      {
-        brand: 'Fiat',
-        brandId: 'fiat',
-        model: 'Cronos',
-        version: 'Drive 1.3 GSE',
-        engineCode: 'Firefly 1.3',
-        engineName: '1.3 8V GSE Firefly 99CV',
-        displacement: '1332 cc',
-        power: '99 CV',
-        fuel: 'Nafta',
-        chassisPrefix: '8AP35800'
-      },
-      {
-        brand: 'Ford',
-        brandId: 'ford',
-        model: 'Ranger',
-        version: 'XLT 3.2 TDCi 4x4',
-        engineCode: 'Puma 3.2',
-        engineName: '3.2 Duratorq TDCi 5 Cilindros 200CV',
-        displacement: '3198 cc',
-        power: '200 CV',
-        fuel: 'Diésel Grado 3',
-        chassisPrefix: '8AFBF35G'
-      },
-      {
-        brand: 'Renault',
-        brandId: 'renault',
-        model: 'Kangoo',
-        version: 'Stepway 1.6 SCe',
-        engineCode: 'HR16DE (H4M)',
-        engineName: '1.6 16V SCe 115CV',
-        displacement: '1598 cc',
-        power: '115 CV',
-        fuel: 'Nafta',
-        chassisPrefix: '8A15R000'
-      },
-      {
-        brand: 'Peugeot',
-        brandId: 'peugeot',
-        model: '208',
-        version: 'Allure 1.6 VTi',
-        engineCode: 'EC5',
-        engineName: '1.6 16V VTi 115CV',
-        displacement: '1587 cc',
-        power: '115 CV',
-        fuel: 'Nafta',
-        chassisPrefix: '8AD2C5FS'
-      }
-    ];
+    // Selección de arquetipos según vehicleType
+    let targetArchetypes = this.autoArchetypes;
+    if (vehicleType === 'moto') {
+      targetArchetypes = this.motoArchetypes;
+    } else if (vehicleType === 'camion') {
+      targetArchetypes = this.camionArchetypes;
+    }
 
-    // Selección determinística para que la misma patente siempre devuelva exactamente el mismo vehículo
+    // Selección determinística: la misma patente siempre devuelve exactamente el mismo vehículo
     let hash = 0;
     for (let i = 0; i < cleaned.length; i++) {
       hash = (hash << 5) - hash + cleaned.charCodeAt(i);
       hash |= 0;
     }
-    const idx = Math.abs(hash) % popularArchetypes.length;
-    const arch = popularArchetypes[idx];
+    const idx = Math.abs(hash) % targetArchetypes.length;
+    const arch = targetArchetypes[idx];
     const seccionalIdx = Math.abs(hash) % this.mendozaRegistros.length;
     const seccional = this.mendozaRegistros[seccionalIdx];
 
@@ -497,6 +1015,7 @@ export class PatenteService {
 
     return {
       patente: cleaned,
+      displayPlate: this.formatDisplayPatente(cleaned),
       vin: syntheticVIN,
       brand: arch.brand,
       brandId: arch.brandId,
@@ -508,15 +1027,15 @@ export class PatenteService {
         code: arch.engineCode,
         name: arch.engineName,
         displacement: arch.displacement,
-        valves: arch.engineName.includes('16V') ? 16 : 8,
+        valves: arch.valves || (arch.engineName.includes('16V') ? 16 : 8),
         power: arch.power,
         fuel: arch.fuel,
         engineNumber: `${arch.engineCode.split(' ')[0]}-${Math.abs(hash % 800000 + 100000)}`
       },
       chassis: {
         vin: syntheticVIN,
-        bodyType: arch.model === 'Hilux' || arch.model === 'Ranger' ? 'Pick-Up' : 'Hatchback / Sedán',
-        drive: arch.model === 'Hilux' || arch.model === 'Ranger' ? '4x4 / 4x2' : 'Delantera 4x2'
+        bodyType: arch.bodyType,
+        drive: arch.drive
       },
       dnrpa: {
         seccional: seccional,
@@ -526,11 +1045,13 @@ export class PatenteService {
         fechaInscripcionInicial: `14/06/${year}`
       },
       recommendedParts: {
-        pastillasFreno: `Pastillas para disco ventilado específico ${arch.model}`,
-        filtroAceite: `Filtro de aceite calibrado para motor ${arch.engineName}`,
-        radiador: `Radiador de aluminio específico para motor ${arch.engineCode}`,
-        aceiteRecomendado: year >= 2018 ? '5W-30 Sintético' : '10W-40 Semi-sintético'
+        pastillasFreno: `Pastillas calibradas para ${arch.brand} ${arch.model}`,
+        filtroAceite: `Filtro de aceite original para ${arch.engineName}`,
+        radiador: `Radiador de refrigeración para motor ${arch.engineCode}`,
+        aceiteRecomendado: arch.oil || (year >= 2018 ? '5W-30 Sintético' : '10W-40 Semi-sintético')
       }
     };
   }
 }
+
+export const patenteService = new PatenteService();

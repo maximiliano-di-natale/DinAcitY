@@ -26,34 +26,36 @@ export function App() {
     query: {}
   });
 
-  // Vista activa principal: 'cotizador' (Opción 1) | 'mantenimiento' (Opción 2) | 'patente' (DNRPA)
-  const [activeView, setActiveView] = useState('cotizador');
+  // Vista activa principal: 'patente' (DNRPA Eje Central) | 'cotizador' | 'mantenimiento' | 'libreta' | 'guantera' | 'mapa' | 'kits'
+  const [activeView, setActiveView] = useState('patente');
 
-  // Vehículo sincronizado entre Patente DNRPA, Cotizador Express y Libreta de Mantenimiento
-  const [selectedVehicle, setSelectedVehicle] = useState({
-    patente: 'AD 192 OP',
-    brand: 'Volkswagen',
-    model: 'Gol Trend',
-    version: 'Trendline 1.6 MSI 5P',
-    year: 2019,
-    vehicleType: 'auto',
-    engine: {
-      name: '1.6 8V MSI Naftero (101 CV)',
-      code: 'EA111 (CFZ)',
-      displacement: '1598 cc',
-      power: '101 CV',
-      fuel: 'Nafta Súper'
-    },
-    chassis: {
-      vin: '8AWZZZ5UZKT048192',
-      bodyType: 'Hatchback 5P',
-      drive: 'Delantera 4x2'
-    },
-    dnrpa: {
-      seccional: 'Guaymallén N° 2',
-      codigoRegistro: '13012',
-      provincia: 'Mendoza'
-    }
+  // Vehículo sincronizado entre Patente DNRPA, Cotizador Express, Libreta y Guantera
+  const [selectedVehicle, setSelectedVehicle] = useState(() => {
+    return clientFallbackService.getActiveCocheraVehicle() || {
+      patente: 'AF 482 QZ',
+      brand: 'Toyota',
+      model: 'Hilux',
+      version: 'SRV 4x4 Doble Cabina Automática',
+      year: 2022,
+      vehicleType: 'auto',
+      engine: {
+        name: '2.8 D-4D 16V Turbo Diésel (204 CV)',
+        code: '1GD-FTV',
+        displacement: '2755 cc',
+        power: '204 CV',
+        fuel: 'Diésel Grado 3 (Euro)'
+      },
+      chassis: {
+        vin: '8AJBA3CD7N0128941',
+        bodyType: 'Pick-Up Cabina Doble',
+        drive: '4x4 Tracción Integral con Reductora'
+      },
+      dnrpa: {
+        seccional: 'Mendoza N° 4 (Godoy Cruz)',
+        codigoRegistro: '13004',
+        provincia: 'Mendoza'
+      }
+    };
   });
 
   // Estado de Modal de Paquetes Dinámicos
@@ -201,6 +203,25 @@ export function App() {
 
   const handleSearchFromHero = (newSearchParams) => {
     setCurrentSearchParams(newSearchParams);
+
+    // Si la búsqueda ingresada es una patente argentina o un VIN, resolver en DNRPA
+    const qClean = (newSearchParams?.query || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    if (
+      /^[A-Z]{2}[0-9]{3}[A-Z]{2}$/.test(qClean) ||
+      /^[A-Z]{3}[0-9]{3}$/.test(qClean) ||
+      /^[A-Z]{1}[0-9]{3}[A-Z]{3}$/.test(qClean) ||
+      /^[0-9]{3}[A-Z]{3,4}$/.test(qClean) ||
+      qClean.length === 17
+    ) {
+      const decoded = clientFallbackService.lookupPatente(qClean);
+      if (decoded && decoded.data) {
+        setSelectedVehicle(decoded.data);
+        clientFallbackService.saveToCochera(decoded.data);
+        setActiveView('patente');
+        return;
+      }
+    }
+
     if (newSearchParams?.brand || newSearchParams?.patente || newSearchParams?.data) {
       setSelectedVehicle((prev) => ({
         patente: newSearchParams?.patente || newSearchParams?.data?.patente || prev.patente,
@@ -300,7 +321,30 @@ export function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2 w-full">
           <div className="bg-gradient-to-r from-[#0a1835]/95 via-[#0e224b]/95 to-[#0a1835]/95 border border-blue-500/30 rounded-2xl p-2 shadow-[0_15px_35px_rgba(0,0,0,0.6),0_0_30px_rgba(37,99,235,0.2)] backdrop-blur-xl flex items-center justify-between gap-2.5 overflow-x-auto scrollbar-none">
             
-            {/* Tab 1: Cotizador Express WhatsApp (Opción 1) */}
+            {/* Tab 1: Identificador por Patente DNRPA (EJE CENTRAL) */}
+            <button
+              type="button"
+              onClick={() => setActiveView('patente')}
+              className={`group flex-1 min-w-[190px] py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-black transition-all duration-200 flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2.5 border cursor-pointer relative overflow-hidden ${
+                activeView === 'patente'
+                  ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white border-blue-300 shadow-[0_0_25px_rgba(59,130,246,0.5),inset_0_1px_1px_rgba(255,255,255,0.4)] ring-2 ring-blue-400/40 scale-[1.02]'
+                  : 'bg-[#0d1e3f]/80 hover:bg-[#142d5e]/95 text-blue-100/90 hover:text-white border-blue-500/25 hover:border-blue-400/60 shadow-sm hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] hover:scale-[1.01]'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-base group-hover:scale-110 transition-transform">🇦🇷</span>
+                <span className="tracking-tight">Patente DNRPA</span>
+              </div>
+              <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-full border transition flex items-center gap-1 shadow-xs ${
+                activeView === 'patente'
+                  ? 'bg-sky-400 text-slate-950 border-sky-300 font-extrabold shadow-[0_0_12px_rgba(56,189,248,0.6)]'
+                  : 'bg-sky-500/20 text-sky-200 border-sky-400/40 group-hover:bg-sky-500/30'
+              }`}>
+                🔍 Eje Central
+              </span>
+            </button>
+
+            {/* Tab 2: Cotizador Express WhatsApp (Opción 1) */}
             <button
               type="button"
               onClick={() => setActiveView('cotizador')}
@@ -324,7 +368,7 @@ export function App() {
               </span>
             </button>
 
-            {/* Tab 2: Pasaporte Service & Ficha Técnica (Opción 2) */}
+            {/* Tab 3: Pasaporte Service & Ficha Técnica (Opción 2) */}
             <button
               type="button"
               onClick={() => setActiveView('mantenimiento')}
@@ -344,29 +388,6 @@ export function App() {
                   : 'bg-cyan-500/20 text-cyan-300 border-cyan-400/40 group-hover:bg-cyan-500/30'
               }`}>
                 ⚡ Fluidos
-              </span>
-            </button>
-
-            {/* Tab 3: Identificador por Patente DNRPA */}
-            <button
-              type="button"
-              onClick={() => setActiveView('patente')}
-              className={`group flex-1 min-w-[190px] py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-black transition-all duration-200 flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2.5 border cursor-pointer relative overflow-hidden ${
-                activeView === 'patente'
-                  ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 text-white border-blue-300 shadow-[0_0_25px_rgba(59,130,246,0.5),inset_0_1px_1px_rgba(255,255,255,0.4)] ring-2 ring-blue-400/40 scale-[1.02]'
-                  : 'bg-[#0d1e3f]/80 hover:bg-[#142d5e]/95 text-blue-100/90 hover:text-white border-blue-500/25 hover:border-blue-400/60 shadow-sm hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] hover:scale-[1.01]'
-              }`}
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-base group-hover:scale-110 transition-transform">🇦🇷</span>
-                <span className="tracking-tight">Patente DNRPA</span>
-              </div>
-              <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-full border transition flex items-center gap-1 shadow-xs ${
-                activeView === 'patente'
-                  ? 'bg-sky-400 text-slate-950 border-sky-300 font-extrabold shadow-[0_0_12px_rgba(56,189,248,0.6)]'
-                  : 'bg-sky-500/20 text-sky-200 border-sky-400/40 group-hover:bg-sky-500/30'
-              }`}>
-                🔍 Oficial
               </span>
             </button>
 
@@ -469,6 +490,83 @@ export function App() {
           </div>
         </div>
 
+        {/* Banner Persistente de Vehículo Activo DNRPA (Visible en todas las vistas) */}
+        {selectedVehicle && (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-1 pb-2 w-full">
+            <div className="bg-gradient-to-r from-slate-900/95 via-blue-950/90 to-slate-900/95 border border-blue-500/40 rounded-2xl p-3 sm:p-4 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs backdrop-blur-md">
+              <div className="flex items-center gap-3">
+                {/* Visual Plate Pill */}
+                <div className="bg-white text-gray-900 px-3 py-1.5 rounded-lg border-2 border-gray-700 shadow-sm flex flex-col items-center justify-center shrink-0">
+                  <span className="text-[9px] font-black uppercase text-[#003399] tracking-wider leading-none">🇦🇷 ARGENTINA</span>
+                  <span className="text-sm sm:text-base font-black font-mono tracking-widest text-gray-900 leading-tight">
+                    {selectedVehicle.patente || selectedVehicle.displayPlate || 'AF 482 QZ'}
+                  </span>
+                </div>
+
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded">
+                      ✓ Vehículo Activo DNRPA
+                    </span>
+                    <span className="text-[11px] text-blue-300">
+                      📍 {selectedVehicle?.dnrpa?.seccional || 'Mendoza N° 4 (Godoy Cruz)'}
+                    </span>
+                  </div>
+                  <h4 className="text-sm sm:text-base font-black text-white leading-snug">
+                    {selectedVehicle.brand} {selectedVehicle.model} <span className="text-red-400">{selectedVehicle.version || ''}</span> ({selectedVehicle.year || ''})
+                  </h4>
+                  <p className="text-[11px] text-slate-300">
+                    Motor: <strong className="text-white">{selectedVehicle?.engine?.name || selectedVehicle?.engine || 'Motor Homologado'}</strong> {selectedVehicle?.engine?.power ? `• ${selectedVehicle.engine.power}` : ''}
+                  </p>
+                </div>
+              </div>
+
+              {/* Quick Actions vinculadas a las demás secciones */}
+              <div className="flex items-center gap-2 flex-wrap self-end md:self-auto shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setActiveView('patente')}
+                  className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-sm transition flex items-center gap-1.5 cursor-pointer"
+                  title="Buscar otra chapa patente o abrir Cochera Digital"
+                >
+                  <Search className="w-3.5 h-3.5" />
+                  <span>Cambiar Patente / Cochera</span>
+                </button>
+
+                {activeView !== 'cotizador' && (
+                  <button
+                    type="button"
+                    onClick={() => setActiveView('cotizador')}
+                    className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs transition flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>💬 Cotizar</span>
+                  </button>
+                )}
+
+                {activeView !== 'mantenimiento' && (
+                  <button
+                    type="button"
+                    onClick={() => setActiveView('mantenimiento')}
+                    className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs transition flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>📖 Fluidos</span>
+                  </button>
+                )}
+
+                {activeView !== 'guantera' && (
+                  <button
+                    type="button"
+                    onClick={() => setActiveView('guantera')}
+                    className="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-xs transition flex items-center gap-1 cursor-pointer"
+                  >
+                    <span>📂 RTO</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Vista Opción 1: Cotizador Express de Repuestos por WhatsApp */}
         {activeView === 'cotizador' && (
           <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 w-full flex-1">
@@ -527,6 +625,14 @@ export function App() {
               onNavigateGuantera={(veh) => {
                 if (veh) setSelectedVehicle(veh);
                 setActiveView('guantera');
+              }}
+              onNavigateKits={(veh) => {
+                if (veh) setSelectedVehicle(veh);
+                setActiveView('kits');
+              }}
+              onNavigateMapa={(veh) => {
+                if (veh) setSelectedVehicle(veh);
+                setActiveView('mapa');
               }}
             />
           </main>
