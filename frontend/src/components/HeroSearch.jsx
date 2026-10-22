@@ -33,19 +33,6 @@ export function HeroSearch({
             Ingresá tu patente para cargar la ficha técnica exacta del vehículo (motor, chasis, cilindrada) y cotizar repuestos por WhatsApp o planificar su mantenimiento.
           </p>
         </div>
-
-        {/* Botón Armar Kit */}
-        {onOpenCombos && (
-          <button
-            type="button"
-            onClick={onOpenCombos}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs sm:text-sm shadow-md transition transform active:scale-95 shrink-0 self-start md:self-end"
-            title="Armar combos y kits completos para tu auto"
-          >
-            <Package className="w-4 h-4 text-white" />
-            <span>📦 Armar Kit para tu Auto</span>
-          </button>
-        )}
       </div>
 
       {/* Tarjeta DNRPA Limpia */}

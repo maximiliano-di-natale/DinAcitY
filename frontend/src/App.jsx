@@ -12,6 +12,7 @@ import { MaintenanceBookWidget } from './components/MaintenanceBookWidget.jsx';
 import { ServiceNotebookWidget } from './components/ServiceNotebookWidget.jsx';
 import { GuanteraDigitalWidget } from './components/GuanteraDigitalWidget.jsx';
 import { MendozaStoresMapWidget } from './components/MendozaStoresMapWidget.jsx';
+import { KitBuilderWidget } from './components/KitBuilderWidget.jsx';
 import { clientFallbackService } from './services/clientFallbackService.js';
 import { Flame, SlidersHorizontal, Sparkles, AlertCircle, MapPin, Store, Car, MessageCircle, BookOpen, Search } from 'lucide-react';
 
@@ -441,6 +442,30 @@ export function App() {
               </span>
             </button>
 
+            {/* Tab 7: Armar Kit de Repuestos por Marca */}
+            <button
+              type="button"
+              onClick={() => setActiveView('kits')}
+              className={`group flex-1 min-w-[190px] py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-black transition-all duration-200 flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2.5 border cursor-pointer relative overflow-hidden ${
+                activeView === 'kits'
+                  ? 'bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white border-red-300 shadow-[0_0_25px_rgba(239,68,68,0.55),inset_0_1px_1px_rgba(255,255,255,0.4)] ring-2 ring-red-400/40 scale-[1.02]'
+                  : 'bg-[#0d1e3f]/80 hover:bg-[#142d5e]/95 text-blue-100/90 hover:text-white border-blue-500/25 hover:border-blue-400/60 shadow-sm hover:shadow-[0_0_15px_rgba(239,68,68,0.25)] hover:scale-[1.01]'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-base group-hover:scale-110 transition-transform">📦</span>
+                <span className="tracking-tight">Armar Kit de Repuestos</span>
+              </div>
+              <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-full border transition flex items-center gap-1 shadow-xs ${
+                activeView === 'kits'
+                  ? 'bg-white text-red-700 border-red-200 font-extrabold shadow-[0_0_10px_rgba(0,0,0,0.5)]'
+                  : 'bg-red-500/20 text-red-300 border-red-400/40 group-hover:bg-red-500/30'
+              }`}>
+                <span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse"></span>
+                Por Marca
+              </span>
+            </button>
+
           </div>
         </div>
 
@@ -454,6 +479,7 @@ export function App() {
                 setActiveView('cotizador');
               }}
               onNavigateMapa={() => setActiveView('mapa')}
+              onNavigateKits={() => setActiveView('kits')}
             />
           </main>
         )}
@@ -541,6 +567,17 @@ export function App() {
           <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 w-full flex-1">
             <MendozaStoresMapWidget
               vehicle={selectedVehicle}
+              onNavigateCotizador={() => setActiveView('cotizador')}
+            />
+          </main>
+        )}
+
+        {/* Vista Opción 7: Armador Inteligente de Kits de Repuestos Especializados */}
+        {activeView === 'kits' && (
+          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 w-full flex-1">
+            <KitBuilderWidget
+              vehicle={selectedVehicle}
+              onOpenPatenteModal={() => setActiveView('patente')}
               onNavigateCotizador={() => setActiveView('cotizador')}
             />
           </main>

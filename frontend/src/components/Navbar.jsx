@@ -488,16 +488,20 @@ export function Navbar({
               {currentView === 'mapa' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block"></span>}
             </button>
 
-            {/* Kits / Paquetes Dinámicos (Idea preservada para el futuro)
+            {/* Opción 7: Armar Kit de Repuestos Especializados por Marca */}
             <button
-              onClick={onOpenCombos}
-              className="px-2 sm:px-2.5 py-1 rounded bg-white/20 hover:bg-white/30 text-white whitespace-nowrap transition cursor-pointer font-black text-[11px] sm:text-xs flex items-center gap-1 border border-white/30 shadow-xs"
-              title="Armar paquetes de repuestos para tu vehículo"
+              onClick={() => onChangeView && onChangeView('kits')}
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg whitespace-nowrap transition-all duration-200 cursor-pointer font-black text-[11px] sm:text-xs flex items-center gap-1.5 border ${
+                currentView === 'kits'
+                  ? 'bg-white text-blue-950 border-white shadow-[0_0_15px_rgba(255,255,255,0.7)] scale-[1.04]'
+                  : 'bg-black/30 hover:bg-black/50 text-white border-white/20 hover:border-white/40 shadow-xs hover:scale-[1.02]'
+              }`}
+              title="Armar Kit de repuestos a medida y cotizar por WhatsApp con la casa especializada en tu marca"
             >
-              <Package className="w-3.5 h-3.5 text-yellow-300" />
-              <span>Kits</span>
+              <span>📦</span>
+              <span>Armar Kit</span>
+              {currentView === 'kits' && <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse inline-block"></span>}
             </button>
-            */}
           </div>
 
 

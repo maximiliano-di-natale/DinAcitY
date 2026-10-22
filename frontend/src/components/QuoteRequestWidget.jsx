@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { MENDOZA_QUOTE_STORES } from '../services/clientFallbackService.js';
 
-export function QuoteRequestWidget({ vehicle, onOpenPatenteModal, onSelectPart, onNavigateMapa }) {
+export function QuoteRequestWidget({ vehicle, onOpenPatenteModal, onSelectPart, onNavigateMapa, onNavigateKits }) {
   const [partName, setPartName] = useState('Kit de Distribución con Bomba de Agua');
   const [selectedZone, setSelectedZone] = useState('todos');
   const [copiedStoreId, setCopiedStoreId] = useState(null);
@@ -151,6 +151,39 @@ export function QuoteRequestWidget({ vehicle, onOpenPatenteModal, onSelectPart, 
         </div>
 
       </div>
+
+      {/* Banner de Acceso Rápido para Armar Kit de Repuestos */}
+      {onNavigateKits && (
+        <div className="bg-gradient-to-r from-blue-950 via-slate-900 to-indigo-950 border border-blue-500/40 rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-red-600/20 border border-red-500/40 flex items-center justify-center text-2xl shrink-0">
+              📦
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className="text-[10px] uppercase font-black tracking-wider bg-red-600 text-white px-2 py-0.5 rounded shadow-xs">
+                  Nuevo • Kits por Marca
+                </span>
+                <span className="text-xs font-bold text-slate-300">
+                  ¿Necesitás comprar varios repuestos juntos?
+                </span>
+              </div>
+              <h4 className="text-sm sm:text-base font-black text-white">
+                Armá tu Kit a medida y cotizá con casas de repuestos especializadas en tu auto
+              </h4>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={onNavigateKits}
+            className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-black text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2 shrink-0 cursor-pointer transform active:scale-95"
+          >
+            <span>📦 Armar Kit para tu Auto</span>
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Input de Repuesto y Selector de Chips */}
       <div className="bg-slate-800/95 border border-slate-700 rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
