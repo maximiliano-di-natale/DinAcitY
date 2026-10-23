@@ -318,17 +318,35 @@ export function Navbar({
                     </div>
 
                     <div className="py-1 text-xs">
-                      <div className="px-4 py-2 hover:bg-gray-50 text-gray-700 flex items-center gap-2 cursor-pointer font-medium">
+                      <div
+                        onClick={() => {
+                          setIsTopUserMenuOpen(false);
+                          if (onOpenAuth) onOpenAuth('profile');
+                        }}
+                        className="px-4 py-2 hover:bg-red-50 text-gray-800 hover:text-red-700 flex items-center gap-2 cursor-pointer font-bold transition"
+                      >
                         <User className="w-3.5 h-3.5 text-blue-600" />
-                        <span>Mi cuenta en DinAcitY</span>
+                        <span>Mi cuenta y perfil en DinAcitY</span>
                       </div>
-                      <div className="px-4 py-2 hover:bg-gray-50 text-gray-700 flex items-center gap-2 cursor-pointer font-medium">
+                      <div
+                        onClick={() => {
+                          setIsTopUserMenuOpen(false);
+                          if (onChangeView) onChangeView('cotizador');
+                        }}
+                        className="px-4 py-2 hover:bg-gray-50 text-gray-700 flex items-center gap-2 cursor-pointer font-medium"
+                      >
                         <ShoppingBag className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>Mis compras y cotizaciones</span>
+                        <span>Cotizaciones por WhatsApp</span>
                       </div>
-                      <div className="px-4 py-2 hover:bg-gray-50 text-gray-700 flex items-center gap-2 cursor-pointer font-medium">
-                        <Heart className="w-3.5 h-3.5 text-red-600" />
-                        <span>Repuestos favoritos</span>
+                      <div
+                        onClick={() => {
+                          setIsTopUserMenuOpen(false);
+                          if (onChangeView) onChangeView('cochera');
+                        }}
+                        className="px-4 py-2 hover:bg-gray-50 text-gray-700 flex items-center gap-2 cursor-pointer font-medium"
+                      >
+                        <Car className="w-3.5 h-3.5 text-red-600" />
+                        <span>Mis vehículos en Mi Cochera</span>
                       </div>
                     </div>
 
@@ -378,11 +396,12 @@ export function Navbar({
       <div className="bg-red-700 border-t border-red-500/30 border-b border-red-800/40 text-xs text-white">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-1.5 flex items-center justify-between gap-2 sm:gap-4 overflow-x-auto scrollbar-none md:overflow-visible">
           
-          {/* Left: Ubicación del usuario registrado (sin 'Enviar') */}
+          {/* Left: Ubicación del usuario registrado (con acceso a editar perfil) */}
           {user ? (
             <div
-              className="flex items-center gap-2 shrink-0"
-              title={`Ubicación registrada: ${user.direccion || 'Mendoza'}`}
+              onClick={() => onOpenAuth && onOpenAuth('profile')}
+              className="flex items-center gap-2 shrink-0 cursor-pointer hover:bg-white/10 px-2 py-1 rounded-lg transition"
+              title={`Ubicación registrada: ${user.direccion || 'Mendoza'}. Clic para editar en tu perfil.`}
             >
               <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center">
                 <MapPin className="w-4 h-4 text-yellow-300" />

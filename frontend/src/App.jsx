@@ -156,6 +156,11 @@ export function App() {
     localStorage.setItem('dinacity_token', authToken);
   };
 
+  const handleUpdateUser = (updatedUser) => {
+    setCurrentUser(updatedUser);
+    localStorage.setItem('dinacity_user', JSON.stringify(updatedUser));
+  };
+
   const handleLogout = () => {
     setCurrentUser(null);
     setToken(null);
@@ -706,12 +711,15 @@ export function App() {
         currentSearch={currentSearchParams}
       />
 
-      {/* Modal Seguro de Registro y Login de Usuarios */}
+      {/* Modal Seguro de Registro, Login y Perfil de Usuario */}
       <AuthModal
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
         initialMode={authMode}
+        currentUser={currentUser}
         onAuthSuccess={handleAuthSuccess}
+        onUpdateUser={handleUpdateUser}
+        onLogout={handleLogout}
       />
 
       {/* Modal de Paquetes Dinámicos y Kits de Repuestos */}

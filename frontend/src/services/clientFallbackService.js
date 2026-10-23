@@ -542,7 +542,7 @@ export const clientFallbackService = {
     throw new Error('Correo electrónico o contraseña incorrectos.');
   },
 
-  registerUser({ nombre, apellido, direccion, email, password }) {
+  registerUser({ nombre, apellido, direccion, telefono, email, password }) {
     const cleanEmail = (email || '').trim().toLowerCase();
     if (!cleanEmail || !password) throw new Error('Email y contraseña requeridos');
 
@@ -558,6 +558,7 @@ export const clientFallbackService = {
         nombre,
         apellido,
         direccion: direccion || 'Mendoza, Argentina',
+        telefono: telefono || '',
         role: 'user',
         password,
         created_at: new Date().toISOString()
@@ -569,6 +570,38 @@ export const clientFallbackService = {
       const { password: _, ...safeUser } = newUser;
       const token = 'client_tok_' + btoa(cleanEmail + ':' + Date.now());
       return { user: safeUser, token };
+    } catch (err) {
+      throw err;
+    }
+  },
+
+  updateUserProfile({ id, nombre, apellido, direccion, telefono, email }) {
+    try {
+      const stored = localStorage.getItem('dinacity_user');
+      const currentUser = stored ? JSON.parse(stored) : {};
+
+      const updatedUser = {
+        ...currentUser,
+        id: id || currentUser.id || `usr_${Date.now()}`,
+        nombre: nombre !== undefined ? nombre : currentUser.nombre,
+        apellido: apellido !== undefined ? apellido : currentUser.apellido,
+        direccion: direccion !== undefined ? direccion : currentUser.direccion,
+        telefono: telefono !== undefined ? telefono : currentUser.telefono,
+        email: email !== undefined ? email : currentUser.email,
+        updated_at: new Date().toISOString()
+      };
+
+      localStorage.setItem('dinacity_user', JSON.stringify(updatedUser));
+
+      // Actualizar en lista de usuarios registrados localmente
+      const localUsers = JSON.parse(localStorage.getItem('dinacity_registered_users') || '[]');
+      const idx = localUsers.findIndex(u => u.email === updatedUser.email || u.id === updatedUser.id);
+      if (idx !== -1) {
+        localUsers[idx] = { ...localUsers[idx], ...updatedUser };
+        localStorage.setItem('dinacity_registered_users', JSON.stringify(localUsers));
+      }
+
+      return { user: updatedUser, success: true };
     } catch (err) {
       throw err;
     }
