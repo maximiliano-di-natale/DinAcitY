@@ -10,39 +10,103 @@ export const CLIENT_TAXONOMY = {
     name: 'Autos y Utilitarios',
     icon: 'Car',
     brands: [
-      { id: 'chevrolet', name: 'Chevrolet', models: ['Onix', 'Cruze', 'Tracker', 'Corsa', 'Classic', 'S10', 'Prisma', 'Spin'] },
-      { id: 'toyota', name: 'Toyota', models: ['Hilux', 'Corolla', 'Etios', 'Yaris', 'SW4', 'Corolla Cross', 'Rav4'] },
-      { id: 'volkswagen', name: 'Volkswagen', models: ['Gol Trend', 'Gol', 'Amarok', 'Bora', 'Vento', 'Suran', 'Fox', 'Polo', 'Taos', 'T-Cross', 'Saveiro'] },
-      { id: 'fiat', name: 'Fiat', models: ['Cronos', 'Palio', 'Uno', 'Toro', 'Siena', 'Punto', 'Fiorino', 'Strada', 'Mobi', 'Pulse'] },
-      { id: 'ford', name: 'Ford', models: ['Ranger', 'Fiesta', 'Focus', 'Ecosport', 'Ka', 'F-100', 'Territory', 'Maverick'] },
-      { id: 'renault', name: 'Renault', models: ['Sandero', 'Kangoo', 'Clio', 'Duster', 'Logan', 'Master', 'Oroch', 'Stepway', 'Fluence'] },
-      { id: 'peugeot', name: 'Peugeot', models: ['208', '206', '207', '308', '408', 'Partner', '2008'] },
-      { id: 'citroen', name: 'Citroën', models: ['Berlingo', 'C3', 'C4', 'C4 Cactus'] },
-      { id: 'nissan', name: 'Nissan', models: ['Frontier', 'Versa', 'Kicks', 'Sentra', 'March'] },
-      { id: 'jeep', name: 'Jeep', models: ['Renegade', 'Compass', 'Commander'] }
+      // Alemanes
+      { id: 'volkswagen', name: 'Volkswagen', origin: 'Alemán', models: ['Gol Trend', 'Gol', 'Amarok', 'Bora', 'Vento', 'Suran', 'Fox', 'Polo', 'Taos', 'T-Cross', 'Nivus', 'Virtus', 'Saveiro', 'Passat', 'Tiguan', 'Up!'] },
+      { id: 'audi', name: 'Audi', origin: 'Alemán', models: ['A1', 'A3', 'A4', 'A5', 'A6', 'Q2', 'Q3', 'Q5', 'Q7', 'Q8', 'TT'] },
+      { id: 'bmw', name: 'BMW', origin: 'Alemán', models: ['Serie 1', 'Serie 2', 'Serie 3', 'Serie 4', 'Serie 5', 'X1', 'X2', 'X3', 'X4', 'X5', 'X6'] },
+      { id: 'mercedes-benz', name: 'Mercedes-Benz', origin: 'Alemán', models: ['Clase A', 'Clase B', 'Clase C', 'Clase E', 'GLA', 'GLB', 'GLC', 'GLE', 'Sprinter', 'Vito'] },
+      { id: 'porsche', name: 'Porsche', origin: 'Alemán', models: ['911', 'Cayenne', 'Macan', 'Panamera', 'Boxster', 'Cayman'] },
+
+      // Americanos
+      { id: 'chevrolet', name: 'Chevrolet', origin: 'Americano', models: ['Onix', 'Cruze', 'Tracker', 'Corsa', 'Classic', 'S10', 'Prisma', 'Spin', 'Montana', 'Trailblazer', 'Equinox', 'Camaro', 'Aveo', 'Meriva', 'Astra', 'Vectra'] },
+      { id: 'ford', name: 'Ford', origin: 'Americano', models: ['Ranger', 'Fiesta', 'Focus', 'Ecosport', 'Ka', 'F-100', 'Territory', 'Maverick', 'Kuga', 'Transit', 'Bronco', 'Mondeo'] },
+      { id: 'jeep', name: 'Jeep', origin: 'Americano', models: ['Renegade', 'Compass', 'Commander', 'Grand Cherokee', 'Wrangler', 'Gladiator', 'Patriot'] },
+      { id: 'ram', name: 'RAM', origin: 'Americano', models: ['Rampage', '1500', '2500'] },
+      { id: 'dodge', name: 'Dodge', origin: 'Americano', models: ['Journey', 'Ram 1500', 'Durango', 'Challenger', 'Caliber'] },
+      { id: 'chrysler', name: 'Chrysler', origin: 'Americano', models: ['PT Cruiser', '300C', 'Caravan', 'Town & Country'] },
+
+      // Europeos (Mercosur, Francia, Italia, Suecia)
+      { id: 'fiat', name: 'Fiat', origin: 'Europeo / Mercosur', models: ['Cronos', 'Palio', 'Uno', 'Toro', 'Siena', 'Punto', 'Fiorino', 'Strada', 'Mobi', 'Pulse', 'Fastback', 'Argo', 'Doblò', 'Ducato', 'Idea', 'Stilo'] },
+      { id: 'peugeot', name: 'Peugeot', origin: 'Europeo', models: ['208', '206', '207', '308', '408', 'Partner', '2008', '3008', '5008', 'Expert', 'Boxer', '307', '407', '508'] },
+      { id: 'renault', name: 'Renault', origin: 'Europeo', models: ['Sandero', 'Kangoo', 'Clio', 'Duster', 'Logan', 'Master', 'Oroch', 'Stepway', 'Fluence', 'Kwid', 'Alaskan', 'Captur', 'Mégane', 'Symbol', 'Koleos'] },
+      { id: 'citroen', name: 'Citroën', origin: 'Europeo', models: ['Berlingo', 'C3', 'C4', 'C4 Cactus', 'C3 Aircross', 'Jumpy', 'Jumper', 'C4 Lounge', 'C5', 'Xsara Picasso'] },
+      { id: 'ds', name: 'DS Automobiles', origin: 'Europeo', models: ['DS 3', 'DS 4', 'DS 7 Crossback', 'DS 9'] },
+      { id: 'alfa-romeo', name: 'Alfa Romeo', origin: 'Europeo', models: ['Giulietta', 'Giulia', 'Stelvio', 'MiTo', '147', '156', '159'] },
+      { id: 'seat', name: 'SEAT', origin: 'Europeo', models: ['Ibiza', 'León', 'Córdoba', 'Toledo', 'Ateca'] },
+      { id: 'volvo', name: 'Volvo', origin: 'Europeo', models: ['XC40', 'XC60', 'XC90', 'S60', 'V40'] },
+
+      // Asiáticos (Japón & Corea)
+      { id: 'toyota', name: 'Toyota', origin: 'Japonés', models: ['Hilux', 'Corolla', 'Etios', 'Yaris', 'SW4', 'Corolla Cross', 'Rav4', 'Land Cruiser', 'Hiace', 'Prius', 'Camry'] },
+      { id: 'honda', name: 'Honda', origin: 'Japonés', models: ['Civic', 'Fit', 'HR-V', 'CR-V', 'City', 'Accord', 'WR-V', 'ZR-V'] },
+      { id: 'nissan', name: 'Nissan', origin: 'Japonés', models: ['Frontier', 'Versa', 'Kicks', 'Sentra', 'March', 'Tiida', 'X-Trail', 'Note', 'Murano'] },
+      { id: 'hyundai', name: 'Hyundai', origin: 'Coreano', models: ['Tucson', 'Creta', 'Santa Fe', 'HB20', 'i10', 'Grand i10', 'i30', 'H1', 'Kona', 'Elantra'] },
+      { id: 'kia', name: 'Kia', origin: 'Coreano', models: ['Seltos', 'Sportage', 'Sorento', 'Rio', 'Cerato', 'Picanto', 'Carnival', 'Soul'] },
+      { id: 'mitsubishi', name: 'Mitsubishi', origin: 'Japonés', models: ['L200', 'Outlander', 'Montero', 'ASX', 'Lancer'] },
+      { id: 'suzuki', name: 'Suzuki', origin: 'Japonés', models: ['Swift', 'Grand Vitara', 'Jimny', 'Fun', 'Baleno'] },
+      { id: 'subaru', name: 'Subaru', origin: 'Japonés', models: ['Forester', 'Outback', 'XV', 'Impreza', 'Legacy'] },
+
+      // Chinos
+      { id: 'chery', name: 'Chery', origin: 'Chino', models: ['Tiggo 2', 'Tiggo 3', 'Tiggo 4', 'Tiggo 5', 'Tiggo 7', 'Tiggo 8', 'QQ', 'Fulwin', 'Skin', 'Arrizo'] },
+      { id: 'haval', name: 'Haval', origin: 'Chino', models: ['H1', 'H2', 'H6', 'Jolion'] },
+      { id: 'great-wall', name: 'Great Wall', origin: 'Chino', models: ['Wingle 5', 'Wingle 6', 'Poer'] },
+      { id: 'geely', name: 'Geely', origin: 'Chino', models: ['Emgrand', 'Coolray', 'Azkarra', 'LC', 'GX3', 'GS', 'X7 Sport'] },
+      { id: 'jac', name: 'JAC Motors', origin: 'Chino', models: ['S2', 'S3', 'S5', 'S7', 'T6', 'T8', 'J2', 'J3'] },
+      { id: 'baic', name: 'BAIC', origin: 'Chino', models: ['X25', 'X35', 'X55', 'BJ40'] },
+      { id: 'dfsk', name: 'DFSK', origin: 'Chino', models: ['C31', 'C32', 'C35', 'K01H', 'Glory 580', 'Glory 560'] },
+      { id: 'foton-utilitarios', name: 'Foton (Pick-Ups / Vans)', origin: 'Chino', models: ['Tunland', 'Gratour', 'View', 'Toano'] },
+      { id: 'changan', name: 'Changan', origin: 'Chino', models: ['CS15', 'CS35', 'CS75', 'Hunter', 'MD201'] },
+      { id: 'lifan', name: 'Lifan', origin: 'Chino', models: ['X50', 'X60', 'MyWay', 'Foison Truck', 'Foison Cargo', 'Foison Box'] },
+      { id: 'shineray', name: 'Shineray', origin: 'Chino', models: ['X30', 'T30', 'T32', 'T50', 'T52', 'SWM G01'] },
+      { id: 'kyc', name: 'KyC', origin: 'Chino', models: ['Mamut X3', 'Mamut T3 Cabina Simple', 'Mamut T3 Doble Cabina'] }
     ]
   },
   moto: {
     name: 'Motos y Scooters',
     icon: 'Bike',
     brands: [
-      { id: 'honda-motos', name: 'Honda', models: ['Wave 110S', 'XR 150L', 'XR 250 Tornado', 'CG 150 Titan', 'Twister CB 250 / CB 300F', 'GLH 150 Gaucha'] },
-      { id: 'yamaha', name: 'Yamaha', models: ['YBR 125', 'FZ FI 150', 'XTZ 125', 'XTZ 250 Lander', 'Crypton 110', 'MT-03'] },
-      { id: 'motomel', name: 'Motomel', models: ['Blitz 110', 'S2 150', 'Skua 150', 'Skua 250'] },
-      { id: 'corven', name: 'Corven', models: ['Energy 110', 'Triax 150', 'Hunter 150', 'Touring 250'] },
-      { id: 'zanella', name: 'Zanella', models: ['ZB 110', 'RX 150', 'ZR 150', 'Ceccato 150'] },
-      { id: 'bajaj', name: 'Bajaj', models: ['Rouser NS 200', 'Rouser NS 160', 'Dominar 400', 'Boxer 150'] }
+      { id: 'honda-motos', name: 'Honda', origin: 'Japonés', models: ['Wave 110S', 'XR 150L', 'XR 250 Tornado', 'CG 150 Titan', 'Twister CB 250 / CB 300F', 'GLH 150 Gaucha', 'XR 190L', 'CB 190R', 'XRE 300', 'Africa Twin', 'PCX 150', 'Elite 125', 'Falcon NX 400'] },
+      { id: 'yamaha', name: 'Yamaha', origin: 'Japonés', models: ['YBR 125', 'FZ FI 150', 'XTZ 125', 'XTZ 250 Lander', 'Crypton 110', 'MT-03', 'MT-07', 'MT-09', 'R3', 'Ténéré 700', 'NMAX 155', 'FZ25', 'FZ-X', 'Ray ZR 125'] },
+      { id: 'motomel', name: 'Motomel', origin: 'Nacional', models: ['Blitz 110', 'S2 150', 'Skua 150', 'Skua 250', 'Sirio 150', 'Strato 150', 'TCP 150', 'CG 150 Series'] },
+      { id: 'corven', name: 'Corven', origin: 'Nacional', models: ['Energy 110', 'Triax 150', 'Hunter 150', 'Touring 250', 'Mirage 110', 'Expert 150', 'Triax 250'] },
+      { id: 'zanella', name: 'Zanella', origin: 'Nacional', models: ['ZB 110', 'RX 150', 'ZR 150', 'Ceccato 150', 'Sapucai 150', 'Styler 150', 'Exclusive 150', 'Cruiser 150', 'Patagonian Eagle 250'] },
+      { id: 'bajaj', name: 'Bajaj', origin: 'India', models: ['Rouser NS 200', 'Rouser NS 160', 'Dominar 400', 'Dominar 250', 'Boxer 150', 'Rouser NS 125', 'Avenger 220', 'Pulsar N250'] },
+      { id: 'gilera', name: 'Gilera', origin: 'Nacional / Italiana', models: ['Smash 110', 'VC 150', 'Sahel 150', 'AC4 250', 'SMX 200', 'Futura 110'] },
+      { id: 'benelli', name: 'Benelli', origin: 'Italo-China', models: ['TNT 15', 'TNT 25', '180S', '302S', 'TRK 502 / 502X', 'Leoncino 500', 'Imperiale 400', '502C', 'TRK 251', '752S'] },
+      { id: 'ktm', name: 'KTM', origin: 'Austríaco', models: ['Duke 200', 'Duke 250', 'Duke 390', 'RC 200', 'RC 390', '250 Adventure', '390 Adventure', '790 Adventure', '890 Adventure'] },
+      { id: 'kawasaki', name: 'Kawasaki', origin: 'Japonés', models: ['Ninja 400', 'Z400', 'Versys 300', 'Versys 650', 'KLR 650', 'KLX 300', 'Z650', 'Z900', 'Vulcan S'] },
+      { id: 'suzuki-motos', name: 'Suzuki', origin: 'Japonés', models: ['AX 100', 'GN 125', 'EN 125', 'Gixxer 150', 'V-Strom 650', 'V-Strom 1050', 'GSX-S 750', 'Burgman 200'] },
+      { id: 'royal-enfield', name: 'Royal Enfield', origin: 'Británica / India', models: ['Classic 350', 'Meteor 350', 'Hunter 350', 'Himalayan 411 / 450', 'Interceptor 650', 'Continental GT 650', 'Super Meteor 650', 'Scram 411'] },
+      { id: 'bmw-motorrad', name: 'BMW Motorrad', origin: 'Alemán', models: ['G 310 R', 'G 310 GS', 'F 750 GS', 'F 850 GS', 'F 900 R', 'F 900 XR', 'R 1250 GS', 'S 1000 RR'] },
+      { id: 'mondial', name: 'Mondial', origin: 'Nacional', models: ['LD 110 Max', 'MD 150', 'TD 150', 'HD 250', 'Wingle 110'] },
+      { id: 'kymco', name: 'Kymco', origin: 'Taiwanesa', models: ['Agility 125', 'Like 125', 'Downtown 350i', 'X-Town 300', 'Micare 125'] },
+      { id: 'beta', name: 'Beta', origin: 'Italiana / Nacional', models: ['BS 110', 'Tempo 150', 'Motard 200', 'RR 300', 'Zontes T310', 'Zontes V310'] },
+      { id: 'hero', name: 'Hero', origin: 'India', models: ['Hunk 150', 'Hunk 160R', 'Hunk 190R', 'Xpulse 200', 'Dash 125', 'Ignitor 125'] },
+      { id: 'voge', name: 'Voge', origin: 'Chino / Premium', models: ['300DS', '300AC', '300R', '500DS / 500DSX', '500R', '650DSX', '525DSX'] },
+      { id: 'ducati', name: 'Ducati', origin: 'Italiana', models: ['Scrambler 800', 'Monster 937', 'Multistrada V2', 'Multistrada V4', 'Hypermotard 950'] },
+      { id: 'triumph', name: 'Triumph', origin: 'Británica', models: ['Trident 660', 'Tiger 900', 'Tiger 1200', 'Bonneville T100', 'Scrambler 900', 'Street Triple 765'] },
+      { id: 'vespa', name: 'Vespa', origin: 'Italiana', models: ['Primavera 150', 'Sprint 150', 'GTS 300', 'VXL 150'] },
+      { id: 'husqvarna', name: 'Husqvarna', origin: 'Sueca / Austríaca', models: ['Svartpilen 200', 'Svartpilen 401', 'Vitpilen 401', 'Norden 901'] }
     ]
   },
   camion: {
     name: 'Camiones y Línea Pesada',
     icon: 'Truck',
     brands: [
-      { id: 'scania', name: 'Scania', models: ['113 H/T', 'R 440', 'R 450', 'G 410', 'P 310', '112 H', '124 G/R'] },
-      { id: 'iveco', name: 'Iveco', models: ['Tector 170E22 / 170E28', 'Stralis 420 / 460', 'Eurocargo', 'Cursor', 'Daily (Furgón / Chasis)'] },
-      { id: 'mercedes-benz-camiones', name: 'Mercedes-Benz (Pesados)', models: ['1620', '1634', '1114', 'Axor 1933', 'Axor 2035', 'Actros 2045', 'Atego 1726'] },
-      { id: 'volkswagen-camiones', name: 'Volkswagen (Camiones)', models: ['Constellation 17.250 / 17.280', 'Constellation 19.320 / 19.360', 'Delivery 9.170 / 11.180'] },
-      { id: 'ford-camiones', name: 'Ford (Camiones)', models: ['Cargo 1722', 'Cargo 915', 'Cargo 1932'] }
+      { id: 'iveco', name: 'Iveco', origin: 'Europeo / Nacional', models: ['Tector 170E22 / 170E28', 'Stralis 420 / 460', 'Hi-Way 440 / 480', 'Eurocargo', 'Cursor', 'Daily (Furgón / Chasis / 70C17)', 'Vertis', 'EuroTrakker'] },
+      { id: 'mercedes-benz-camiones', name: 'Mercedes-Benz (Pesados)', origin: 'Alemán / Nacional', models: ['1620', '1634', '1114', '710', 'Accelo 815 / 1016', 'Atego 1721 / 1726 / 1729', 'Axor 1933 / 2035 / 2544', 'Actros 2045 / 2548 / 2651', 'Arocs'] },
+      { id: 'scania', name: 'Scania', origin: 'Sueco', models: ['113 H/T', 'R 440', 'R 450', 'R 500', 'G 410', 'G 440', 'P 310', 'P 340', 'P 250', '112 H', '124 G/R', 'S 500', 'Nueva Generación NTG'] },
+      { id: 'volkswagen-camiones', name: 'Volkswagen (Camiones)', origin: 'Alemán / Mercosur', models: ['Constellation 17.250 / 17.280', 'Constellation 19.320 / 19.360', 'Constellation 24.280', 'Delivery 9.170 / 11.180', 'Delivery 6.160', 'Meteor 28.460'] },
+      { id: 'ford-camiones', name: 'Ford (Camiones)', origin: 'Americano / Mercosur', models: ['Cargo 1722', 'Cargo 915', 'Cargo 1932', 'Cargo 1729', 'Cargo 2042', 'Cargo 712', 'F-4000'] },
+      { id: 'volvo-camiones', name: 'Volvo (Camiones)', origin: 'Sueco', models: ['FH 420 / FH 460 / FH 500 / FH 540', 'FM 370 / FM 410', 'FMX', 'VM 270 / VM 330'] },
+      { id: 'foton-camiones', name: 'Foton (Camiones)', origin: 'Chino', models: ['Aumark TM / S 3.5t', 'Aumark S 6t', 'Aumark S 10t', 'Auman EST-M', 'Auman D'] },
+      { id: 'agrale', name: 'Agrale', origin: 'Mercosur', models: ['8500', '9200', '10000', '14000', 'A7500', 'A8700', 'Marcopolo Volare'] },
+      { id: 'renault-trucks', name: 'Renault Trucks', origin: 'Europeo', models: ['Premium 380 / 440', 'Kerax', 'Midlum', 'Magnum'] },
+      { id: 'isuzu', name: 'Isuzu', origin: 'Japonés', models: ['NPR 75', 'NQR 90', 'Forward FVR', 'D-Max'] },
+      { id: 'hino', name: 'Hino (Toyota Group)', origin: 'Japonés', models: ['Serie 300 (514 / 616 / 716 / 816)', 'Serie 500'] },
+      { id: 'shacman', name: 'Shacman', origin: 'Chino', models: ['X3000', 'F3000', 'L3000'] },
+      { id: 'sinotruk', name: 'Sinotruk', origin: 'Chino', models: ['Howo A7', 'Howo 380', 'T5G'] },
+      { id: 'hyundai-pesados', name: 'Hyundai (Pesados)', origin: 'Coreano', models: ['HD 65', 'HD 78', 'Mighty EX8', 'Xcient'] },
+      { id: 'jmc', name: 'JMC', origin: 'Chino', models: ['N601', 'N900', 'Carrying', 'Conquer'] }
     ]
   }
 };

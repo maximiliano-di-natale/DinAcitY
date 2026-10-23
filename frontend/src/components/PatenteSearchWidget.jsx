@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Car,
   Bike,
@@ -14,6 +14,7 @@ import {
   MessageCircle,
   BookOpen,
   Plus,
+  Minus,
   Trash2,
   ExternalLink,
   ChevronRight,
@@ -22,7 +23,9 @@ import {
   Edit3,
   Calendar,
   Clock,
-  Sliders
+  Sliders,
+  Layers,
+  Globe
 } from 'lucide-react';
 import { CLIENT_TAXONOMY, clientFallbackService } from '../services/clientFallbackService.js';
 
@@ -47,6 +50,12 @@ export function PatenteSearchWidget({
   const [manualKm, setManualKm] = useState('65000');
   const [manualPatente, setManualPatente] = useState('');
 
+  // Filtro de origen de marcas (Alemanas, Americanas, Europeas, Asiáticas, Chinas, Todas)
+  const [brandOriginFilter, setBrandOriginFilter] = useState('all');
+
+  // Filtro de etapas de kilometraje (0-100k, 100k-200k, 200k-300k, 300k-400k, 400k-500k, all)
+  const [selectedKmStage, setSelectedKmStage] = useState('all');
+
   // Vehículo actualmente seleccionado / activo
   const [activeVehicle, setActiveVehicle] = useState(() => {
     return clientFallbackService.getActiveCocheraVehicle();
@@ -59,40 +68,95 @@ export function PatenteSearchWidget({
 
   const [toastMessage, setToastMessage] = useState('');
 
-  // Marcas rápidas populares según tipo
-  const popularBrands = {
-    auto: ['Volkswagen', 'Toyota', 'Chevrolet', 'Fiat', 'Ford', 'Peugeot', 'Renault', 'Citroën', 'Nissan', 'Jeep'],
-    moto: ['Honda', 'Yamaha', 'Motomel', 'Corven', 'Zanella', 'Bajaj'],
-    camion: ['Iveco', 'Mercedes-Benz', 'Scania', 'Volkswagen', 'Ford']
+  // Definición de Pestañas de Origen de Marcas por Tipo de Vehículo
+  const originFiltersByType = {
+    auto: [
+      { id: 'all', label: 'Todas (37)', icon: '🌍' },
+      { id: 'aleman', label: 'Alemanas 🇩🇪', match: (o) => (o || '').includes('Alemán') },
+      { id: 'americano', label: 'Americanas 🇺🇸', match: (o) => (o || '').includes('Americano') },
+      { id: 'europeo', label: 'Europeas 🇪🇺', match: (o) => (o || '').includes('Europeo') },
+      { id: 'asiatico', label: 'Asiáticas 🇯🇵🇰🇷', match: (o) => (o || '').includes('Japonés') || (o || '').includes('Coreano') },
+      { id: 'chino', label: 'Chinas 🇨🇳', match: (o) => (o || '').includes('Chino') }
+    ],
+    moto: [
+      { id: 'all', label: 'Todas (22)', icon: '🌍' },
+      { id: 'japones', label: 'Japonesas 🇯🇵', match: (o) => (o || '').includes('Japonés') },
+      { id: 'nacional', label: 'Nacionales / Mercosur 🇦🇷', match: (o) => (o || '').includes('Nacional') },
+      { id: 'india', label: 'Indias 🇮🇳', match: (o) => (o || '').includes('India') },
+      { id: 'europeo', label: 'Europeas 🇪🇺', match: (o) => (o || '').includes('Europeo') || (o || '').includes('Alemán') || (o || '').includes('Italiana') || (o || '').includes('Británica') || (o || '').includes('Austríaco') || (o || '').includes('Sueca') },
+      { id: 'chino', label: 'Chinas / Premium 🇨🇳', match: (o) => (o || '').includes('Chino') || (o || '').includes('Taiwanesa') || (o || '').includes('Italo-China') }
+    ],
+    camion: [
+      { id: 'all', label: 'Todas (15)', icon: '🌍' },
+      { id: 'europeo', label: 'Europeas / Mercosur 🇪🇺🇦🇷', match: (o) => (o || '').includes('Europeo') || (o || '').includes('Mercosur') || (o || '').includes('Sueco') },
+      { id: 'aleman', label: 'Alemanas 🇩🇪', match: (o) => (o || '').includes('Alemán') },
+      { id: 'americano', label: 'Americanas 🇺🇸', match: (o) => (o || '').includes('Americano') },
+      { id: 'asiatico', label: 'Asiáticas 🇯🇵🇰🇷', match: (o) => (o || '').includes('Japonés') || (o || '').includes('Coreano') },
+      { id: 'chino', label: 'Chinas 🇨🇳', match: (o) => (o || '').includes('Chino') }
+    ]
   };
 
-  // Presets de kilometraje para carga rápida con 1 clic
-  const kmPresets = [20000, 45000, 65000, 95000, 130000, 180000];
+  // Hitos de kilometraje ampliados de 10.000 a 500.000 km (Idéntico a Pasaporte Service)
+  const mileageMilestones = [
+    10000, 20000, 30000, 40000, 50000, 60000, 70000, 80000, 90000, 100000,
+    120000, 140000, 150000, 160000, 180000, 200000, 220000, 240000, 250000, 260000, 280000, 300000,
+    320000, 340000, 350000, 360000, 380000, 400000, 420000, 440000, 450000, 460000, 480000, 500000
+  ];
 
-  // Presets de muestra para probar rápido
+  // Etapas del Parque Automotor Argentino
+  const kmStages = [
+    { id: 'all', label: 'Todos los Hitos', sub: '10k a 500k km', min: 0, max: 500000 },
+    { id: '0-100k', label: '0 a 100.000 km', sub: 'Rodaje & Garantía', min: 0, max: 100000 },
+    { id: '100-200k', label: '100k a 200.000 km', sub: 'Embrague & Caja', min: 100001, max: 200000 },
+    { id: '200-300k', label: '200k a 300.000 km', sub: 'Promedio Argentina', min: 200001, max: 300000 },
+    { id: '300-400k', label: '300k a 400.000 km', sub: 'Motor Mayor', min: 300001, max: 400000 },
+    { id: '400-500k', label: '400k a 500.000 km', sub: 'Medio Millón de Km', min: 400001, max: 500000 }
+  ];
+
+  // Presets de muestra rápida enriquecidos con marcas globales
   const categorySamples = {
     auto: [
       { brand: 'Toyota', model: 'Hilux', year: 2022, engine: '2.8 D-4D Turbo (204 CV)', km: 45000, plate: 'AF 482 QZ' },
       { brand: 'Volkswagen', model: 'Gol Trend', year: 2019, engine: '1.6 MSI (101 CV)', km: 68000, plate: 'AD 192 OP' },
       { brand: 'Fiat', model: 'Cronos', year: 2021, engine: '1.3 GSE Firefly (99 CV)', km: 38000, plate: 'AE 341 KL' },
-      { brand: 'Peugeot', model: '207 Compact', year: 2011, engine: '1.4 8V TU3JP (75 CV)', km: 95000, plate: 'KRX 105' },
-      { brand: 'Chevrolet', model: 'Corsa Classic', year: 2008, engine: '1.4 8V MPFI (92 CV)', km: 140000, plate: 'ABX 543' }
+      { brand: 'Chevrolet', model: 'Cruze', year: 2020, engine: '1.4 Ecotec Turbo (153 CV)', km: 55000, plate: 'AD 789 LK' },
+      { brand: 'Peugeot', model: '208', year: 2022, engine: '1.6 VTi (115 CV)', km: 32000, plate: 'AF 123 CD' },
+      { brand: 'Chery', model: 'Tiggo 4', year: 2021, engine: '1.5 Turbo (147 CV)', km: 42000, plate: 'AE 890 ZX' },
+      { brand: 'Haval', model: 'H6', year: 2023, engine: '2.0 GDIT Turbo (201 CV)', km: 18000, plate: 'AG 554 TY' }
     ],
     moto: [
       { brand: 'Honda', model: 'XR 250 Tornado', year: 2021, engine: '249 cc DOHC 4V', km: 15000, plate: 'A 042 BVC' },
       { brand: 'Yamaha', model: 'FZ FI 150', year: 2022, engine: '149 cc BlueCore', km: 12000, plate: 'A 123 BCD' },
-      { brand: 'Motomel', model: 'Blitz 110', year: 2015, engine: '108 cc CUB', km: 28000, plate: '482 ABC' }
+      { brand: 'Motomel', model: 'Blitz 110', year: 2015, engine: '108 cc CUB', km: 28000, plate: '482 ABC' },
+      { brand: 'Benelli', model: 'TRK 502 / 502X', year: 2022, engine: '500 cc Bicilíndrico (47 CV)', km: 22000, plate: 'A 198 GTR' },
+      { brand: 'Bajaj', model: 'Rouser NS 200', year: 2020, engine: '199.5 cc Triple Chispa', km: 35000, plate: 'A 099 FGH' }
     ],
     camion: [
-      { brand: 'Iveco', model: 'Tector', year: 2022, engine: '5.9 Turbo 280CV', km: 160000, plate: 'AF 912 OP' },
-      { brand: 'Mercedes-Benz', model: '1620', year: 2008, engine: 'OM 366 LA Turbo', km: 380000, plate: 'RST 123' }
+      { brand: 'Iveco', model: 'Tector 170E22 / 170E28', year: 2022, engine: '5.9 Turbo 280CV', km: 160000, plate: 'AF 912 OP' },
+      { brand: 'Mercedes-Benz (Pesados)', model: '1620', year: 2008, engine: 'OM 366 LA Turbo', km: 380000, plate: 'RST 123' },
+      { brand: 'Scania', model: 'R 450', year: 2021, engine: '13.0 Turbodiésel 450CV', km: 240000, plate: 'AE 450 TR' },
+      { brand: 'Foton (Camiones)', model: 'Aumark S 6t', year: 2023, engine: 'Cummins ISF 3.8 Turbo', km: 65000, plate: 'AG 201 FT' }
     ]
   };
 
+  // Obtener todas las marcas según el tipo actual
+  const allBrandsForCurrentType = useMemo(() => {
+    return (CLIENT_TAXONOMY[manualType] || CLIENT_TAXONOMY.auto).brands || [];
+  }, [manualType]);
+
+  // Filtrar marcas según la pestaña de origen seleccionada
+  const filteredBrands = useMemo(() => {
+    const tabs = originFiltersByType[manualType] || originFiltersByType.auto;
+    const currentTab = tabs.find((t) => t.id === brandOriginFilter);
+    if (!currentTab || currentTab.id === 'all') {
+      return allBrandsForCurrentType;
+    }
+    return allBrandsForCurrentType.filter((b) => currentTab.match(b.origin));
+  }, [allBrandsForCurrentType, brandOriginFilter, manualType]);
+
   // Cargar modelos según la marca manual elegida
   const currentBrandModels = () => {
-    const taxonomyBrands = (CLIENT_TAXONOMY[manualType] || CLIENT_TAXONOMY.auto).brands;
-    const found = taxonomyBrands.find(
+    const found = allBrandsForCurrentType.find(
       (b) => b.name.toLowerCase() === manualBrand.toLowerCase() || b.id === manualBrand.toLowerCase()
     );
     return found ? found.models : [];
@@ -101,8 +165,7 @@ export function PatenteSearchWidget({
   // Al cambiar de marca, actualizar el modelo al primero disponible
   const handleBrandChange = (brandName) => {
     setManualBrand(brandName);
-    const taxonomyBrands = (CLIENT_TAXONOMY[manualType] || CLIENT_TAXONOMY.auto).brands;
-    const found = taxonomyBrands.find(
+    const found = allBrandsForCurrentType.find(
       (b) => b.name.toLowerCase() === brandName.toLowerCase() || b.id === brandName.toLowerCase()
     );
     if (found && found.models.length > 0) {
@@ -113,17 +176,28 @@ export function PatenteSearchWidget({
   // Al cambiar tipo de vehículo
   const handleTypeChange = (type) => {
     setManualType(type);
-    const brands = popularBrands[type] || popularBrands.auto;
-    const firstBrand = brands[0];
+    setBrandOriginFilter('all');
+    const brands = (CLIENT_TAXONOMY[type] || CLIENT_TAXONOMY.auto).brands;
+    const firstBrand = brands[0] ? brands[0].name : 'Volkswagen';
     setManualBrand(firstBrand);
-    const taxonomyBrands = (CLIENT_TAXONOMY[type] || CLIENT_TAXONOMY.auto).brands;
-    const found = taxonomyBrands.find(
-      (b) => b.name.toLowerCase() === firstBrand.toLowerCase() || b.id === firstBrand.toLowerCase()
-    );
-    if (found && found.models.length > 0) {
-      setManualModel(found.models[0]);
+    if (brands[0] && brands[0].models.length > 0) {
+      setManualModel(brands[0].models[0]);
     }
   };
+
+  // Helper para sumar o restar 10.000 km
+  const handleStepKm = (delta) => {
+    const current = parseInt(manualKm, 10) || 60000;
+    const next = Math.max(10000, Math.min(500000, current + delta));
+    setManualKm(next.toString());
+  };
+
+  // Filtrar hitos de kilometraje según etapa
+  const visibleMilestones = useMemo(() => {
+    const stage = kmStages.find((s) => s.id === selectedKmStage);
+    if (!stage || stage.id === 'all') return mileageMilestones;
+    return mileageMilestones.filter((km) => km >= stage.min && km <= stage.max);
+  }, [selectedKmStage]);
 
   // Guardar y activar vehículo cargado a mano
   const handleSaveManualVehicle = (e) => {
@@ -272,7 +346,7 @@ export function PatenteSearchWidget({
               <span>🚗</span> Mi Cochera Digital DinAcitY
             </span>
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-              ✓ Carga Guiada Sin Dependencia de APIs
+              ✓ Catálogo Mundial: Chinos, Alemanes, Americanos, Europeos, Asiáticos
             </span>
             <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-900/60 text-blue-200 border border-blue-500/30">
               📍 Mendoza, Argentina
@@ -283,7 +357,7 @@ export function PatenteSearchWidget({
             Cargá tu Vehículo y Gestioná su Mantenimiento Exacto
           </h2>
           <p className="text-xs sm:text-sm text-blue-200/90 mt-1 max-w-3xl leading-relaxed">
-            Ingresá tu auto a mano para que DinAcitY calcule al instante el <strong>kilometraje de cambio de cada repuesto</strong>, <strong>fluidos homologados</strong>, cotizaciones por WhatsApp en mostradores de Mendoza y <strong>alertas de RTO y seguro</strong>.
+            Ingresá tu auto, moto o camión a mano para que DinAcitY calcule al instante el <strong>kilometraje de cambio de cada repuesto (10.000 a 500.000 km)</strong>, <strong>fluidos homologados</strong>, cotizaciones por WhatsApp en mostradores de Mendoza y <strong>alertas de RTO y seguro</strong>.
           </p>
         </div>
 
@@ -378,36 +452,82 @@ export function PatenteSearchWidget({
               </div>
             </div>
 
-            {/* 2. Selector Rápido de Marcas */}
-            <div>
-              <label className="block text-xs font-black uppercase text-blue-300 tracking-wider mb-2">
-                Paso 2: Marca
-              </label>
-              <div className="flex flex-wrap gap-1.5 mb-2.5">
-                {(popularBrands[manualType] || popularBrands.auto).map((b) => (
+            {/* 2. Selector Completo de Marcas del Mercado Mundial en Argentina */}
+            <div className="space-y-2.5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                <label className="block text-xs font-black uppercase text-blue-300 tracking-wider flex items-center gap-1.5">
+                  <Globe className="w-4 h-4 text-sky-400" />
+                  <span>Paso 2: Marca (Catálogo Mundial en Argentina: Chinas, Alemanas, Americanas, Europeas, Asiáticas)</span>
+                </label>
+                <span className="text-[11px] text-slate-400 font-mono">
+                  {filteredBrands.length} de {allBrandsForCurrentType.length} marcas disponibles
+                </span>
+              </div>
+
+              {/* Pestañas de origen de marcas */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                {(originFiltersByType[manualType] || originFiltersByType.auto).map((tab) => (
                   <button
-                    key={b}
+                    key={tab.id}
                     type="button"
-                    onClick={() => handleBrandChange(b)}
-                    className={`px-3 py-1.5 rounded-lg border text-xs font-bold transition cursor-pointer ${
-                      manualBrand.toLowerCase() === b.toLowerCase()
-                        ? 'bg-blue-600 text-white border-blue-300 shadow-sm'
-                        : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700 hover:text-white'
+                    onClick={() => setBrandOriginFilter(tab.id)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition cursor-pointer border ${
+                      brandOriginFilter === tab.id
+                        ? 'bg-blue-600 text-white border-blue-400 shadow-md scale-102'
+                        : 'bg-slate-800/90 text-slate-300 hover:text-white hover:bg-slate-700 border-slate-700'
                     }`}
                   >
-                    {b}
+                    <span>{tab.label}</span>
                   </button>
                 ))}
               </div>
+
+              {/* Grilla interactiva de marcas filtradas */}
+              <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto p-1 bg-slate-950/60 rounded-xl border border-slate-800/90">
+                {filteredBrands.map((b) => {
+                  const isSelected = manualBrand.toLowerCase() === b.name.toLowerCase() || manualBrand.toLowerCase() === b.id.toLowerCase();
+                  return (
+                    <button
+                      key={b.id}
+                      type="button"
+                      onClick={() => handleBrandChange(b.name)}
+                      className={`px-3 py-1.5 rounded-lg border text-xs font-bold transition cursor-pointer flex items-center gap-1.5 ${
+                        isSelected
+                          ? 'bg-blue-600 text-white border-blue-300 shadow-md scale-105 ring-2 ring-blue-400/40'
+                          : 'bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-700 hover:text-white'
+                      }`}
+                    >
+                      <span>{b.name}</span>
+                      <span className="text-[10px] opacity-70 font-normal">({b.origin})</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Selector alternativo en Dropdown para selección rápida directa de la A a la Z */}
+              <div className="flex items-center gap-2 pt-1 text-xs">
+                <span className="text-slate-400 font-semibold shrink-0">O elegí de la lista completa A-Z:</span>
+                <select
+                  value={manualBrand}
+                  onChange={(e) => handleBrandChange(e.target.value)}
+                  className="bg-slate-800 border border-slate-700 focus:border-blue-400 rounded-lg px-3 py-1.5 text-xs text-white font-bold focus:outline-none"
+                >
+                  {allBrandsForCurrentType.map((b) => (
+                    <option key={b.id} value={b.name}>
+                      {b.name} — {b.origin} ({b.models.length} modelos)
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
-            {/* 3. Grid de Datos Específicos: Modelo, Año, Motor y Odómetro */}
+            {/* 3. Grid de Datos Específicos: Modelo, Año, Motor y Patente */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2 border-t border-slate-800">
               
               {/* Modelo */}
               <div>
                 <label className="block text-xs font-black text-slate-300 mb-1.5">
-                  Modelo:
+                  Modelo ({manualBrand}):
                 </label>
                 {currentBrandModels().length > 0 ? (
                   <select
@@ -425,7 +545,7 @@ export function PatenteSearchWidget({
                     type="text"
                     value={manualModel}
                     onChange={(e) => setManualModel(e.target.value)}
-                    placeholder="Ej: Gol Trend, Hilux, Cronos"
+                    placeholder="Ej: Gol Trend, Hilux, Cronos, Tiggo"
                     className="w-full bg-slate-800 border border-slate-700 focus:border-blue-400 rounded-xl px-3 py-2.5 text-xs text-white font-bold focus:outline-none"
                   />
                 )}
@@ -464,7 +584,7 @@ export function PatenteSearchWidget({
                   type="text"
                   value={manualEngine}
                   onChange={(e) => setManualEngine(e.target.value)}
-                  placeholder="Ej: 1.6 MSI, 2.0 TDI, 1.4 Fire, 1.3 GSE"
+                  placeholder="Ej: 1.6 MSI, 2.0 TDI, 1.5 Turbo, 250cc"
                   className="w-full bg-slate-800 border border-slate-700 focus:border-blue-400 rounded-xl px-3 py-2.5 text-xs text-white font-bold focus:outline-none"
                 />
               </div>
@@ -487,51 +607,145 @@ export function PatenteSearchWidget({
 
             </div>
 
-            {/* 4. Kilometraje Actual (EL CORAZÓN TÉCNICO) */}
-            <div className="p-4 bg-slate-950/70 border border-blue-500/40 rounded-xl space-y-2">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            {/* 4. Kilometraje Actual del Odómetro (CON PARIDAD TOTAL A PASAPORTE SERVICE: 10k a 500k KM) */}
+            <div className="p-4 sm:p-5 bg-slate-950/80 border-2 border-sky-500/50 rounded-2xl space-y-4 shadow-xl">
+              
+              {/* Cabecera del odómetro e input digital con botones +/- 10.000 km */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-800">
                 <div>
-                  <label className="text-xs font-black text-white uppercase tracking-wider flex items-center gap-1.5">
-                    <Gauge className="w-4 h-4 text-sky-400" />
+                  <label className="text-xs sm:text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                    <Gauge className="w-5 h-5 text-sky-400" />
                     <span>Kilometraje Actual de tu Odómetro (Crucial para Services)</span>
                   </label>
-                  <p className="text-[11px] text-slate-400">
-                    Calculamos exactamente qué repuesto cambiar hoy y cuál en el próximo service.
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Calculamos exactamente qué repuesto cambiar hoy y cuál en el próximo service (10.000 a 500.000 km).
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    value={manualKm}
-                    onChange={(e) => setManualKm(e.target.value)}
-                    step="1000"
-                    min="0"
-                    max="600000"
-                    className="w-36 bg-slate-900 border border-sky-400/60 rounded-xl px-3 py-2 text-right text-base font-mono font-black text-white focus:outline-none focus:ring-2 focus:ring-sky-400"
-                  />
-                  <span className="text-xs font-bold text-slate-300">KM</span>
+                {/* Caja digital con botones +/- 10.000 km */}
+                <div className="flex items-center gap-2 self-start sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => handleStepKm(-10000)}
+                    disabled={(parseInt(manualKm, 10) || 0) <= 10000}
+                    className="p-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700 disabled:opacity-40 transition cursor-pointer"
+                    title="Restar 10.000 km"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </button>
+
+                  <div className="flex items-center gap-2 bg-slate-900 px-3.5 py-1.5 rounded-xl border-2 border-sky-400/50 shadow-inner">
+                    <input
+                      type="number"
+                      value={manualKm}
+                      onChange={(e) => setManualKm(e.target.value)}
+                      step="1000"
+                      min="0"
+                      max="600000"
+                      className="w-28 text-center font-mono font-black text-xl bg-transparent text-sky-300 focus:outline-none"
+                    />
+                    <span className="text-xs font-black text-slate-400">KM</span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => handleStepKm(10000)}
+                    disabled={(parseInt(manualKm, 10) || 0) >= 500000}
+                    className="p-2 rounded-xl bg-slate-900 border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700 disabled:opacity-40 transition cursor-pointer"
+                    title="Sumar 10.000 km"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
 
-              {/* Presets de kilometraje rápido */}
-              <div className="flex items-center gap-1.5 flex-wrap pt-1">
-                <span className="text-[10px] text-slate-400 font-bold mr-1">Elegir rápido:</span>
-                {kmPresets.map((km) => (
-                  <button
-                    key={km}
-                    type="button"
-                    onClick={() => setManualKm(km.toString())}
-                    className={`px-2.5 py-1 rounded-md text-[11px] font-mono font-bold transition cursor-pointer ${
-                      parseInt(manualKm, 10) === km
-                        ? 'bg-sky-500 text-slate-950'
-                        : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                    }`}
-                  >
-                    {km.toLocaleString('es-AR')} km
-                  </button>
-                ))}
+              {/* Slider interactivo hasta 500.000 km */}
+              <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800 space-y-1.5">
+                <div className="flex items-center justify-between text-[11px] font-bold text-slate-400">
+                  <span>10.000 km (Nuevo)</span>
+                  <span className="text-sky-300 font-mono font-black text-xs">
+                    Odómetro en vivo: {(parseInt(manualKm, 10) || 0).toLocaleString('es-AR')} km
+                  </span>
+                  <span>500.000 km (Medio Millón)</span>
+                </div>
+
+                <input
+                  type="range"
+                  min="10000"
+                  max="500000"
+                  step="5000"
+                  value={parseInt(manualKm, 10) || 60000}
+                  onChange={(e) => setManualKm(e.target.value)}
+                  className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-sky-400"
+                />
+
+                <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+                  <span>10k</span>
+                  <span>100k</span>
+                  <span>200k (Promedio Arg)</span>
+                  <span>300k</span>
+                  <span>400k</span>
+                  <span>500k km</span>
+                </div>
               </div>
+
+              {/* Filtros de etapas del odómetro */}
+              <div className="space-y-2 pt-1">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <span className="text-[11px] font-black uppercase text-slate-400 tracking-wider flex items-center gap-1">
+                    <Layers className="w-3.5 h-3.5 text-sky-400" />
+                    Filtrar Hitos por Rango de Kilómetros:
+                  </span>
+                  <span className="text-[11px] text-slate-400 font-mono">
+                    Mostrando {visibleMilestones.length} hitos programados
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                  {kmStages.map((stage) => (
+                    <button
+                      key={stage.id}
+                      type="button"
+                      onClick={() => setSelectedKmStage(stage.id)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition cursor-pointer border ${
+                        selectedKmStage === stage.id
+                          ? 'bg-sky-600 text-white border-sky-400 shadow-md scale-102'
+                          : 'bg-slate-900/90 text-slate-300 hover:text-white hover:bg-slate-700 border-slate-700'
+                      }`}
+                    >
+                      <span>{stage.label}</span>
+                      <span className="text-[10px] block opacity-75 leading-none mt-0.5">{stage.sub}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Botones de hitos de kilometraje rápido (10.000 a 500.000 KM) */}
+              <div className="flex items-center gap-1.5 flex-wrap max-h-40 overflow-y-auto pr-1">
+                {visibleMilestones.map((km) => {
+                  const isMilestoneActive = parseInt(manualKm, 10) === km;
+                  const isMilestoneCritical = km >= 60000 && (km % 60000 === 0 || km % 120000 === 0);
+
+                  return (
+                    <button
+                      key={km}
+                      type="button"
+                      onClick={() => setManualKm(km.toString())}
+                      className={`px-2.5 py-1.5 rounded-lg text-xs font-mono font-bold transition border cursor-pointer ${
+                        isMilestoneActive
+                          ? 'bg-sky-500 text-slate-950 border-sky-300 shadow-md scale-105 ring-2 ring-sky-300/40'
+                          : isMilestoneCritical
+                          ? 'bg-slate-900 text-amber-300 hover:text-white hover:bg-amber-950/60 border-amber-800/60'
+                          : 'bg-slate-900 text-slate-300 hover:text-white hover:bg-slate-700 border-slate-700'
+                      }`}
+                    >
+                      <span>{(km / 1000)}k km</span>
+                      {isMilestoneCritical && <span className="ml-1 text-[9px] text-yellow-300">★</span>}
+                    </button>
+                  );
+                })}
+              </div>
+
             </div>
 
             {/* Botón Principal de Envío */}
