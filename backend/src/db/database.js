@@ -16,6 +16,9 @@ const DB_PATH = process.env.DATABASE_FILE || path.join(dataDir, 'dinacity.sqlite
 
 export const db = new DatabaseSync(DB_PATH);
 
+// Inicializar esquema inmediatamente al instanciar la base de datos
+initDatabase();
+
 export function initDatabase() {
   // Pragmas de seguridad y alto rendimiento
   db.exec('PRAGMA foreign_keys = ON;');
@@ -137,8 +140,31 @@ export function initDatabase() {
     );
   `);
 
+  // 7. Tabla de Patentes Vinculadas y Confirmadas Oficialmente (DNRPA DinAcitY)
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS linked_plates (
+      patente TEXT PRIMARY KEY,
+      brand TEXT NOT NULL,
+      brand_id TEXT,
+      model TEXT NOT NULL,
+      version TEXT,
+      year INTEGER,
+      vehicle_type TEXT DEFAULT 'auto',
+      engine_name TEXT,
+      engine_code TEXT,
+      displacement TEXT,
+      valves INTEGER,
+      power TEXT,
+      fuel TEXT,
+      vin TEXT,
+      seccional TEXT,
+      created_at TEXT NOT NULL
+    );
+  `);
+
   // Índices para optimizar búsquedas frecuentes
   db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_linked_plates_patente ON linked_plates(patente);
     CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
     CREATE INDEX IF NOT EXISTS idx_vehicles_user_id ON user_vehicles(user_id);
     CREATE INDEX IF NOT EXISTS idx_alerts_user_id ON price_alerts(user_id);

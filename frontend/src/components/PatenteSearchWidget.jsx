@@ -20,7 +20,7 @@ import {
   ExternalLink,
   ChevronRight
 } from 'lucide-react';
-import { clientFallbackService } from '../services/clientFallbackService.js';
+import { CLIENT_TAXONOMY, clientFallbackService } from '../services/clientFallbackService.js';
 
 export function PatenteSearchWidget({
   onSelectVehicle,
@@ -37,6 +37,12 @@ export function PatenteSearchWidget({
   const [vehicleData, setVehicleData] = useState(null);
   const [error, setError] = useState(null);
   const [savedDbVehicle, setSavedDbVehicle] = useState(false);
+
+  // Estados para el asistente de confirmación y vinculación de vehículo
+  const [confirmBrand, setConfirmBrand] = useState('Peugeot');
+  const [confirmModel, setConfirmModel] = useState('207 Compact');
+  const [confirmYear, setConfirmYear] = useState('2011');
+  const [confirmEngine, setConfirmEngine] = useState('1.4 8V Nafta');
 
   // Lista de vehículos en la Cochera Digital del usuario
   const [cocheraList, setCocheraList] = useState(() => {
@@ -116,35 +122,64 @@ export function PatenteSearchWidget({
     try {
       // 1. Obtención garantizada offline / local
       const fallbackResult = clientFallbackService.lookupPatente(target, effectiveCategory);
-      if (fallbackResult && fallbackResult.data) {
-        setVehicleData(fallbackResult);
-        if (fallbackResult.data.vehicleType) {
-          setSelectedCategory(fallbackResult.data.vehicleType);
-        }
-        if (onSelectVehicle) {
-          onSelectVehicle({
-            query: fallbackResult.data?.model || '',
-            vehicleType: fallbackResult.data?.vehicleType || effectiveCategory,
-            brand: fallbackResult.data?.brandId || fallbackResult.data?.brand?.toLowerCase() || 'auto',
-            model: fallbackResult.data?.model || '',
-            year: fallbackResult.data?.year ? fallbackResult.data.year.toString() : '2022',
-            engineSpec: fallbackResult.data?.engine?.name || '',
-            fullVehicleTitle: `${fallbackResult.data?.brand || ''} ${fallbackResult.data?.model || ''} ${fallbackResult.data?.version || ''} (${fallbackResult.data?.year || ''})`.trim(),
-            patente: fallbackResult.displayPlate || fallbackResult.data?.patente || target,
-            data: fallbackResult.data
-          });
+      if (fallbackResult) {
+        if (fallbackResult.requiresConfirmation) {
+          setVehicleData(fallbackResult);
+          if (fallbackResult.formatInfo?.estimatedYear) {
+            setConfirmYear(fallbackResult.formatInfo.estimatedYear.toString());
+          }
+          if (fallbackResult.formatInfo?.vehicleType) {
+            setSelectedCategory(fallbackResult.formatInfo.vehicleType);
+          }
+        } else if (fallbackResult.data) {
+          setVehicleData(fallbackResult);
+          if (fallbackResult.data.vehicleType) {
+            setSelectedCategory(fallbackResult.data.vehicleType);
+          }
+          if (onSelectVehicle) {
+            onSelectVehicle({
+              query: fallbackResult.data?.model || '',
+              vehicleType: fallbackResult.data?.vehicleType || effectiveCategory,
+              brand: fallbackResult.data?.brandId || fallbackResult.data?.brand?.toLowerCase() || 'auto',
+              model: fallbackResult.data?.model || '',
+              year: fallbackResult.data?.year ? fallbackResult.data.year.toString() : '2022',
+              engineSpec: fallbackResult.data?.engine?.name || '',
+              fullVehicleTitle: `${fallbackResult.data?.brand || ''} ${fallbackResult.data?.model || ''} ${fallbackResult.data?.version || ''} (${fallbackResult.data?.year || ''})`.trim(),
+              patente: fallbackResult.displayPlate || fallbackResult.data?.patente || target,
+              data: fallbackResult.data
+            });
+          }
         }
       }
 
-      // 2. Consulta al backend (si responde con datos enriquecidos)
+      // 2. Consulta al backend (si responde con datos de live API o SQLite)
       const res = await fetch(`/api/vehicles/lookup-patente?patente=${encodeURIComponent(target)}&vehicleType=${encodeURIComponent(effectiveCategory)}`);
       if (res.ok) {
         const ct = res.headers.get('content-type') || '';
         if (ct.includes('application/json')) {
           const data = await res.json();
-          if (data && data.data) {
-            setVehicleData(data);
-            if (data.data.vehicleType) setSelectedCategory(data.data.vehicleType);
+          if (data) {
+            if (data.requiresConfirmation) {
+              setVehicleData(data);
+              if (data.formatInfo?.estimatedYear) setConfirmYear(data.formatInfo.estimatedYear.toString());
+              if (data.formatInfo?.vehicleType) setSelectedCategory(data.formatInfo.vehicleType);
+            } else if (data.data) {
+              setVehicleData(data);
+              if (data.data.vehicleType) setSelectedCategory(data.data.vehicleType);
+              if (onSelectVehicle) {
+                onSelectVehicle({
+                  query: data.data?.model || '',
+                  vehicleType: data.data?.vehicleType || effectiveCategory,
+                  brand: data.data?.brandId || data.data?.brand?.toLowerCase() || 'auto',
+                  model: data.data?.model || '',
+                  year: data.data?.year ? data.data.year.toString() : '2022',
+                  engineSpec: data.data?.engine?.name || '',
+                  fullVehicleTitle: `${data.data?.brand || ''} ${data.data?.model || ''} ${data.data?.version || ''} (${data.data?.year || ''})`.trim(),
+                  patente: data.displayPlate || data.data?.patente || target,
+                  data: data.data
+                });
+              }
+            }
           }
         }
       }
@@ -153,6 +188,60 @@ export function PatenteSearchWidget({
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleConfirmVehicleLink = (chosenVehicle) => {
+    const targetPlate = vehicleData?.displayPlate || vehicleData?.plate || patenteInput;
+    const res = clientFallbackService.linkPlate(targetPlate, chosenVehicle);
+    if (res && res.data) {
+      setVehicleData(res);
+      setCocheraList(clientFallbackService.getCocheraVehicles());
+      setSavedDbVehicle(true);
+      setTimeout(() => setSavedDbVehicle(false), 4000);
+      if (onSelectVehicle) {
+        onSelectVehicle({
+          query: res.data?.model || '',
+          vehicleType: res.data?.vehicleType || selectedCategory,
+          brand: res.data?.brandId || res.data?.brand?.toLowerCase() || 'auto',
+          model: res.data?.model || '',
+          year: res.data?.year ? res.data.year.toString() : '2020',
+          engineSpec: res.data?.engine?.name || '',
+          fullVehicleTitle: `${res.data?.brand || ''} ${res.data?.model || ''} ${res.data?.version || ''} (${res.data?.year || ''})`.trim(),
+          patente: res.displayPlate || targetPlate,
+          data: res.data
+        });
+      }
+    }
+  };
+
+  const getQuickPresets = (year, cat) => {
+    const y = Number(year) || 2011;
+    if (cat === 'moto') {
+      return [
+        { brand: 'Honda', model: 'Wave 110S', version: '110 cc', year: y, engine: { name: '109 cc 4T OHC' } },
+        { brand: 'Honda', model: 'XR 250 Tornado', version: '250 cc', year: y, engine: { name: '249 cc DOHC 4V' } },
+        { brand: 'Yamaha', model: 'YBR 125', version: 'ED 125', year: y, engine: { name: '124 cc 4T SOHC' } },
+        { brand: 'Motomel', model: 'Blitz 110', version: 'B1 110', year: y, engine: { name: '107 cc 4T CUB' } }
+      ];
+    }
+    if (cat === 'camion') {
+      return [
+        { brand: 'Iveco', model: 'Tector', version: '170E28 Attack', year: y, engine: { name: '5.9 Turbo Intercooler 280CV' } },
+        { brand: 'Mercedes-Benz', model: '1620', version: 'L 1620 Chasis', year: y, engine: { name: 'OM 366 LA Turbo 211CV' } },
+        { brand: 'Scania', model: 'R 450', version: 'Highline 4x2', year: y, engine: { name: '13.0 Litros 6 Cilindros 450CV' } },
+        { brand: 'Volkswagen', model: 'Constellation', version: '17.280', year: y, engine: { name: '6.9 MAN 280CV' } }
+      ];
+    }
+    // Autos
+    return [
+      { brand: 'Peugeot', model: '207 Compact', version: '1.4 XS 5P', year: y, engine: { name: '1.4 8V TU3JP (75 CV)' } },
+      { brand: 'Volkswagen', model: 'Gol Trend', version: '1.6 MSI', year: y, engine: { name: '1.6 8V MSI EA111 (101 CV)' } },
+      { brand: 'Chevrolet', model: 'Corsa Classic', version: '1.4 LT', year: y, engine: { name: '1.4 8V MPFI (92 CV)' } },
+      { brand: 'Renault', model: 'Clio', version: 'Mio 1.2', year: y, engine: { name: '1.2 16V D4F (75 CV)' } },
+      { brand: 'Fiat', model: 'Palio', version: 'Fire 1.4', year: y, engine: { name: '1.4 8V Fire (85 CV)' } },
+      { brand: 'Ford', model: 'Fiesta', version: 'One 1.6', year: y, engine: { name: '1.6 8V Zetec Rocam (98 CV)' } },
+      { brand: 'Toyota', model: 'Hilux', version: 'DX 2.5 TDI', year: y, engine: { name: '2.5 D-4D Turbo Diésel (120 CV)' } }
+    ];
   };
 
   const handleApplyVehicle = (targetPart = '') => {
@@ -423,6 +512,153 @@ export function PatenteSearchWidget({
           </div>
         )}
       </div>
+
+      {/* Asistente de Confirmación y Vinculación Oficial (Cuando la patente no tiene ficha previa) */}
+      {vehicleData && vehicleData.requiresConfirmation && (
+        <div className="mt-6 bg-slate-800/95 border-2 border-amber-500/50 rounded-2xl p-4 sm:p-6 shadow-2xl relative z-10 animate-fadeIn space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 pb-4 border-b border-slate-700">
+            <div>
+              <div className="flex items-center gap-2 mb-2 flex-wrap">
+                <span className="px-3 py-1 rounded-md text-xs font-mono font-black bg-amber-500 text-slate-950 shadow-xs">
+                  {vehicleData.displayPlate || patenteInput}
+                </span>
+                <span className="text-xs font-bold text-amber-300 bg-amber-950/80 border border-amber-700/60 px-2.5 py-0.5 rounded-full flex items-center gap-1">
+                  <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
+                  Patente en DNRPA • Requiere vincular modelo
+                </span>
+                <span className="text-xs text-slate-300 bg-slate-900 border border-slate-700 px-2.5 py-0.5 rounded-full">
+                  {vehicleData.formatInfo?.seriesName || 'Registro Automotor'}
+                </span>
+              </div>
+              <h3 className="text-lg sm:text-xl font-black text-white">
+                Ficha Oficial para {vehicleData.displayPlate || patenteInput}
+              </h3>
+              <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
+                Esta patente fue reconocida en la serie registral de <strong>{vehicleData.formatInfo?.estimatedYear || '2011'}</strong>. Para asegurar que cotices repuestos para <strong>tu auto exacto</strong> y no de otro vehículo, seleccioná o confirmá tu modelo para vincularlo a tu Cochera Digital:
+              </p>
+            </div>
+          </div>
+
+          {/* Sugerencias Rápidas para esta Serie / Año */}
+          <div>
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
+              Sugerencias populares para el año {vehicleData.formatInfo?.estimatedYear || '2011'}:
+            </span>
+            <div className="flex flex-wrap gap-2">
+              {getQuickPresets(vehicleData.formatInfo?.estimatedYear || 2011, selectedCategory).map((preset, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => {
+                    handleConfirmVehicleLink({
+                      brand: preset.brand,
+                      model: preset.model,
+                      version: preset.version,
+                      year: preset.year,
+                      engine: preset.engine,
+                      vehicleType: selectedCategory
+                    });
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-blue-600 text-slate-200 hover:text-white border border-slate-700 hover:border-blue-400 font-semibold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-sm"
+                >
+                  <span>{preset.brand} {preset.model}</span>
+                  <span className="text-[10px] text-slate-400">({preset.version})</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Formulario de Selección Personalizada */}
+          <div className="bg-slate-900/90 rounded-xl p-4 border border-slate-700/80 space-y-3">
+            <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+              O seleccioná tu marca, modelo y motor:
+            </h4>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              {/* Marca */}
+              <div>
+                <label className="block text-[11px] font-bold text-slate-400 mb-1">Marca</label>
+                <select
+                  value={confirmBrand}
+                  onChange={(e) => {
+                    const b = e.target.value;
+                    setConfirmBrand(b);
+                    const brands = (CLIENT_TAXONOMY[selectedCategory] || CLIENT_TAXONOMY.auto).brands;
+                    const brandObj = brands.find(item => item.name === b || item.id === b.toLowerCase());
+                    if (brandObj && brandObj.models.length > 0) {
+                      setConfirmModel(brandObj.models[0]);
+                    }
+                  }}
+                  className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white text-xs font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                >
+                  {(CLIENT_TAXONOMY[selectedCategory] || CLIENT_TAXONOMY.auto).brands.map((b) => (
+                    <option key={b.id || b.name} value={b.name}>{b.name}</option>
+                  ))}
+                  <option value="Otra Marca">Otra Marca (escribir modelo)</option>
+                </select>
+              </div>
+
+              {/* Modelo */}
+              <div>
+                <label className="block text-[11px] font-bold text-slate-400 mb-1">Modelo</label>
+                <input
+                  type="text"
+                  value={confirmModel}
+                  onChange={(e) => setConfirmModel(e.target.value)}
+                  placeholder="Ej: 207 Compact / Gol / Corsa"
+                  className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white text-xs font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                />
+              </div>
+
+              {/* Año */}
+              <div>
+                <label className="block text-[11px] font-bold text-slate-400 mb-1">Año</label>
+                <input
+                  type="number"
+                  value={confirmYear}
+                  onChange={(e) => setConfirmYear(e.target.value)}
+                  className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white text-xs font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                />
+              </div>
+
+              {/* Motor / Versión */}
+              <div>
+                <label className="block text-[11px] font-bold text-slate-400 mb-1">Motor / Versión</label>
+                <input
+                  type="text"
+                  value={confirmEngine}
+                  onChange={(e) => setConfirmEngine(e.target.value)}
+                  placeholder="Ej: 1.4 Nafta / 1.6 MSI / 2.0 TDI"
+                  className="w-full bg-slate-800 border border-slate-600 rounded-lg px-3 py-2 text-white text-xs font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
+              <span className="text-[11px] text-slate-400">
+                Al confirmar, este vehículo quedará guardado de inmediato en tu Cochera para la patente <strong>{vehicleData.displayPlate || patenteInput}</strong>.
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  handleConfirmVehicleLink({
+                    brand: confirmBrand,
+                    model: confirmModel,
+                    version: confirmEngine || confirmModel,
+                    year: confirmYear,
+                    engine: { name: confirmEngine || `Motor Oficial ${confirmBrand} ${confirmModel}` },
+                    vehicleType: selectedCategory
+                  });
+                }}
+                className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg transition flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>✓ Confirmar y Vincular Vehículo</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Vehicle Specification Card (When Found) */}
       {vehicleData && vehicleData.data && (

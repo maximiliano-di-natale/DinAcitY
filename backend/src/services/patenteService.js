@@ -1,8 +1,13 @@
 // Servicio de Identificación Vehicular por Patente y VIN (Registro Automotor DNRPA Argentina)
 // Permite identificar al instante: Marca, Modelo, Año, Motor específico, Chasis y Radicación en Mendoza
+import { db } from '../db/database.js';
 
 export class PatenteService {
   constructor() {
+    // Almacén en memoria de patentes vinculadas y confirmadas por el usuario o API externa
+    this.linkedPlates = new Map();
+    this.loadLinkedPlatesFromDb();
+
     // Base de vehículos reales de muestra registrados en Mendoza con datos técnicos completos de motor y chasis
     this.verifiedRegistry = [
       {
@@ -902,8 +907,291 @@ export class PatenteService {
     return cleaned;
   }
 
+  // Cargar patentes previamente vinculadas y guardadas en SQLite
+  loadLinkedPlatesFromDb() {
+    try {
+      if (db) {
+        const rows = db.prepare('SELECT * FROM linked_plates').all();
+        for (const row of rows) {
+          this.linkedPlates.set(row.patente, {
+            patente: row.patente,
+            displayPlate: this.formatDisplayPatente(row.patente),
+            vin: row.vin,
+            brand: row.brand,
+            brandId: row.brand_id || row.brand.toLowerCase().replace(/\s+/g, '-'),
+            model: row.model,
+            version: row.version || row.model,
+            year: Number(row.year) || 2020,
+            vehicleType: row.vehicle_type || 'auto',
+            engine: {
+              code: row.engine_code || 'Homologado DNRPA',
+              name: row.engine_name || `Motor Oficial ${row.brand} ${row.model}`,
+              displacement: row.displacement || '',
+              valves: row.valves || 8,
+              power: row.power || '',
+              fuel: row.fuel || 'Nafta'
+            },
+            chassis: {
+              vin: row.vin || '',
+              bodyType: 'Homologado DNRPA',
+              drive: 'Tracción 4x2'
+            },
+            dnrpa: {
+              seccional: row.seccional || 'Mendoza (Registro Automotor)',
+              codigoRegistro: '13000',
+              provincia: 'Mendoza',
+              origen: 'Mercosur / Nacional',
+              fechaInscripcionInicial: `Año ${row.year}`
+            },
+            recommendedParts: {
+              pastillasFreno: `Pastillas para ${row.brand} ${row.model}`,
+              filtroAceite: `Filtro de aceite para ${row.brand} ${row.model}`,
+              radiador: `Radiador para ${row.brand} ${row.model}`,
+              aceiteRecomendado: (row.year >= 2018 ? '5W-30 Sintético' : '10W-40 Semi-sintético')
+            }
+          });
+        }
+      }
+    } catch (err) {
+      console.warn('Advertencia cargando patentes vinculadas desde SQLite:', err.message);
+    }
+  }
+
+  // Vincular y persistir formalmente una patente a un vehículo específico
+  linkPlate(rawInput, vehicleData) {
+    const cleaned = this.normalizeInput(rawInput);
+    if (!cleaned) throw new Error('Patente inválida para vincular.');
+
+    const brand = vehicleData.brand || vehicleData.marca || 'Vehículo';
+    const brandId = (vehicleData.brandId || brand).toLowerCase().replace(/\s+/g, '-');
+    const model = vehicleData.model || vehicleData.modelo || '';
+    const version = vehicleData.version || vehicleData.version_name || model;
+    const year = Number(vehicleData.year || vehicleData.anio) || 2020;
+    const vehicleType = vehicleData.vehicleType || vehicleData.tipo || 'auto';
+    const engineName = vehicleData.engine?.name || vehicleData.motor || `Motor Oficial ${brand} ${model}`;
+    const engineCode = vehicleData.engine?.code || 'Homologado DNRPA';
+    const displacement = vehicleData.engine?.displacement || vehicleData.cilindrada || '';
+    const valves = vehicleData.engine?.valves || (engineName.includes('16V') ? 16 : 8);
+    const power = vehicleData.engine?.power || vehicleData.potencia || '';
+    const fuel = vehicleData.engine?.fuel || vehicleData.combustible || 'Nafta';
+    const vin = vehicleData.chassis?.vin || vehicleData.vin || `8AF${cleaned}${year}01`;
+    const seccional = vehicleData.dnrpa?.seccional || vehicleData.radicacion || 'Mendoza (Registro Automotor)';
+    const now = new Date().toISOString();
+
+    const record = {
+      patente: cleaned,
+      displayPlate: this.formatDisplayPatente(cleaned),
+      vin,
+      brand,
+      brandId,
+      model,
+      version,
+      year,
+      vehicleType,
+      engine: {
+        code: engineCode,
+        name: engineName,
+        displacement,
+        valves,
+        power,
+        fuel
+      },
+      chassis: {
+        vin,
+        bodyType: vehicleData.chassis?.bodyType || 'Homologado DNRPA',
+        drive: vehicleData.chassis?.drive || 'Tracción 4x2'
+      },
+      dnrpa: {
+        seccional,
+        codigoRegistro: '13000',
+        provincia: 'Mendoza',
+        origen: 'Registro Automotor Oficial',
+        fechaInscripcionInicial: `Año ${year}`
+      },
+      recommendedParts: {
+        pastillasFreno: `Pastillas para ${brand} ${model}`,
+        filtroAceite: `Filtro de aceite para ${brand} ${model}`,
+        radiador: `Radiador de refrigeración para ${brand} ${model}`,
+        aceiteRecomendado: vehicleData.recommendedParts?.aceiteRecomendado || (year >= 2018 ? '5W-30 Sintético' : '10W-40 Semi-sintético')
+      }
+    };
+
+    this.linkedPlates.set(cleaned, record);
+
+    try {
+      if (db) {
+        db.prepare(`
+          INSERT OR REPLACE INTO linked_plates (
+            patente, brand, brand_id, model, version, year, vehicle_type,
+            engine_name, engine_code, displacement, valves, power, fuel, vin, seccional, created_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(
+          cleaned, brand, brandId, model, version, year, vehicleType,
+          engineName, engineCode, displacement, valves, power, fuel, vin, seccional, now
+        );
+      }
+    } catch (err) {
+      console.warn('Error guardando linked_plates en SQLite:', err.message);
+    }
+
+    return {
+      success: true,
+      isVerified: true,
+      source: 'dnrpa_user_linked',
+      displayPlate: this.formatDisplayPatente(cleaned),
+      data: record
+    };
+  }
+
+  // Consulta en vivo a la API de Chasis / DNRPA si existe credencial configurada
+  async queryLiveDnrpaApi(cleanedPlate) {
+    const chasisKey = process.env.CHASIS_API_KEY || process.env.DNRPA_API_KEY;
+    if (!chasisKey) return null;
+
+    try {
+      const resp = await fetch('https://www.chasis.com.ar/api/v1/consultas', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${chasisKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ patente: cleanedPlate })
+      });
+
+      if (resp.ok) {
+        const json = await resp.json();
+        if (json && (json.marca || json.modelo)) {
+          const brand = json.marca || 'Vehículo';
+          const model = json.modelo || '';
+          const year = Number(json.anio) || 2020;
+          const vehicleType = json.tipo === 'moto' ? 'moto' : 'auto';
+          const seccional = json.registro?.nombre ? `${json.registro.nombre} (${json.registro.localidad || 'Mendoza'})` : 'Mendoza (Registro Automotor)';
+          const cleanPlate = (json.patente || cleanedPlate).replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+
+          const record = {
+            patente: cleanPlate,
+            displayPlate: this.formatDisplayPatente(cleanPlate),
+            vin: json.vin || `8AF${cleanPlate}${year}01`,
+            brand: brand,
+            brandId: brand.toLowerCase().replace(/\s+/g, '-'),
+            model: model,
+            version: json.version || model,
+            year: year,
+            vehicleType: vehicleType,
+            engine: {
+              code: 'Homologado DNRPA',
+              name: `Motor Oficial Homologado ${brand} ${model}`,
+              displacement: 'Ver ficha',
+              valves: 16,
+              power: 'Potencia estándar',
+              fuel: 'Nafta / Diésel'
+            },
+            chassis: {
+              vin: json.vin || `8AF${cleanPlate}${year}01`,
+              bodyType: 'Homologado DNRPA',
+              drive: 'Tracción 4x2'
+            },
+            dnrpa: {
+              seccional: seccional,
+              codigoRegistro: json.registro?.codigo ? json.registro.codigo.toString() : '13000',
+              provincia: json.registro?.provincia || 'Mendoza',
+              origen: 'Registro Automotor Oficial DNRPA',
+              fechaInscripcionInicial: json.consultadoEn || `Año ${year}`
+            },
+            recommendedParts: {
+              pastillasFreno: `Pastillas de freno homologadas para ${brand} ${model}`,
+              filtroAceite: `Filtro de aceite oficial para ${brand} ${model}`,
+              radiador: `Radiador de refrigeración para ${brand} ${model}`,
+              aceiteRecomendado: year >= 2018 ? '5W-30 Sintético' : '10W-40 Semi-sintético'
+            }
+          };
+
+          try {
+            if (db) {
+              db.prepare(`
+                INSERT OR REPLACE INTO linked_plates (
+                  patente, brand, brand_id, model, version, year, vehicle_type,
+                  engine_name, engine_code, displacement, valves, power, fuel, vin, seccional, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              `).run(
+                cleanPlate, brand, brand.toLowerCase(), model, model, year, vehicleType,
+                record.engine.name, record.engine.code, '', 16, '', '', record.chassis.vin, seccional, new Date().toISOString()
+              );
+            }
+          } catch (e) {}
+
+          return record;
+        }
+      }
+    } catch (err) {
+      console.warn('Error consultando API Chasis / DNRPA en vivo:', err.message);
+    }
+    return null;
+  }
+
+  // Información de era y serie cronológica de la chapa argentina
+  getPlateEraInfo(cleaned, inputType, typeHint = null) {
+    let estimatedYear = 2020;
+    let seriesName = 'Registro Automotor Argentino';
+    let suggestedVehicleType = typeHint || 'auto';
+
+    if (inputType === 'patente_mercosur_moto' || inputType === 'patente_clasica_moto') {
+      suggestedVehicleType = 'moto';
+    }
+
+    if (inputType === 'patente_mercosur_auto') {
+      const series = cleaned.slice(0, 2);
+      if (series.startsWith('AA')) { estimatedYear = 2016; seriesName = 'Mercosur • Serie AA (2016)'; }
+      else if (series.startsWith('AB')) { estimatedYear = 2017; seriesName = 'Mercosur • Serie AB (2017)'; }
+      else if (series.startsWith('AC')) { estimatedYear = 2018; seriesName = 'Mercosur • Serie AC (2018)'; }
+      else if (series.startsWith('AD')) { estimatedYear = 2019; seriesName = 'Mercosur • Serie AD (2019)'; }
+      else if (series.startsWith('AE')) { estimatedYear = 2020; seriesName = 'Mercosur • Serie AE (2020/2021)'; }
+      else if (series.startsWith('AF')) { estimatedYear = 2022; seriesName = 'Mercosur • Serie AF (2022/2023)'; }
+      else if (series.startsWith('AG')) { estimatedYear = 2024; seriesName = 'Mercosur • Serie AG (2024/2026)'; }
+      else { estimatedYear = 2025; seriesName = `Mercosur • Serie ${series}`; }
+    } else if (inputType === 'patente_clasica_auto') {
+      const initial = cleaned.charAt(0);
+      const yearMap = {
+        A: 1995, B: 1996, C: 1998, D: 2000, E: 2002,
+        F: 2005, G: 2007, H: 2008, I: 2009, J: 2010,
+        K: 2011, L: 2012, M: 2013, N: 2014, O: 2015, P: 2016
+      };
+      estimatedYear = yearMap[initial] || 2011;
+      seriesName = `Formato Clásico Nacional • Serie ${initial} (Aprox. ${estimatedYear})`;
+    } else if (inputType === 'patente_mercosur_moto') {
+      const numPrefix = parseInt(cleaned.slice(1, 3), 10) || 0;
+      estimatedYear = 2016 + Math.min(10, Math.floor(numPrefix / 2));
+      seriesName = `Mercosur Motos • Serie ${cleaned.slice(0, 4)} (Aprox. ${estimatedYear})`;
+    } else if (inputType === 'patente_clasica_moto') {
+      const numVal = parseInt(cleaned.slice(0, 3), 10) || 0;
+      estimatedYear = 2000 + Math.min(15, Math.floor(numVal / 60));
+      seriesName = `Motos Clásicas Nacional • (Aprox. ${estimatedYear})`;
+    } else if (inputType === 'patente_antigua_provincial') {
+      estimatedYear = 1990;
+      seriesName = `Patente Histórica Provincial Mendoza (${cleaned.charAt(0)})`;
+    } else if (inputType === 'vin') {
+      const yearChar = cleaned.charAt(9);
+      const vinYears = {
+        'A': 2010, 'B': 2011, 'C': 2012, 'D': 2013, 'E': 2014,
+        'F': 2015, 'G': 2016, 'H': 2017, 'J': 2018, 'K': 2019,
+        'L': 2020, 'M': 2021, 'N': 2022, 'P': 2023, 'R': 2024,
+        'S': 2025, 'T': 2026
+      };
+      estimatedYear = vinYears[yearChar] || 2020;
+      seriesName = `Número de Chasis VIN (Modelo ${estimatedYear})`;
+    }
+
+    return {
+      inputType,
+      estimatedYear,
+      seriesName,
+      vehicleType: suggestedVehicleType,
+      seccional: 'Mendoza (Registro Automotor Seccional)'
+    };
+  }
+
   // Consulta por Patente o VIN
-  lookup(rawInput, typeHint = null) {
+  async lookup(rawInput, typeHint = null) {
     const cleaned = this.normalizeInput(rawInput);
     if (!cleaned) {
       throw new Error('Debe ingresar una patente o número de chasis VIN.');
@@ -914,7 +1202,7 @@ export class PatenteService {
       throw new Error('Formato de patente no reconocido. Ingrese una patente argentina válida (ej: AF 482 QZ, ABX 543, A 042 BVC) o VIN de 17 caracteres.');
     }
 
-    // 1. Búsqueda exacta en registro verificado
+    // 1. Búsqueda exacta en registro verificado oficial
     const exactMatch = this.verifiedRegistry.find((item) => {
       if (item.patente === cleaned) return true;
       if (item.vin === cleaned) return true;
@@ -924,19 +1212,50 @@ export class PatenteService {
     if (exactMatch) {
       return {
         success: true,
+        isVerified: true,
         source: 'dnrpa_verified_registry',
         displayPlate: this.formatDisplayPatente(cleaned),
         data: exactMatch
       };
     }
 
-    // 2. Motor Heurístico DNRPA para cualquier patente argentina o VIN ingresado
-    const generated = this.inferVehicleFromPlateOrVIN(cleaned, inputType, typeHint);
+    // 2. Búsqueda en patentes guardadas / vinculadas por los usuarios
+    const linkedMatch = this.linkedPlates.get(cleaned);
+    if (linkedMatch) {
+      return {
+        success: true,
+        isVerified: true,
+        source: 'dnrpa_user_linked',
+        displayPlate: this.formatDisplayPatente(cleaned),
+        data: linkedMatch
+      };
+    }
+
+    // 3. Consulta en vivo a la API DNRPA externa si está configurada
+    const liveResult = await this.queryLiveDnrpaApi(cleaned);
+    if (liveResult) {
+      this.linkedPlates.set(cleaned, liveResult);
+      return {
+        success: true,
+        isVerified: true,
+        source: 'dnrpa_official_live_api',
+        displayPlate: this.formatDisplayPatente(cleaned),
+        data: liveResult
+      };
+    }
+
+    // 4. Si la patente no tiene ficha oficial asignada:
+    // NUNCA inventamos un vehículo al azar. Informamos honestamente y solicitamos vinculación.
+    const eraInfo = this.getPlateEraInfo(cleaned, inputType, typeHint);
+
     return {
       success: true,
-      source: 'dnrpa_algorithmic_decoder',
+      requiresConfirmation: true,
+      isVerified: false,
+      source: 'dnrpa_unlinked',
+      plate: cleaned,
       displayPlate: this.formatDisplayPatente(cleaned),
-      data: generated
+      formatInfo: eraInfo
     };
   }
 

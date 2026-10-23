@@ -1530,9 +1530,23 @@ export const clientFallbackService = {
     if (exactMatch) {
       return {
         success: true,
+        isVerified: true,
         source: 'DNRPA Registro Automotor Mendoza (Oficial)',
         displayPlate: this.formatDisplayPatente(exactMatch.patente),
         data: exactMatch
+      };
+    }
+
+    // 2. Búsqueda en patentes guardadas / vinculadas en localStorage
+    const linkedPlates = this.getLinkedPlates();
+    if (linkedPlates && linkedPlates[clean]) {
+      const linked = linkedPlates[clean];
+      return {
+        success: true,
+        isVerified: true,
+        source: 'DNRPA Registro Automotor Mendoza (Vinculado Oficial)',
+        displayPlate: this.formatDisplayPatente(clean),
+        data: linked
       };
     }
 
@@ -1879,74 +1893,153 @@ export const clientFallbackService = {
       estimatedYear = vinYears[yearChar] || 2021;
     }
 
-    let targetArchetypes = autoArchetypes;
-    if (vehicleType === 'moto') targetArchetypes = motoArchetypes;
-    else if (vehicleType === 'camion') targetArchetypes = camionArchetypes;
-
-    let hash = 0;
-    for (let i = 0; i < clean.length; i++) {
-      hash = (hash << 5) - hash + clean.charCodeAt(i);
-      hash |= 0;
+    // Si la patente no está en el registro verificado ni en patentes vinculadas del usuario:
+    // NUNCA inventamos un vehículo al azar. Informamos honestamente y devolvemos la serie para confirmación.
+    let seriesName = 'Registro Automotor Argentino';
+    if (inputType === 'patente_mercosur_auto') {
+      const s = clean.slice(0, 2);
+      seriesName = `Mercosur • Serie ${s} (Aprox. ${estimatedYear})`;
+    } else if (inputType === 'patente_clasica_auto') {
+      seriesName = `Formato Clásico Nacional • Serie ${clean.charAt(0)} (Aprox. ${estimatedYear})`;
+    } else if (inputType === 'patente_mercosur_moto') {
+      seriesName = `Mercosur Motos • Serie ${clean.slice(0, 4)} (Aprox. ${estimatedYear})`;
+    } else if (inputType === 'patente_clasica_moto') {
+      seriesName = `Motos Clásicas Nacional • (Aprox. ${estimatedYear})`;
+    } else if (inputType === 'vin') {
+      seriesName = `Número de Chasis VIN (Modelo ${estimatedYear})`;
     }
-    const idx = Math.abs(hash) % targetArchetypes.length;
-    const arch = targetArchetypes[idx];
-
-    const seccionales = [
-      { name: 'Mendoza N° 4 (Godoy Cruz)', code: '13004' },
-      { name: 'Guaymallén N° 2', code: '13012' },
-      { name: 'Maipú N° 1', code: '13018' },
-      { name: 'Mendoza N° 1 (Capital Centro)', code: '13001' },
-      { name: 'Mendoza N° 3 (Las Heras)', code: '13003' },
-      { name: 'San Martín N° 1', code: '13022' },
-      { name: 'San Rafael N° 1', code: '13025' },
-      { name: 'Luján de Cuyo N° 1', code: '13015' }
-    ];
-    const sec = seccionales[Math.abs(hash) % seccionales.length];
-    const displayPlate = this.formatDisplayPatente(clean);
-    const syntheticVIN = `${arch.chassisPrefix}${clean.slice(0, 4)}${estimatedYear.toString().slice(2)}0${Math.abs(hash % 90000 + 10000)}`;
 
     return {
       success: true,
-      source: 'DNRPA Registro Automotor Mendoza (Identificación Oficial)',
-      displayPlate,
-      data: {
-        patente: displayPlate,
-        vin: syntheticVIN,
-        brand: arch.brand,
-        brandId: arch.brandId,
-        model: arch.model,
-        version: arch.version,
-        year: estimatedYear,
-        vehicleType: vehicleType,
-        engine: {
-          code: arch.engineCode,
-          name: arch.engineName,
-          displacement: arch.displacement,
-          valves: arch.valves || (arch.engineName.includes('16V') ? 16 : 8),
-          power: arch.power,
-          fuel: arch.fuel,
-          engineNumber: `${arch.engineCode.split(' ')[0]}-${Math.abs(hash % 800000 + 100000)}`
-        },
-        chassis: {
-          vin: syntheticVIN,
-          bodyType: arch.bodyType,
-          drive: arch.drive
-        },
-        dnrpa: {
-          seccional: sec.name,
-          codigoRegistro: sec.code,
-          provincia: 'Mendoza',
-          origen: 'Mercosur / Nacional',
-          fechaInscripcionInicial: `14/06/${estimatedYear}`
-        },
-        officialDealer: arch.dealer,
-        recommendedParts: {
-          pastillasFreno: `Pastillas delanteras específicas ${arch.model}`,
-          filtroAceite: `Filtro de aceite calibrado para ${arch.engineName}`,
-          radiador: `Radiador de aluminio específico para motor ${arch.engineCode}`,
-          aceiteRecomendado: arch.oil || (estimatedYear >= 2018 ? '5W-30 Sintético' : '10W-40 Semi-sintético')
-        }
+      requiresConfirmation: true,
+      isVerified: false,
+      source: 'dnrpa_unlinked',
+      plate: clean,
+      displayPlate: this.formatDisplayPatente(clean),
+      formatInfo: {
+        inputType,
+        estimatedYear,
+        seriesName,
+        vehicleType,
+        seccional: 'Mendoza (Registro Automotor Seccional)'
       }
+    };
+  },
+
+  // ==========================================
+  // Almacenamiento seguro compatible con navegador (localStorage) y entorno de testing (memoria)
+  _getStorage(key) {
+    if (typeof localStorage !== 'undefined') {
+      try { return localStorage.getItem(key); } catch (e) { return null; }
+    }
+    if (!this._memStore) this._memStore = {};
+    return this._memStore[key] || null;
+  },
+
+  _setStorage(key, val) {
+    if (typeof localStorage !== 'undefined') {
+      try { localStorage.setItem(key, val); return; } catch (e) {}
+    }
+    if (!this._memStore) this._memStore = {};
+    this._memStore[key] = val;
+  },
+
+  // ==========================================
+  // Patentes Vinculadas y Confirmadas por Usuario
+  // ==========================================
+  getLinkedPlates() {
+    try {
+      const saved = this._getStorage('dinacity_linked_plates');
+      if (saved) return JSON.parse(saved) || {};
+    } catch (e) {
+      console.warn('Error leyendo dinacity_linked_plates:', e);
+    }
+    return {};
+  },
+
+  linkPlate(rawInput, vehicleData) {
+    const clean = (rawInput || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    if (!clean) throw new Error('Patente inválida');
+
+    const brand = vehicleData.brand || vehicleData.marca || 'Vehículo';
+    const brandId = (vehicleData.brandId || brand).toLowerCase().replace(/\s+/g, '-');
+    const model = vehicleData.model || vehicleData.modelo || '';
+    const version = vehicleData.version || vehicleData.version_name || model;
+    const year = Number(vehicleData.year || vehicleData.anio) || 2020;
+    const vehicleType = vehicleData.vehicleType || vehicleData.tipo || 'auto';
+    const engineName = vehicleData.engine?.name || vehicleData.motor || `Motor Oficial ${brand} ${model}`;
+    const engineCode = vehicleData.engine?.code || 'Homologado DNRPA';
+    const displacement = vehicleData.engine?.displacement || vehicleData.cilindrada || '';
+    const valves = vehicleData.engine?.valves || (engineName.includes('16V') ? 16 : 8);
+    const power = vehicleData.engine?.power || vehicleData.potencia || '';
+    const fuel = vehicleData.engine?.fuel || vehicleData.combustible || 'Nafta';
+    const vin = vehicleData.chassis?.vin || vehicleData.vin || `8AF${clean}${year}01`;
+    const seccional = vehicleData.dnrpa?.seccional || vehicleData.radicacion || 'Mendoza (Registro Automotor)';
+    const displayPlate = this.formatDisplayPatente(clean);
+
+    const record = {
+      patente: displayPlate,
+      cleanPlate: clean,
+      vin,
+      brand,
+      brandId,
+      model,
+      version,
+      year,
+      vehicleType,
+      engine: {
+        code: engineCode,
+        name: engineName,
+        displacement,
+        valves,
+        power,
+        fuel
+      },
+      chassis: {
+        vin,
+        bodyType: vehicleData.chassis?.bodyType || 'Homologado DNRPA',
+        drive: vehicleData.chassis?.drive || 'Tracción 4x2'
+      },
+      dnrpa: {
+        seccional,
+        codigoRegistro: '13000',
+        provincia: 'Mendoza',
+        origen: 'Registro Automotor Oficial',
+        fechaInscripcionInicial: `Año ${year}`
+      },
+      recommendedParts: {
+        pastillasFreno: `Pastillas para ${brand} ${model}`,
+        filtroAceite: `Filtro de aceite para ${brand} ${model}`,
+        radiador: `Radiador de refrigeración para ${brand} ${model}`,
+        aceiteRecomendado: vehicleData.recommendedParts?.aceiteRecomendado || (year >= 2018 ? '5W-30 Sintético' : '10W-40 Semi-sintético')
+      }
+    };
+
+    // Guardar en storage seguro (localStorage o memoria)
+    try {
+      const current = this.getLinkedPlates();
+      current[clean] = record;
+      this._setStorage('dinacity_linked_plates', JSON.stringify(current));
+    } catch (e) {
+      console.warn('Error guardando dinacity_linked_plates:', e);
+    }
+
+    // Guardar en Cochera Digital
+    this.saveToCochera(record);
+
+    // Intentar sincronizar con el servidor en segundo plano
+    fetch('/api/vehicles/link-patente', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ patente: clean, ...record })
+    }).catch(() => {});
+
+    return {
+      success: true,
+      isVerified: true,
+      source: 'DNRPA Registro Automotor Mendoza (Vinculado Oficial)',
+      displayPlate,
+      data: record
     };
   },
 
@@ -1955,7 +2048,7 @@ export const clientFallbackService = {
   // ==========================================
   getCocheraVehicles() {
     try {
-      const saved = localStorage.getItem('dinacity_user_vehicles');
+      const saved = this._getStorage('dinacity_user_vehicles');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -2041,7 +2134,7 @@ export const clientFallbackService = {
     ];
 
     try {
-      localStorage.setItem('dinacity_user_vehicles', JSON.stringify(defaults));
+      this._setStorage('dinacity_user_vehicles', JSON.stringify(defaults));
     } catch {}
     return defaults;
   },
@@ -2072,8 +2165,8 @@ export const clientFallbackService = {
 
     const updated = [newEntry, ...filtered.map(f => ({ ...f, isPrimary: false }))];
     try {
-      localStorage.setItem('dinacity_user_vehicles', JSON.stringify(updated));
-      localStorage.setItem('dinacity_active_vehicle', JSON.stringify(newEntry));
+      this._setStorage('dinacity_user_vehicles', JSON.stringify(updated));
+      this._setStorage('dinacity_active_vehicle', JSON.stringify(newEntry));
     } catch (e) {
       console.warn('Error guardando en cochera local:', e);
     }
@@ -2089,7 +2182,7 @@ export const clientFallbackService = {
       return vp !== clean;
     });
     try {
-      localStorage.setItem('dinacity_user_vehicles', JSON.stringify(updated));
+      this._setStorage('dinacity_user_vehicles', JSON.stringify(updated));
     } catch (e) {}
     return updated;
   },
@@ -2097,13 +2190,13 @@ export const clientFallbackService = {
   setActiveCocheraVehicle(vehicle) {
     if (!vehicle) return;
     try {
-      localStorage.setItem('dinacity_active_vehicle', JSON.stringify(vehicle));
+      this._setStorage('dinacity_active_vehicle', JSON.stringify(vehicle));
     } catch (e) {}
   },
 
   getActiveCocheraVehicle() {
     try {
-      const saved = localStorage.getItem('dinacity_active_vehicle');
+      const saved = this._getStorage('dinacity_active_vehicle');
       if (saved) return JSON.parse(saved);
     } catch (e) {}
     const list = this.getCocheraVehicles();

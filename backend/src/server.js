@@ -40,12 +40,26 @@ app.get('/api/health', (req, res) => {
 });
 
 // Identificación Vehicular por Patente o VIN (DNRPA Argentina)
-app.get('/api/vehicles/lookup-patente', (req, res) => {
+app.get('/api/vehicles/lookup-patente', async (req, res) => {
   try {
     const { patente, vin, vehicleType } = req.query;
     const query = patente || vin || '';
-    const result = patenteService.lookup(query, vehicleType);
+    const result = await patenteService.lookup(query, vehicleType);
     res.json(result);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Vincular y Guardar Vehículo Oficial por Patente (Confirmación de Usuario o Taller)
+app.post('/api/vehicles/link-patente', (req, res) => {
+  try {
+    const { patente, ...vehicleData } = req.body;
+    if (!patente) {
+      return res.status(400).json({ error: 'La patente es requerida para vincular.' });
+    }
+    const result = patenteService.linkPlate(patente, vehicleData);
+    res.status(201).json(result);
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
