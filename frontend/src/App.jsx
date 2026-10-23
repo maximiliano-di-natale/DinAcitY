@@ -321,7 +321,7 @@ export function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 pb-2 w-full">
           <div className="bg-gradient-to-r from-[#0a1835]/95 via-[#0e224b]/95 to-[#0a1835]/95 border border-blue-500/30 rounded-2xl p-2 shadow-[0_15px_35px_rgba(0,0,0,0.6),0_0_30px_rgba(37,99,235,0.2)] backdrop-blur-xl flex items-center justify-between gap-2.5 overflow-x-auto scrollbar-none">
             
-            {/* Tab 1: Identificador por Patente DNRPA (EJE CENTRAL) */}
+            {/* Tab 1: Mi Cochera Digital & Carga de Vehículo (EJE CENTRAL) */}
             <button
               type="button"
               onClick={() => setActiveView('patente')}
@@ -332,15 +332,15 @@ export function App() {
               }`}
             >
               <div className="flex items-center gap-2">
-                <span className="text-base group-hover:scale-110 transition-transform">🇦🇷</span>
-                <span className="tracking-tight">Patente DNRPA</span>
+                <span className="text-base group-hover:scale-110 transition-transform">🚗</span>
+                <span className="tracking-tight">Mi Cochera</span>
               </div>
               <span className={`px-2 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-full border transition flex items-center gap-1 shadow-xs ${
                 activeView === 'patente'
                   ? 'bg-sky-400 text-slate-950 border-sky-300 font-extrabold shadow-[0_0_12px_rgba(56,189,248,0.6)]'
                   : 'bg-sky-500/20 text-sky-200 border-sky-400/40 group-hover:bg-sky-500/30'
               }`}>
-                🔍 Eje Central
+                ✨ Cargar Auto
               </span>
             </button>
 
@@ -506,10 +506,13 @@ export function App() {
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded">
-                      ✓ Vehículo Activo DNRPA
+                      ✓ Vehículo Activo en Cochera
+                    </span>
+                    <span className="text-[11px] text-sky-300 bg-sky-950/80 px-2 py-0.5 rounded border border-sky-800/60 font-mono font-bold">
+                      Odómetro: {(selectedVehicle.currentKm || 60000).toLocaleString('es-AR')} km
                     </span>
                     <span className="text-[11px] text-blue-300">
-                      📍 {selectedVehicle?.dnrpa?.seccional || 'Mendoza N° 4 (Godoy Cruz)'}
+                      📍 {selectedVehicle?.dnrpa?.seccional || 'Mendoza (Registro Automotor)'}
                     </span>
                   </div>
                   <h4 className="text-sm sm:text-base font-black text-white leading-snug">
@@ -527,10 +530,10 @@ export function App() {
                   type="button"
                   onClick={() => setActiveView('patente')}
                   className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-sm transition flex items-center gap-1.5 cursor-pointer"
-                  title="Buscar otra chapa patente o abrir Cochera Digital"
+                  title="Cargar o cambiar vehículo en Mi Cochera Digital"
                 >
-                  <Search className="w-3.5 h-3.5" />
-                  <span>Cambiar Patente / Cochera</span>
+                  <Car className="w-3.5 h-3.5" />
+                  <span>Mi Cochera / Cambiar Auto</span>
                 </button>
 
                 {activeView !== 'cotizador' && (

@@ -22,8 +22,12 @@ import {
   PhoneCall,
   Bell,
   Sliders,
-  HelpCircle
+  HelpCircle,
+  Download,
+  Wrench,
+  CheckSquare
 } from 'lucide-react';
+import { clientFallbackService } from '../services/clientFallbackService.js';
 
 // Meses para cronograma oficial de RTO Mendoza según terminación de patente
 const RTO_MENDOZA_MONTHS = {
@@ -39,19 +43,19 @@ const RTO_MENDOZA_MONTHS = {
   0: { monthName: 'Octubre', monthIndex: 9 }
 };
 
-// Compañías de seguro más comunes en Mendoza
+// Compañías de seguro más comunes en Mendoza con teléfonos de auxilio
 const COMMON_INSURERS = [
-  'Triunfo Seguros Mendoza',
-  'La Segunda',
-  'San Cristóbal',
-  'Mercantil Andina',
-  'Federación Patronal',
-  'Rivadavia Seguros',
-  'Sancor Seguros',
-  'Allianz',
-  'Zurich',
-  'Mapfre',
-  'Otra compañía'
+  { name: 'Triunfo Seguros Mendoza', phone: '0810-333-3455' },
+  { name: 'La Segunda', phone: '0800-444-5224' },
+  { name: 'San Cristóbal', phone: '0810-222-8888' },
+  { name: 'Mercantil Andina', phone: '0800-777-6372' },
+  { name: 'Federación Patronal', phone: '0800-222-0022' },
+  { name: 'Rivadavia Seguros', phone: '0800-666-6789' },
+  { name: 'Sancor Seguros', phone: '0800-555-2850' },
+  { name: 'Allianz', phone: '0810-222-2542' },
+  { name: 'Zurich', phone: '0800-333-9874' },
+  { name: 'Mapfre', phone: '0800-999-7424' },
+  { name: 'Otra compañía', phone: '' }
 ];
 
 export function GuanteraDigitalWidget({
@@ -60,16 +64,17 @@ export function GuanteraDigitalWidget({
   onNavigateCotizador,
   onNavigateMantenimiento
 }) {
-  const currentPatente = vehicle?.patente || vehicle?.data?.patente || 'AD 192 OP';
+  const currentPatente = vehicle?.displayPlate || vehicle?.patente || 'AF 482 QZ';
   const currentVehicleTitle = vehicle
     ? `${vehicle.brand || ''} ${vehicle.model || ''} ${vehicle.version || ''} (${vehicle.year || ''})`.trim()
     : 'Volkswagen Gol Trend 1.6 MSI (2019)';
-  const vehicleYear = parseInt(vehicle?.year || vehicle?.data?.year || 2019, 10);
+  const vehicleYear = parseInt(vehicle?.year || vehicle?.data?.year || 2020, 10);
+  const currentKm = vehicle?.currentKm || 60000;
 
-  // Extraer el último dígito numérico de la patente (ej. "AD 192 OP" -> 2; "AA 123 BB" -> 3; "AAA 123" -> 3)
+  // Extraer el último dígito numérico de la patente (ej. "AD 192 OP" -> 2; "AA 123 BB" -> 3; "KRX 105" -> 5)
   const lastPlateDigit = useMemo(() => {
     const digitsOnly = currentPatente.replace(/\D/g, '');
-    if (!digitsOnly) return 1;
+    if (!digitsOnly) return 5;
     return parseInt(digitsOnly[digitsOnly.length - 1], 10);
   }, [currentPatente]);
 
@@ -120,7 +125,7 @@ export function GuanteraDigitalWidget({
       rto: {
         lastInspectionDate: '',
         expirationDate: rtoDate.toISOString().split('T')[0],
-        workshopName: 'Taller RTO Habilitado Mendoza',
+        workshopName: 'Taller RTO Godoy Cruz / Rodríguez Peña',
         notes: ''
       },
       seguro: {
@@ -133,7 +138,7 @@ export function GuanteraDigitalWidget({
       carnet: {
         holderName: 'Titular Registrado',
         expirationDate: carnetDate.toISOString().split('T')[0],
-        municipio: 'Guaymallén / Godoy Cruz',
+        municipio: 'Godoy Cruz / Gran Mendoza',
         category: 'B1 (Autos y utilitarios hasta 3500kg)'
       },
       matafuego: {
@@ -150,7 +155,9 @@ export function GuanteraDigitalWidget({
   });
 
   const [editingSection, setEditingSection] = useState(null);
-  const [saveToast, setSaveToast] = useState(false);
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
+  const [saveToast, setSaveToast] = useState('');
+  const [showPreRtoChecklist, setShowPreRtoChecklist] = useState(false);
 
   // Guardar en localStorage cada vez que cambien los datos
   useEffect(() => {
@@ -164,7 +171,7 @@ export function GuanteraDigitalWidget({
     if (!dateString) return { days: null, status: 'unknown', label: 'Sin fecha cargada' };
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const target = new Date(dateString);
+    const target = new Date(dateString + 'T00:00:00');
     target.setHours(0, 0, 0, 0);
 
     const diffTime = target.getTime() - today.getTime();
@@ -204,7 +211,7 @@ export function GuanteraDigitalWidget({
     const hasUrgent = list.some((item) => item.status === 'urgent');
     const hasWarning = list.some((item) => item.status === 'warning');
 
-    if (hasExpired) return { score: 'critico', title: '¡Documentación Vencida!', desc: 'Riesgo de retención de vehículo en controles de la Policía Vial de Mendoza.', color: 'red' };
+    if (hasExpired) return { score: 'critico', title: '¡Documentación Vencida!', desc: 'Riesgo de multa o retención de vehículo en controles viales de Mendoza.', color: 'red' };
     if (hasUrgent) return { score: 'atencion', title: 'Atención: Vence Próximamente', desc: 'Tenés trámites obligatorios que vencen en menos de 15 días.', color: 'amber' };
     if (hasWarning) return { score: 'moderado', title: 'Todo en Regla (con alertas)', desc: 'Tenés renovaciones programadas para el próximo mes.', color: 'yellow' };
     return { score: 'perfecto', title: 'Guantera 100% al Día', desc: 'Toda la documentación legal de tu vehículo está vigente en Mendoza.', color: 'emerald' };
@@ -220,10 +227,48 @@ export function GuanteraDigitalWidget({
     }));
   };
 
-  const handleSaveAndNotify = () => {
+  const handleInsurerChange = (insurerName) => {
+    const found = COMMON_INSURERS.find((i) => i.name === insurerName);
+    setDocs((prev) => ({
+      ...prev,
+      seguro: {
+        ...prev.seguro,
+        insurer: insurerName,
+        assistancePhone: found?.phone || prev.seguro.assistancePhone
+      }
+    }));
+  };
+
+  const handleSaveAndNotify = (msg = '¡Datos de la Guantera guardados con éxito!') => {
     setEditingSection(null);
-    setSaveToast(true);
-    setTimeout(() => setSaveToast(false), 2500);
+    setIsWizardOpen(false);
+    setSaveToast(msg);
+    setTimeout(() => setSaveToast(''), 3000);
+  };
+
+  // Sincronizar fecha con Google Calendar
+  const handleSyncGoogleCalendar = (title, date, description) => {
+    const url = clientFallbackService.generateGoogleCalendarUrl({
+      title: `${title} - ${currentVehicleTitle}`,
+      description: `${description}\nVehículo: ${currentVehicleTitle}\nPatente: ${currentPatente}`,
+      date
+    });
+    if (url && url !== '#') {
+      window.open(url, '_blank');
+      setSaveToast('¡Evento abierto en Google Calendar! Guardalo para recibir tu alarma.');
+      setTimeout(() => setSaveToast(''), 3500);
+    }
+  };
+
+  // Descargar archivo .ics para celular o PC
+  const handleDownloadIcs = (title, date, description) => {
+    clientFallbackService.downloadIcsFile({
+      title: `${title} - ${currentVehicleTitle}`,
+      description: `${description}\nVehículo: ${currentVehicleTitle}\nPatente: ${currentPatente}`,
+      date
+    });
+    setSaveToast('¡Alarma .ics descargada! Abrila en tu celular para programar el aviso.');
+    setTimeout(() => setSaveToast(''), 3500);
   };
 
   const rtoCronograma = RTO_MENDOZA_MONTHS[lastPlateDigit] || { monthName: 'Octubre' };
@@ -248,16 +293,16 @@ export function GuanteraDigitalWidget({
                 📍 Ley de Tránsito 9024 • Mendoza
               </span>
               <span className="text-xs font-bold text-emerald-200 bg-emerald-950/60 px-2.5 py-0.5 rounded-full border border-emerald-400/40">
-                ✓ Guardado automático en tu teléfono
+                ✓ Sincronizable con tu Celular
               </span>
             </div>
 
             <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight">
-              Alertas de Vencimientos y Documentación de tu Auto
+              Control de Vencimientos y Documentación de tu Auto
             </h2>
 
             <p className="text-sm text-slate-300 leading-relaxed">
-              Controlá en segundos el estado de la <strong>RTO Mendoza, Seguro, Carnet, Matafuegos y Oblea de GNC</strong>. Evitá multas y secuestros en los controles policiales de la provincia.
+              Monitoreá el estado de la <strong>RTO Mendoza, Seguro, Carnet, Matafuegos y GNC</strong>. Guardá tus fechas y <strong>sincronizá alarmas en tu calendario</strong> para que el teléfono te avise antes de que venza.
             </p>
           </div>
 
@@ -274,7 +319,7 @@ export function GuanteraDigitalWidget({
                   onClick={onOpenPatenteModal}
                   className="text-[11px] text-sky-300 hover:text-white font-bold underline cursor-pointer"
                 >
-                  Cambiar patente
+                  Cambiar vehículo
                 </button>
               )}
             </div>
@@ -290,6 +335,18 @@ export function GuanteraDigitalWidget({
               <span className="px-2 py-0.5 rounded bg-indigo-900/60 text-indigo-200 text-[11px] font-semibold border border-indigo-500/30">
                 Terminación: <strong className="text-white">{lastPlateDigit}</strong> (Le toca: {rtoCronograma.monthName})
               </span>
+            </div>
+
+            {/* Botón para Configurar Todo el Asistente */}
+            <div className="mt-3 pt-2.5 border-t border-slate-700/80">
+              <button
+                type="button"
+                onClick={() => setIsWizardOpen(!isWizardOpen)}
+                className="w-full py-2 px-3 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white rounded-lg font-black text-xs shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Sliders className="w-3.5 h-3.5" />
+                <span>{isWizardOpen ? 'Cerrar Asistente' : '⚙️ Configurar Mis Vencimientos en 1 Minuto'}</span>
+              </button>
             </div>
           </div>
         </div>
@@ -372,9 +429,142 @@ export function GuanteraDigitalWidget({
 
       {/* Toast de guardado */}
       {saveToast && (
-        <div className="bg-emerald-600 text-white px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 text-xs font-bold animate-bounce w-fit mx-auto">
+        <div className="bg-emerald-600 text-white px-4 py-2.5 rounded-xl shadow-lg flex items-center justify-center gap-2 text-xs font-bold animate-bounce w-fit mx-auto">
           <Check className="w-4 h-4" />
-          <span>¡Datos de la Guantera Digital guardados con éxito en tu dispositivo!</span>
+          <span>{saveToast}</span>
+        </div>
+      )}
+
+      {/* ASISTENTE CONFIGURADOR GUIADO (MODAL / DESPLEGABLE) */}
+      {isWizardOpen && (
+        <div className="bg-slate-900 border-2 border-indigo-500 rounded-2xl p-5 sm:p-6 shadow-2xl space-y-5 animate-fadeIn">
+          <div className="flex items-start justify-between gap-3 border-b border-slate-800 pb-3">
+            <div>
+              <span className="px-2.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-indigo-600 text-white">
+                Configurador Rápido
+              </span>
+              <h3 className="text-lg font-black text-white mt-1">
+                Completá tus 4 fechas clave para activar recordatorios
+              </h3>
+              <p className="text-xs text-slate-300">
+                Guardá tus fechas una sola vez y DinAcitY te alertará cuando se acerque cada vencimiento en Mendoza.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsWizardOpen(false)}
+              className="text-slate-400 hover:text-white text-xs font-bold p-1"
+            >
+              ✕ Cerrar
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+            
+            {/* 1. RTO */}
+            <div className="bg-slate-950/80 p-3.5 rounded-xl border border-blue-500/40 space-y-2">
+              <span className="font-black text-blue-400 uppercase tracking-wider block">
+                1. RTO Mendoza (Ley 9024)
+              </span>
+              <p className="text-slate-400 text-[11px]">
+                Mes sugerido: <strong>{rtoCronograma.monthName}</strong>
+              </p>
+              <div>
+                <label className="block text-slate-300 mb-1 text-[11px]">Fecha vencimiento oblea:</label>
+                <input
+                  type="date"
+                  value={docs.rto.expirationDate}
+                  onChange={(e) => handleUpdate('rto', 'expirationDate', e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white font-mono text-xs"
+                />
+              </div>
+            </div>
+
+            {/* 2. Seguro */}
+            <div className="bg-slate-950/80 p-3.5 rounded-xl border border-indigo-500/40 space-y-2">
+              <span className="font-black text-indigo-400 uppercase tracking-wider block">
+                2. Seguro Automotor
+              </span>
+              <div>
+                <label className="block text-slate-300 mb-1 text-[11px]">Aseguradora:</label>
+                <select
+                  value={docs.seguro.insurer}
+                  onChange={(e) => handleInsurerChange(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white text-xs"
+                >
+                  {COMMON_INSURERS.map((ins) => (
+                    <option key={ins.name} value={ins.name}>{ins.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-slate-300 mb-1 text-[11px]">Vencimiento cuota / póliza:</label>
+                <input
+                  type="date"
+                  value={docs.seguro.expirationDate}
+                  onChange={(e) => handleUpdate('seguro', 'expirationDate', e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white font-mono text-xs"
+                />
+              </div>
+            </div>
+
+            {/* 3. Carnet */}
+            <div className="bg-slate-950/80 p-3.5 rounded-xl border border-cyan-500/40 space-y-2">
+              <span className="font-black text-cyan-400 uppercase tracking-wider block">
+                3. Licencia de Conducir
+              </span>
+              <div>
+                <label className="block text-slate-300 mb-1 text-[11px]">Municipio emisor:</label>
+                <input
+                  type="text"
+                  value={docs.carnet.municipio}
+                  onChange={(e) => handleUpdate('carnet', 'municipio', e.target.value)}
+                  placeholder="Godoy Cruz / Capital / Guaymallén"
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white text-xs"
+                />
+              </div>
+              <div>
+                <label className="block text-slate-300 mb-1 text-[11px]">Vencimiento carnet:</label>
+                <input
+                  type="date"
+                  value={docs.carnet.expirationDate}
+                  onChange={(e) => handleUpdate('carnet', 'expirationDate', e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white font-mono text-xs"
+                />
+              </div>
+            </div>
+
+            {/* 4. Matafuego */}
+            <div className="bg-slate-950/80 p-3.5 rounded-xl border border-red-500/40 space-y-2">
+              <span className="font-black text-red-400 uppercase tracking-wider block">
+                4. Matafuegos Reglamentario
+              </span>
+              <p className="text-slate-400 text-[11px]">
+                Carga anual obligatoria (1 kg Polvo ABC)
+              </p>
+              <div>
+                <label className="block text-slate-300 mb-1 text-[11px]">Vencimiento carga anual:</label>
+                <input
+                  type="date"
+                  value={docs.matafuego.expirationDate}
+                  onChange={(e) => handleUpdate('matafuego', 'expirationDate', e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white font-mono text-xs"
+                />
+              </div>
+            </div>
+
+          </div>
+
+          <div className="pt-2 flex justify-end">
+            <button
+              type="button"
+              onClick={() => handleSaveAndNotify('¡Todas tus fechas fueron actualizadas!')}
+              className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black rounded-xl text-xs shadow-md transition flex items-center gap-1.5 cursor-pointer"
+            >
+              <Check className="w-4 h-4" />
+              <span>Guardar Todo y Aplicar Alertas</span>
+            </button>
+          </div>
         </div>
       )}
 
@@ -405,16 +595,16 @@ export function GuanteraDigitalWidget({
               className="text-xs text-slate-400 hover:text-white flex items-center gap-1 p-1.5 rounded-lg hover:bg-slate-700/60 transition cursor-pointer"
             >
               <Edit3 className="w-3.5 h-3.5" />
-              <span>{editingSection === 'rto' ? 'Cerrar' : 'Editar'}</span>
+              <span>{editingSection === 'rto' ? 'Cerrar' : 'Editar fecha'}</span>
             </button>
           </div>
 
           {/* Información del Cronograma Mendoza */}
           <div className="bg-slate-900/80 rounded-xl p-3 border border-slate-800 text-xs space-y-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">Mes asignado según patente:</span>
+              <span className="text-slate-400">Mes asignado según terminación ({lastPlateDigit}):</span>
               <span className="font-black text-amber-300">
-                {rtoCronograma.monthName} (Terminación {lastPlateDigit})
+                {rtoCronograma.monthName}
               </span>
             </div>
             <div className="flex items-center justify-between">
@@ -442,8 +632,8 @@ export function GuanteraDigitalWidget({
             </span>
           </div>
 
-          {/* Formulario de Edición */}
-          {editingSection === 'rto' ? (
+          {/* Formulario de Edición RTO */}
+          {editingSection === 'rto' && (
             <div className="bg-slate-900/90 rounded-xl p-4 border border-blue-500/40 space-y-3">
               <div>
                 <label className="block text-[11px] font-bold text-slate-300 mb-1">
@@ -456,55 +646,62 @@ export function GuanteraDigitalWidget({
                   className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
                 />
               </div>
-              <div>
-                <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                  Taller RTO donde la realizaste:
-                </label>
-                <input
-                  type="text"
-                  value={docs.rto.workshopName}
-                  onChange={(e) => handleUpdate('rto', 'workshopName', e.target.value)}
-                  placeholder="Ej: RTO San Martín / RTO Godoy Cruz / El Challao"
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-blue-500"
-                />
-              </div>
               <button
                 type="button"
-                onClick={handleSaveAndNotify}
+                onClick={() => handleSaveAndNotify('¡Fecha de RTO guardada!')}
                 className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold text-xs shadow-md transition cursor-pointer"
               >
                 Guardar fecha de RTO
               </button>
             </div>
-          ) : (
-            <div className="flex items-center gap-2 pt-1">
-              <a
-                href="https://rto.mendoza.gov.ar/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 py-2.5 px-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                <span>Sacar Turno RTO Mendoza ↗</span>
-              </a>
-              {onNavigateMantenimiento && (
-                <button
-                  type="button"
-                  onClick={onNavigateMantenimiento}
-                  className="py-2.5 px-3 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-xl font-semibold text-xs transition cursor-pointer"
-                  title="Revisar qué le toca al auto antes de ir a la RTO"
-                >
-                  Chequear auto
-                </button>
-              )}
-            </div>
           )}
 
-          <div className="text-[11px] text-slate-400 bg-slate-900/50 p-2.5 rounded-lg flex items-start gap-2">
-            <Info className="w-4 h-4 text-sky-400 shrink-0 mt-0.5" />
-            <span>
-              <strong>Documentación para la RTO:</strong> DNI vigente, Cédula Verde o Azul, constancia de seguro al día y matafuegos con carga vigente.
-            </span>
+          {/* Botones de Acción: Recordar en Celular y Sacar Turno */}
+          <div className="flex items-center gap-2 pt-1 flex-wrap">
+            <button
+              type="button"
+              onClick={() => handleSyncGoogleCalendar(
+                'Renovar RTO Mendoza',
+                docs.rto.expirationDate,
+                `Vencimiento de Revisión Técnica Obligatoria Ley 9024 para ${currentVehicleTitle}. Evitá multas policiales.`
+              )}
+              className="flex-1 py-2 px-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer"
+              title="Crear recordatorio en Google Calendar"
+            >
+              <Calendar className="w-3.5 h-3.5" />
+              <span>📅 Recordar en Google Calendar</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleDownloadIcs(
+                'Vence RTO Mendoza',
+                docs.rto.expirationDate,
+                `Recordatorio RTO para ${currentVehicleTitle}. Revisar frenos y luces.`
+              )}
+              className="py-2 px-3 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-xl font-semibold text-xs transition flex items-center gap-1 cursor-pointer"
+              title="Descargar alarma .ics para iPhone o Android"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Alarma Celular (.ics)</span>
+            </button>
+          </div>
+
+          {/* Botón de Negocio: Chequeo Pre-RTO */}
+          <div className="bg-slate-900/60 p-3 rounded-xl border border-blue-500/30 flex items-center justify-between gap-3 text-xs">
+            <div>
+              <span className="font-bold text-white block">🛠️ Chequeo Pre-RTO Mendoza</span>
+              <span className="text-slate-400 text-[11px]">Revisá frenos, luces y tren delantero antes de la inspección.</span>
+            </div>
+            {onNavigateCotizador && (
+              <button
+                type="button"
+                onClick={() => onNavigateCotizador()}
+                className="py-1.5 px-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-xs transition cursor-pointer shrink-0"
+              >
+                Cotizar repuestos
+              </button>
+            )}
           </div>
         </div>
 
@@ -532,7 +729,7 @@ export function GuanteraDigitalWidget({
               className="text-xs text-slate-400 hover:text-white flex items-center gap-1 p-1.5 rounded-lg hover:bg-slate-700/60 transition cursor-pointer"
             >
               <Edit3 className="w-3.5 h-3.5" />
-              <span>{editingSection === 'seguro' ? 'Cerrar' : 'Editar'}</span>
+              <span>{editingSection === 'seguro' ? 'Cerrar' : 'Editar fecha'}</span>
             </button>
           </div>
 
@@ -540,11 +737,11 @@ export function GuanteraDigitalWidget({
           <div className="bg-slate-900/80 rounded-xl p-3 border border-slate-800 text-xs space-y-1.5">
             <div className="flex items-center justify-between">
               <span className="text-slate-400">Póliza N°:</span>
-              <span className="font-mono text-white font-bold">{docs.seguro.policyNumber || 'No especificada'}</span>
+              <span className="font-mono text-white font-bold">{docs.seguro.policyNumber || '7412-88549'}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-slate-400">Cobertura:</span>
-              <span className="text-slate-200 font-semibold">{docs.seguro.notes || 'Responsabilidad Civil'}</span>
+              <span className="text-slate-400">Compañía:</span>
+              <span className="text-slate-200 font-semibold">{docs.seguro.insurer}</span>
             </div>
           </div>
 
@@ -565,80 +762,65 @@ export function GuanteraDigitalWidget({
             </span>
           </div>
 
-          {/* Formulario de Edición */}
-          {editingSection === 'seguro' ? (
+          {/* Formulario de Edición Seguro */}
+          {editingSection === 'seguro' && (
             <div className="bg-slate-900/90 rounded-xl p-4 border border-indigo-500/40 space-y-3">
               <div>
-                <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                  Compañía Aseguradora:
-                </label>
+                <label className="block text-[11px] font-bold text-slate-300 mb-1">Aseguradora:</label>
                 <select
                   value={docs.seguro.insurer}
-                  onChange={(e) => handleUpdate('seguro', 'insurer', e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
+                  onChange={(e) => handleInsurerChange(e.target.value)}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white"
                 >
-                  {COMMON_INSURERS.map((comp) => (
-                    <option key={comp} value={comp}>{comp}</option>
+                  {COMMON_INSURERS.map((c) => (
+                    <option key={c.name} value={c.name}>{c.name}</option>
                   ))}
                 </select>
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                    Próximo Vencimiento:
-                  </label>
-                  <input
-                    type="date"
-                    value={docs.seguro.expirationDate}
-                    onChange={(e) => handleUpdate('seguro', 'expirationDate', e.target.value)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                    Número de Póliza:
-                  </label>
-                  <input
-                    type="text"
-                    value={docs.seguro.policyNumber}
-                    onChange={(e) => handleUpdate('seguro', 'policyNumber', e.target.value)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
-                  />
-                </div>
-              </div>
               <div>
-                <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                  Teléfono de Auxilio / Grúa:
-                </label>
+                <label className="block text-[11px] font-bold text-slate-300 mb-1">Próximo Vencimiento:</label>
                 <input
-                  type="text"
-                  value={docs.seguro.assistancePhone}
-                  onChange={(e) => handleUpdate('seguro', 'assistancePhone', e.target.value)}
-                  placeholder="Ej: 0800-..."
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"
+                  type="date"
+                  value={docs.seguro.expirationDate}
+                  onChange={(e) => handleUpdate('seguro', 'expirationDate', e.target.value)}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white"
                 />
               </div>
               <button
                 type="button"
-                onClick={handleSaveAndNotify}
-                className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold text-xs shadow-md transition cursor-pointer"
+                onClick={() => handleSaveAndNotify('¡Datos del seguro guardados!')}
+                className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold text-xs transition cursor-pointer"
               >
                 Guardar datos del Seguro
               </button>
             </div>
-          ) : (
-            <div className="flex items-center gap-2 pt-1">
-              {docs.seguro.assistancePhone && (
-                <a
-                  href={`tel:${docs.seguro.assistancePhone}`}
-                  className="flex-1 py-2.5 px-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <PhoneCall className="w-3.5 h-3.5" />
-                  <span>Llamar a Grúa / Auxilio ({docs.seguro.assistancePhone})</span>
-                </a>
-              )}
-            </div>
           )}
+
+          {/* Botones de Acción */}
+          <div className="flex items-center gap-2 pt-1 flex-wrap">
+            <button
+              type="button"
+              onClick={() => handleSyncGoogleCalendar(
+                `Pagar Cuota Seguro ${docs.seguro.insurer}`,
+                docs.seguro.expirationDate,
+                `Vencimiento de cuota de seguro de ${currentVehicleTitle}. Póliza: ${docs.seguro.policyNumber}`
+              )}
+              className="flex-1 py-2 px-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <Calendar className="w-3.5 h-3.5" />
+              <span>📅 Recordar Pago en Calendario</span>
+            </button>
+
+            {docs.seguro.assistancePhone && (
+              <a
+                href={`tel:${docs.seguro.assistancePhone}`}
+                className="py-2 px-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs transition flex items-center gap-1 cursor-pointer"
+              >
+                <PhoneCall className="w-3.5 h-3.5" />
+                <span>Llamar Grúa</span>
+              </a>
+            )}
+          </div>
         </div>
 
         {/* 3. TARJETA MATAFUEGOS REGLAMENTARIO */}
@@ -665,7 +847,7 @@ export function GuanteraDigitalWidget({
               className="text-xs text-slate-400 hover:text-white flex items-center gap-1 p-1.5 rounded-lg hover:bg-slate-700/60 transition cursor-pointer"
             >
               <Edit3 className="w-3.5 h-3.5" />
-              <span>{editingSection === 'matafuego' ? 'Cerrar' : 'Editar'}</span>
+              <span>{editingSection === 'matafuego' ? 'Cerrar' : 'Editar fecha'}</span>
             </button>
           </div>
 
@@ -686,8 +868,8 @@ export function GuanteraDigitalWidget({
             </span>
           </div>
 
-          {/* Formulario de Edición */}
-          {editingSection === 'matafuego' ? (
+          {/* Formulario de Edición Matafuegos */}
+          {editingSection === 'matafuego' && (
             <div className="bg-slate-900/90 rounded-xl p-4 border border-red-500/40 space-y-3">
               <div>
                 <label className="block text-[11px] font-bold text-slate-300 mb-1">
@@ -697,25 +879,33 @@ export function GuanteraDigitalWidget({
                   type="date"
                   value={docs.matafuego.expirationDate}
                   onChange={(e) => handleUpdate('matafuego', 'expirationDate', e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500"
+                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white"
                 />
               </div>
               <button
                 type="button"
-                onClick={handleSaveAndNotify}
-                className="w-full py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-bold text-xs shadow-md transition cursor-pointer"
+                onClick={() => handleSaveAndNotify('¡Fecha de matafuegos guardada!')}
+                className="w-full py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg font-bold text-xs transition cursor-pointer"
               >
                 Guardar fecha de matafuegos
               </button>
             </div>
-          ) : (
-            <div className="text-[11px] text-slate-400 bg-slate-900/50 p-2.5 rounded-lg flex items-start gap-2">
-              <Info className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-              <span>
-                <strong>Reglamentación Mendoza:</strong> Debe estar fijado al alcance del conductor (debajo del asiento del acompañante), nunca suelto en el baúl, y con el indicador de aguja en la franja verde.
-              </span>
-            </div>
           )}
+
+          <div className="flex items-center gap-2 pt-1">
+            <button
+              type="button"
+              onClick={() => handleSyncGoogleCalendar(
+                'Recargar Matafuegos del Auto',
+                docs.matafuego.expirationDate,
+                `Vencimiento de recarga de matafuegos para ${currentVehicleTitle}. Exigido en controles viales y RTO Mendoza.`
+              )}
+              className="flex-1 py-2 px-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-bold text-xs shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <Calendar className="w-3.5 h-3.5" />
+              <span>📅 Recordar Recarga en Calendario</span>
+            </button>
+          </div>
         </div>
 
         {/* 4. TARJETA LICENCIA DE CONDUCIR */}
@@ -742,7 +932,7 @@ export function GuanteraDigitalWidget({
               className="text-xs text-slate-400 hover:text-white flex items-center gap-1 p-1.5 rounded-lg hover:bg-slate-700/60 transition cursor-pointer"
             >
               <Edit3 className="w-3.5 h-3.5" />
-              <span>{editingSection === 'carnet' ? 'Cerrar' : 'Editar'}</span>
+              <span>{editingSection === 'carnet' ? 'Cerrar' : 'Editar fecha'}</span>
             </button>
           </div>
 
@@ -763,61 +953,51 @@ export function GuanteraDigitalWidget({
             </span>
           </div>
 
-          {/* Formulario de Edición */}
-          {editingSection === 'carnet' ? (
+          {/* Formulario de Edición Carnet */}
+          {editingSection === 'carnet' && (
             <div className="bg-slate-900/90 rounded-xl p-4 border border-cyan-500/40 space-y-3">
               <div>
-                <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                  Nombre del Titular de la Licencia:
-                </label>
+                <label className="block text-[11px] font-bold text-slate-300 mb-1">Municipio emisor:</label>
                 <input
                   type="text"
-                  value={docs.carnet.holderName}
-                  onChange={(e) => handleUpdate('carnet', 'holderName', e.target.value)}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500"
+                  value={docs.carnet.municipio}
+                  onChange={(e) => handleUpdate('carnet', 'municipio', e.target.value)}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                    Fecha de Vencimiento:
-                  </label>
-                  <input
-                    type="date"
-                    value={docs.carnet.expirationDate}
-                    onChange={(e) => handleUpdate('carnet', 'expirationDate', e.target.value)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                    Municipio emisor:
-                  </label>
-                  <input
-                    type="text"
-                    value={docs.carnet.municipio}
-                    onChange={(e) => handleUpdate('carnet', 'municipio', e.target.value)}
-                    placeholder="Godoy Cruz / Capital / Maipú"
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500"
-                  />
-                </div>
+              <div>
+                <label className="block text-[11px] font-bold text-slate-300 mb-1">Fecha de Vencimiento:</label>
+                <input
+                  type="date"
+                  value={docs.carnet.expirationDate}
+                  onChange={(e) => handleUpdate('carnet', 'expirationDate', e.target.value)}
+                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white"
+                />
               </div>
               <button
                 type="button"
-                onClick={handleSaveAndNotify}
-                className="w-full py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg font-bold text-xs shadow-md transition cursor-pointer"
+                onClick={() => handleSaveAndNotify('¡Datos del carnet guardados!')}
+                className="w-full py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg font-bold text-xs transition cursor-pointer"
               >
                 Guardar datos del Carnet
               </button>
             </div>
-          ) : (
-            <div className="text-[11px] text-slate-400 bg-slate-900/50 p-2.5 rounded-lg flex items-start gap-2">
-              <Info className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
-              <span>
-                En Mendoza podés renovar el carnet hasta 30 días antes del vencimiento. Los turnos se solicitan en el centro emisor de tu departamento.
-              </span>
-            </div>
           )}
+
+          <div className="flex items-center gap-2 pt-1">
+            <button
+              type="button"
+              onClick={() => handleSyncGoogleCalendar(
+                'Renovar Carnet de Conducir',
+                docs.carnet.expirationDate,
+                `Vencimiento de Licencia de Conducir (${docs.carnet.municipio}). Turnos con 30 días de anticipación.`
+              )}
+              className="flex-1 py-2 px-3 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl font-bold text-xs shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <Calendar className="w-3.5 h-3.5" />
+              <span>📅 Recordar Renovación en Calendario</span>
+            </button>
+          </div>
         </div>
 
       </div>
@@ -853,7 +1033,7 @@ export function GuanteraDigitalWidget({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Oblea Anual */}
-            <div className={`p-4 rounded-xl border space-y-1 ${
+            <div className={`p-4 rounded-xl border space-y-2 ${
               gncObleaStatus.status === 'ok' ? 'bg-slate-900/80 border-cyan-500/30' :
               gncObleaStatus.status === 'expired' ? 'bg-red-950/60 border-red-500/50' :
               'bg-amber-950/60 border-amber-500/50'
@@ -869,11 +1049,22 @@ export function GuanteraDigitalWidget({
               <p className="text-lg font-black text-white">
                 {docs.gnc.obleaExpirationDate ? new Date(docs.gnc.obleaExpirationDate + 'T00:00:00').toLocaleDateString('es-AR', { month: 'long', year: 'numeric' }) : 'No especificada'}
               </p>
-              <p className="text-[11px] text-slate-400">Sin esta oblea al día no te habilitan la carga en estaciones de servicio de Mendoza.</p>
+              <button
+                type="button"
+                onClick={() => handleSyncGoogleCalendar(
+                  'Renovar Oblea GNC Enargas',
+                  docs.gnc.obleaExpirationDate,
+                  `Renovación de oblea anual de GNC para ${currentVehicleTitle}.`
+                )}
+                className="w-full py-1.5 bg-cyan-700 hover:bg-cyan-600 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer"
+              >
+                <Calendar className="w-3 h-3" />
+                <span>📅 Recordar Oblea en Calendario</span>
+              </button>
             </div>
 
             {/* Prueba Hidráulica (Cada 5 años) */}
-            <div className={`p-4 rounded-xl border space-y-1 ${
+            <div className={`p-4 rounded-xl border space-y-2 ${
               gncHidraulicaStatus.status === 'ok' ? 'bg-slate-900/80 border-cyan-500/30' :
               gncHidraulicaStatus.status === 'expired' ? 'bg-red-950/60 border-red-500/50' :
               'bg-amber-950/60 border-amber-500/50'
@@ -889,50 +1080,24 @@ export function GuanteraDigitalWidget({
               <p className="text-lg font-black text-white">
                 {docs.gnc.cylinderHydraulicExpirationDate ? new Date(docs.gnc.cylinderHydraulicExpirationDate + 'T00:00:00').toLocaleDateString('es-AR', { month: 'long', year: 'numeric' }) : 'No especificada'}
               </p>
-              <p className="text-[11px] text-slate-400">Revisión profunda del cilindro y válvula para seguridad bajo alta presión.</p>
-            </div>
-          </div>
-
-          {/* Formulario de edición GNC */}
-          {editingSection === 'gnc' && (
-            <div className="bg-slate-900/90 rounded-xl p-4 border border-cyan-500/40 space-y-3">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                    Vencimiento Oblea Anual GNC:
-                  </label>
-                  <input
-                    type="date"
-                    value={docs.gnc.obleaExpirationDate}
-                    onChange={(e) => handleUpdate('gnc', 'obleaExpirationDate', e.target.value)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-300 mb-1">
-                    Vencimiento Prueba Hidráulica (Cilindro):
-                  </label>
-                  <input
-                    type="date"
-                    value={docs.gnc.cylinderHydraulicExpirationDate}
-                    onChange={(e) => handleUpdate('gnc', 'cylinderHydraulicExpirationDate', e.target.value)}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500"
-                  />
-                </div>
-              </div>
               <button
                 type="button"
-                onClick={handleSaveAndNotify}
-                className="w-full py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg font-bold text-xs shadow-md transition cursor-pointer"
+                onClick={() => handleSyncGoogleCalendar(
+                  'Prueba Hidráulica Tubo GNC (5 Años)',
+                  docs.gnc.cylinderHydraulicExpirationDate,
+                  `Control de prueba hidráulica y válvula para cilindro GNC en ${currentVehicleTitle}.`
+                )}
+                className="w-full py-1.5 bg-cyan-700 hover:bg-cyan-600 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer"
               >
-                Guardar fechas de GNC
+                <Calendar className="w-3 h-3" />
+                <span>📅 Recordar Prueba Hidráulica</span>
               </button>
             </div>
-          )}
+          </div>
         </div>
       )}
 
-      {/* Botones de acción cruzada */}
+      {/* Barra de Acciones Cruzadas con otras Vistas */}
       <div className="bg-slate-800/80 border border-slate-700 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
         <span className="text-slate-300 flex items-center gap-2">
           <span>💡</span> ¿Tenés que hacerle algún arreglo al auto antes de renovar la RTO?

@@ -32,11 +32,21 @@ import { clientFallbackService } from '../services/clientFallbackService.js';
 import { MaintenanceCertificateModal } from './MaintenanceCertificateModal.jsx';
 
 export function MaintenanceBookWidget({ vehicle, onOpenPatenteModal, onQuoteService, onNavigateLibreta }) {
-  const [currentKm, setCurrentKm] = useState(60000);
-  const [customKmInput, setCustomKmInput] = useState('60000');
+  const initialKm = vehicle?.currentKm || vehicle?.km || 60000;
+  const [currentKm, setCurrentKm] = useState(initialKm);
+  const [customKmInput, setCustomKmInput] = useState(initialKm.toString());
   const [selectedStage, setSelectedStage] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [isCertModalOpen, setIsCertModalOpen] = useState(false);
+
+  // Sincronizar automáticamente si cambia el vehículo o su kilometraje
+  React.useEffect(() => {
+    const k = vehicle?.currentKm || vehicle?.km;
+    if (k) {
+      setCurrentKm(k);
+      setCustomKmInput(k.toString());
+    }
+  }, [vehicle?.currentKm, vehicle?.km]);
 
   const currentVehicleTitle = vehicle
     ? `${vehicle.brand || ''} ${vehicle.model || ''} ${vehicle.version || ''} (${vehicle.year || ''})`.trim()

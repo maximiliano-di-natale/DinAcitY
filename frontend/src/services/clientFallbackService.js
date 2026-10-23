@@ -2139,27 +2139,160 @@ export const clientFallbackService = {
     return defaults;
   },
 
+  buildVehicleFromManualInput({ vehicleType = 'auto', brand = '', model = '', year = 2020, version = '', engine = '', currentKm = 60000, patente = '' }) {
+    const cleanPlate = (patente || '').trim().toUpperCase();
+    const parsedKm = parseInt(currentKm, 10) || 60000;
+    const parsedYear = parseInt(year, 10) || new Date().getFullYear();
+
+    // Normalizar motorización
+    let engineObj = {
+      name: typeof engine === 'string' && engine.trim() ? engine.trim() : 'Motor Homologado',
+      fuel: 'Nafta'
+    };
+    if (typeof engine === 'object' && engine !== null) {
+      engineObj = { ...engine };
+    }
+    const engineLower = (engineObj.name || '').toLowerCase();
+    if (engineLower.includes('diésel') || engineLower.includes('tdi') || engineLower.includes('d-4d')) {
+      engineObj.fuel = 'Diésel Grado 3 (Euro)';
+    } else if (engineLower.includes('gnc')) {
+      engineObj.fuel = 'Nafta / GNC';
+    }
+
+    const displayPlate = cleanPlate || `AUTO • ${parsedYear}`;
+
+    return {
+      id: `veh_manual_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      patente: cleanPlate || displayPlate,
+      displayPlate,
+      hasCustomPlate: !!cleanPlate,
+      brand: brand.trim() || 'Vehículo',
+      model: model.trim() || 'Personalizado',
+      version: version.trim() || '',
+      year: parsedYear,
+      vehicleType: vehicleType || 'auto',
+      currentKm: parsedKm,
+      engine: engineObj,
+      chassis: {
+        vin: cleanPlate ? `8AF${cleanPlate.replace(/\s+/g, '')}${parsedYear}` : `MZA${Date.now().toString().slice(-8)}`,
+        drive: 'Tracción 4x2'
+      },
+      dnrpa: {
+        seccional: 'Mendoza (Registro Automotor)',
+        codigoRegistro: '13000',
+        provincia: 'Mendoza',
+        origen: 'Mercosur / Nacional'
+      },
+      recommendedParts: {
+        pastillasFreno: `Pastillas de freno para ${brand} ${model}`,
+        filtroAceite: `Filtro de aceite para ${brand} ${model}`,
+        radiador: `Radiador de agua para ${brand} ${model}`,
+        aceiteRecomendado: engineObj.fuel.includes('Diésel') ? '5W-30 Sintético Diésel DPF' : '10W-40 / 5W-30 Sintético'
+      },
+      isPrimary: true
+    };
+  },
+
+  generateGoogleCalendarUrl({ title, description, date }) {
+    if (!date) return '#';
+    try {
+      const cleanDate = date.replace(/-/g, '');
+      const nextDay = new Date(date + 'T00:00:00');
+      nextDay.setDate(nextDay.getDate() + 1);
+      const cleanNextDay = nextDay.toISOString().split('T')[0].replace(/-/g, '');
+      const url = new URL('https://calendar.google.com/calendar/render');
+      url.searchParams.set('action', 'TEMPLATE');
+      url.searchParams.set('text', title || 'Vencimiento Vehicular DinAcitY');
+      url.searchParams.set('dates', `${cleanDate}/${cleanNextDay}`);
+      url.searchParams.set('details', (description || 'Recordatorio programado desde DinAcitY Mendoza') + '\n\nRevisá tu vehículo antes de la fecha: https://dinacity.com.ar');
+      url.searchParams.set('location', 'Mendoza, Argentina');
+      return url.toString();
+    } catch {
+      return '#';
+    }
+  },
+
+  downloadIcsFile({ title, description, date }) {
+    if (!date || typeof window === 'undefined') return;
+    try {
+      const cleanDate = date.replace(/-/g, '');
+      const nextDay = new Date(date + 'T00:00:00');
+      nextDay.setDate(nextDay.getDate() + 1);
+      const cleanNextDay = nextDay.toISOString().split('T')[0].replace(/-/g, '');
+      const safeTitle = (title || 'Vencimiento Vehicular').replace(/[,;]/g, ' ');
+      const safeDesc = (description || 'Recordatorio DinAcitY').replace(/[,;]/g, ' ');
+
+      const icsLines = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//DinAcitY Mendoza//Guantera Digital//ES',
+        'CALSCALE:GREGORIAN',
+        'METHOD:PUBLISH',
+        'BEGIN:VEVENT',
+        `SUMMARY:🚨 ${safeTitle}`,
+        `DESCRIPTION:${safeDesc}\\nEvitá multas y secuestros en Mendoza.\\nGestionado con DinAcitY.`,
+        `DTSTART;VALUE=DATE:${cleanDate}`,
+        `DTEND;VALUE=DATE:${cleanNextDay}`,
+        'LOCATION:Mendoza\\, Argentina',
+        'STATUS:CONFIRMED',
+        'BEGIN:VALARM',
+        'ACTION:DISPLAY',
+        `DESCRIPTION:Recordatorio: ${safeTitle}`,
+        'TRIGGER:-P15D',
+        'END:VALARM',
+        'BEGIN:VALARM',
+        'ACTION:DISPLAY',
+        `DESCRIPTION:¡Atención urgente! Vence en 3 días: ${safeTitle}`,
+        'TRIGGER:-P3D',
+        'END:VALARM',
+        'END:VEVENT',
+        'END:VCALENDAR'
+      ];
+
+      const blob = new Blob([icsLines.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.setAttribute('download', `${safeTitle.toLowerCase().replace(/[^a-z0-9]/g, '_')}.ics`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (e) {
+      console.warn('Error generando archivo ICS:', e);
+    }
+  },
+
   saveToCochera(vehicle) {
     if (!vehicle) return;
     const current = this.getCocheraVehicles();
     const cleanPlate = (vehicle.patente || vehicle.displayPlate || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
-    
+    const vehicleId = vehicle.id;
+
+    // Filtrar si ya existe por ID o por patente (si tiene patente cargada)
     const filtered = current.filter(v => {
-      const vp = (v.patente || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
-      return vp !== cleanPlate;
+      if (vehicleId && v.id === vehicleId) return false;
+      if (cleanPlate && !cleanPlate.startsWith('AUTO')) {
+        const vp = (v.patente || v.displayPlate || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+        if (vp === cleanPlate) return false;
+      }
+      return true;
     });
 
+    const parsedKm = parseInt(vehicle.currentKm || vehicle.km, 10) || 60000;
     const newEntry = {
       id: vehicle.id || `veh_${Date.now()}`,
-      patente: vehicle.displayPlate || vehicle.patente || cleanPlate,
+      patente: vehicle.displayPlate || vehicle.patente || (cleanPlate || `AUTO ${vehicle.year || 2020}`),
+      displayPlate: vehicle.displayPlate || vehicle.patente || (cleanPlate || `AUTO ${vehicle.year || 2020}`),
+      hasCustomPlate: vehicle.hasCustomPlate !== undefined ? vehicle.hasCustomPlate : (cleanPlate && !cleanPlate.startsWith('AUTO')),
       brand: vehicle.brand || 'Vehículo',
       model: vehicle.model || 'Registrado',
       version: vehicle.version || '',
-      year: vehicle.year || 2022,
+      year: parseInt(vehicle.year, 10) || 2022,
       vehicleType: vehicle.vehicleType || 'auto',
-      engine: vehicle.engine || { name: 'Motor Homologado DNRPA' },
+      currentKm: parsedKm,
+      engine: typeof vehicle.engine === 'string' ? { name: vehicle.engine, fuel: 'Nafta' } : (vehicle.engine || { name: 'Motor Homologado', fuel: 'Nafta' }),
       chassis: vehicle.chassis || { vin: vehicle.vin || '-' },
-      dnrpa: vehicle.dnrpa || { seccional: 'Mendoza' },
+      dnrpa: vehicle.dnrpa || { seccional: 'Mendoza (Registro Automotor)' },
+      recommendedParts: vehicle.recommendedParts || {},
       isPrimary: true
     };
 
@@ -2171,6 +2304,31 @@ export const clientFallbackService = {
       console.warn('Error guardando en cochera local:', e);
     }
     return updated;
+  },
+
+  updateVehicleKm(vehicleIdOrPlate, newKm) {
+    const current = this.getCocheraVehicles();
+    const parsedKm = parseInt(newKm, 10);
+    if (isNaN(parsedKm) || parsedKm < 0) return null;
+    let updatedActive = null;
+
+    const updated = current.map(v => {
+      const isMatch = v.id === vehicleIdOrPlate || v.patente === vehicleIdOrPlate || v.displayPlate === vehicleIdOrPlate;
+      if (isMatch) {
+        const u = { ...v, currentKm: parsedKm };
+        if (v.isPrimary) updatedActive = u;
+        return u;
+      }
+      return v;
+    });
+
+    try {
+      this._setStorage('dinacity_user_vehicles', JSON.stringify(updated));
+      if (updatedActive) {
+        this._setStorage('dinacity_active_vehicle', JSON.stringify(updatedActive));
+      }
+    } catch {}
+    return { updated, updatedActive };
   },
 
   removeFromCochera(patenteOrId) {
