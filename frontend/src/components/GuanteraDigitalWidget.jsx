@@ -28,8 +28,9 @@ import {
   CheckSquare
 } from 'lucide-react';
 import { clientFallbackService } from '../services/clientFallbackService.js';
+import { getInspectionInfo, getSavedUserLocation } from '../services/geolocationService.js';
 
-// Meses para cronograma oficial de RTO Mendoza según terminación de patente
+// Meses para cronograma oficial según terminación de patente
 const RTO_MENDOZA_MONTHS = {
   1: { monthName: 'Enero', monthIndex: 0 },
   2: { monthName: 'Febrero', monthIndex: 1 },
@@ -43,9 +44,9 @@ const RTO_MENDOZA_MONTHS = {
   0: { monthName: 'Octubre', monthIndex: 9 }
 };
 
-// Compañías de seguro más comunes en Mendoza con teléfonos de auxilio
+// Compañías de seguro más comunes con teléfonos de auxilio 24hs
 const COMMON_INSURERS = [
-  { name: 'Triunfo Seguros Mendoza', phone: '0810-333-3455' },
+  { name: 'Triunfo Seguros', phone: '0810-333-3455' },
   { name: 'La Segunda', phone: '0800-444-5224' },
   { name: 'San Cristóbal', phone: '0810-222-8888' },
   { name: 'Mercantil Andina', phone: '0800-777-6372' },
@@ -60,10 +61,13 @@ const COMMON_INSURERS = [
 
 export function GuanteraDigitalWidget({
   vehicle,
+  userLocation: propUserLocation,
   onOpenPatenteModal,
   onNavigateCotizador,
   onNavigateMantenimiento
 }) {
+  const userLocation = propUserLocation || getSavedUserLocation();
+  const inspectionInfo = getInspectionInfo(userLocation?.provinceId);
   const currentPatente = vehicle?.displayPlate || vehicle?.patente || 'AF 482 QZ';
   const currentVehicleTitle = vehicle
     ? `${vehicle.brand || ''} ${vehicle.model || ''} ${vehicle.version || ''} (${vehicle.year || ''})`.trim()
@@ -290,7 +294,7 @@ export function GuanteraDigitalWidget({
                 <span>📂</span> Guantera Digital DinAcitY
               </span>
               <span className="text-xs font-bold text-blue-200 bg-blue-900/60 px-2.5 py-0.5 rounded-full border border-blue-400/30">
-                📍 Ley de Tránsito 9024 • Mendoza
+                📍 {userLocation?.provinceName ? userLocation.provinceName.split('(')[0].trim() : 'Argentina'} • {inspectionInfo.type}
               </span>
               <span className="text-xs font-bold text-emerald-200 bg-emerald-950/60 px-2.5 py-0.5 rounded-full border border-emerald-400/40">
                 ✓ Sincronizable con tu Celular
@@ -302,7 +306,7 @@ export function GuanteraDigitalWidget({
             </h2>
 
             <p className="text-sm text-slate-300 leading-relaxed">
-              Monitoreá el estado de la <strong>RTO Mendoza, Seguro, Carnet, Matafuegos y GNC</strong>. Guardá tus fechas y <strong>sincronizá alarmas en tu calendario</strong> para que el teléfono te avise antes de que venza.
+              Monitoreá el estado de la <strong>{inspectionInfo.type} ({inspectionInfo.fullName}), Seguro, Carnet, Matafuegos y GNC</strong>. Guardá tus fechas y <strong>sincronizá alarmas en tu calendario</strong> para que el teléfono te avise antes de que venza.
             </p>
           </div>
 
@@ -580,12 +584,12 @@ export function GuanteraDigitalWidget({
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-base font-black text-white">RTO Obligatoria Mendoza</h3>
+                  <h3 className="text-base font-black text-white">{inspectionInfo.type} Obligatoria</h3>
                   <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-900/60 text-blue-300 border border-blue-500/30">
-                    Ley 9024
+                    {userLocation?.provinceName ? userLocation.provinceName.split('(')[0].trim() : 'Argentina'}
                   </span>
                 </div>
-                <p className="text-xs text-slate-400">Revisión Técnica Obligatoria Provincial</p>
+                <p className="text-xs text-slate-400">{inspectionInfo.fullName}</p>
               </div>
             </div>
 
@@ -661,9 +665,9 @@ export function GuanteraDigitalWidget({
             <button
               type="button"
               onClick={() => handleSyncGoogleCalendar(
-                'Renovar RTO Mendoza',
+                `Renovar ${inspectionInfo.type} (${userLocation?.provinceName || 'Argentina'})`,
                 docs.rto.expirationDate,
-                `Vencimiento de Revisión Técnica Obligatoria Ley 9024 para ${currentVehicleTitle}. Evitá multas policiales.`
+                `Vencimiento de ${inspectionInfo.fullName} para ${currentVehicleTitle}. Evitá multas policiales.`
               )}
               className="flex-1 py-2 px-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-xs shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer"
               title="Crear recordatorio en Google Calendar"
@@ -675,9 +679,9 @@ export function GuanteraDigitalWidget({
             <button
               type="button"
               onClick={() => handleDownloadIcs(
-                'Vence RTO Mendoza',
+                `Vence ${inspectionInfo.type}`,
                 docs.rto.expirationDate,
-                `Recordatorio RTO para ${currentVehicleTitle}. Revisar frenos y luces.`
+                `Recordatorio ${inspectionInfo.type} para ${currentVehicleTitle}. Revisar frenos, luces y tren delantero.`
               )}
               className="py-2 px-3 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-xl font-semibold text-xs transition flex items-center gap-1 cursor-pointer"
               title="Descargar alarma .ics para iPhone o Android"
@@ -687,21 +691,33 @@ export function GuanteraDigitalWidget({
             </button>
           </div>
 
-          {/* Botón de Negocio: Chequeo Pre-RTO */}
-          <div className="bg-slate-900/60 p-3 rounded-xl border border-blue-500/30 flex items-center justify-between gap-3 text-xs">
+          {/* Botón de Negocio: Chequeo Pre-VTV / RTO y Turno Oficial */}
+          <div className="bg-slate-900/60 p-3 rounded-xl border border-blue-500/30 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
             <div>
-              <span className="font-bold text-white block">🛠️ Chequeo Pre-RTO Mendoza</span>
-              <span className="text-slate-400 text-[11px]">Revisá frenos, luces y tren delantero antes de la inspección.</span>
+              <span className="font-bold text-white block">🛠️ Chequeo Pre-{inspectionInfo.type} y Turnos</span>
+              <span className="text-slate-400 text-[11px]">Revisá frenos, luces y tren delantero antes de la inspección obligatoria.</span>
             </div>
-            {onNavigateCotizador && (
-              <button
-                type="button"
-                onClick={() => onNavigateCotizador()}
-                className="py-1.5 px-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-xs transition cursor-pointer shrink-0"
-              >
-                Cotizar repuestos
-              </button>
-            )}
+            <div className="flex items-center gap-2 shrink-0">
+              {inspectionInfo.url && (
+                <a
+                  href={inspectionInfo.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="py-1.5 px-2.5 bg-slate-800 hover:bg-slate-700 text-blue-300 font-bold rounded-lg text-xs border border-blue-400/30 transition flex items-center gap-1"
+                >
+                  <span>Sacar Turno Oficial ↗</span>
+                </a>
+              )}
+              {onNavigateCotizador && (
+                <button
+                  type="button"
+                  onClick={() => onNavigateCotizador()}
+                  className="py-1.5 px-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-xs transition cursor-pointer"
+                >
+                  Cotizar repuestos
+                </button>
+              )}
+            </div>
           </div>
         </div>
 

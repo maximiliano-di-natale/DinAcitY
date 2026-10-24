@@ -13,7 +13,9 @@ import { ServiceNotebookWidget } from './components/ServiceNotebookWidget.jsx';
 import { GuanteraDigitalWidget } from './components/GuanteraDigitalWidget.jsx';
 import { MendozaStoresMapWidget } from './components/MendozaStoresMapWidget.jsx';
 import { KitBuilderWidget } from './components/KitBuilderWidget.jsx';
+import { LocationModal } from './components/LocationModal.jsx';
 import { clientFallbackService } from './services/clientFallbackService.js';
+import { getSavedUserLocation } from './services/geolocationService.js';
 import { Flame, SlidersHorizontal, Sparkles, AlertCircle, MapPin, Store, Car, MessageCircle, BookOpen, Search } from 'lucide-react';
 
 export function App() {
@@ -25,6 +27,10 @@ export function App() {
     filtersMeta: {},
     query: {}
   });
+
+  // Ubicación del usuario en toda Argentina (GPS o Manual)
+  const [userLocation, setUserLocation] = useState(() => getSavedUserLocation());
+  const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
 
   // Vista activa principal: 'patente' (DNRPA Eje Central) | 'cotizador' | 'mantenimiento' | 'libreta' | 'guantera' | 'mapa' | 'kits'
   const [activeView, setActiveView] = useState('patente');
@@ -309,6 +315,8 @@ export function App() {
         {/* Header en Rojo Institucional y Barra integrada estilo Mercado Libre */}
         <Navbar
           user={currentUser}
+          userLocation={userLocation}
+          onOpenLocationModal={() => setIsLocationModalOpen(true)}
           onOpenAuth={(mode) => {
             setAuthMode(mode || 'register');
             setIsAuthOpen(true);
@@ -444,7 +452,7 @@ export function App() {
               </span>
             </button>
 
-            {/* Tab 6: Mapa de Mostradores MZA (Polo Rodríguez Peña & Zonas) */}
+            {/* Tab 6: Mapa de Mostradores Nacional (Warnes, Rodríguez Peña, Las Heras, Rosario y más) */}
             <button
               type="button"
               onClick={() => setActiveView('mapa')}
@@ -464,7 +472,7 @@ export function App() {
                   : 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40 group-hover:bg-emerald-500/30'
               }`}>
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                Rodríguez Peña
+                Red Nacional
               </span>
             </button>
 
@@ -580,6 +588,8 @@ export function App() {
           <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 w-full flex-1">
             <QuoteRequestWidget
               vehicle={selectedVehicle}
+              userLocation={userLocation}
+              onOpenLocationModal={() => setIsLocationModalOpen(true)}
               onOpenPatenteModal={() => setActiveView('patente')}
               onSelectPart={(part) => {
                 setActiveView('cotizador');
@@ -664,11 +674,12 @@ export function App() {
           </main>
         )}
 
-        {/* Vista Opción 5: Guantera Digital & Alertas de Vencimientos Mendoza */}
+        {/* Vista Opción 5: Guantera Digital & Alertas de Vencimientos */}
         {activeView === 'guantera' && (
           <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 w-full flex-1">
             <GuanteraDigitalWidget
               vehicle={selectedVehicle}
+              userLocation={userLocation}
               onOpenPatenteModal={() => setActiveView('patente')}
               onNavigateCotizador={() => setActiveView('cotizador')}
               onNavigateMantenimiento={() => setActiveView('mantenimiento')}
@@ -676,11 +687,13 @@ export function App() {
           </main>
         )}
 
-        {/* Vista Opción 6: Circuito y Mapa de Mostradores Mendoza */}
+        {/* Vista Opción 6: Red y Mapa de Mostradores Nacional */}
         {activeView === 'mapa' && (
           <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 w-full flex-1">
             <MendozaStoresMapWidget
               vehicle={selectedVehicle}
+              userLocation={userLocation}
+              onOpenLocationModal={() => setIsLocationModalOpen(true)}
               onNavigateCotizador={() => setActiveView('cotizador')}
             />
           </main>
@@ -729,6 +742,14 @@ export function App() {
         vehicleParams={currentSearchParams}
       />
 
+      {/* Modal de Ubicación y Detección GPS para Toda la Argentina */}
+      <LocationModal
+        isOpen={isLocationModalOpen}
+        onClose={() => setIsLocationModalOpen(false)}
+        currentLocation={userLocation}
+        onLocationChanged={(loc) => setUserLocation(loc)}
+      />
+
       {/* Footer en Azul Marino institucional con detalles en Rojo */}
       <footer className="mt-12 bg-blue-950 text-white border-t-4 border-red-600 py-8 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
@@ -739,26 +760,27 @@ export function App() {
                 <span className="text-red-500 ml-1">AcitY</span>
               </span>
               <span className="text-xs bg-red-600/30 text-red-300 border border-red-500/40 px-2 py-0.5 rounded font-bold">
-                Edición Mendoza, Argentina
+                🇦🇷 Cobertura Toda la Argentina
               </span>
             </div>
             <p className="text-xs text-blue-200 mt-1 max-w-sm">
-              Cotizador Express de repuestos y Libreta de Mantenimiento Inteligente para autos, motos y camiones en Mendoza. Conexión directa por WhatsApp con casas de repuestos del Carril Rodríguez Peña y Gran Mendoza.
+              Cotizador Express de repuestos automotor y Libreta de Mantenimiento Inteligente en toda la Argentina. Conexión directa por WhatsApp con casas de repuestos de Warnes, Rodríguez Peña, Las Heras Córdoba, Rosario y todo el país.
             </p>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-4 text-xs text-blue-200 font-medium">
-            <span>📍 Carril Rodríguez Peña</span>
-            <span>📍 Godoy Cruz</span>
-            <span>📍 Guaymallén</span>
-            <span>📍 Maipú</span>
-            <span>📍 Capital</span>
-            <span>📍 San Martín</span>
-            <span>📍 San Rafael</span>
+          <div className="flex flex-wrap justify-center gap-3 text-xs text-blue-200 font-medium max-w-md">
+            <span>📍 Polo Warnes (CABA)</span>
+            <span>📍 GBA Norte / Oeste / Sur</span>
+            <span>📍 Córdoba</span>
+            <span>📍 Rosario / Santa Fe</span>
+            <span>📍 Mendoza (Rodríguez Peña)</span>
+            <span>📍 Tucumán</span>
+            <span>📍 Mar del Plata</span>
+            <span>📍 Neuquén</span>
           </div>
 
           <div className="text-xs text-blue-400">
-            © 2026 DinAcitY Mendoza. Desarrollado para Maximiliano Di Natale.
+            © 2026 DinAcitY Argentina. Desarrollado para Maximiliano Di Natale.
           </div>
         </div>
       </footer>

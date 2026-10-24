@@ -22,17 +22,17 @@ export function HeroSearch({
               🚗 Mi Cochera Digital
             </span>
             <span className="text-[11px] font-bold text-red-300 bg-red-950/60 px-2 py-0.5 rounded-full border border-red-500/30">
-              📍 Mendoza, Argentina
+              📍 Toda la Argentina
             </span>
             <span className="text-[11px] font-bold text-emerald-300 bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-500/30 hidden sm:inline">
-              ✓ Autos • Motos • Camiones • Eje Central
+              ✓ Autos • Motos • Camiones • Red Nacional
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight">
             Gestión de Vehículos y Mantenimiento Inteligente
           </h1>
           <p className="text-xs sm:text-sm text-slate-300 max-w-2xl mt-0.5">
-            Cargá tu auto a mano con su kilometraje actual para calcular services exactos, repuestos compatibles en mostradores de Mendoza y alertas de RTO y seguro.
+            Cargá tu auto con su kilometraje actual para calcular services exactos, repuestos compatibles en mostradores cercanos de tu zona y alertas de VTV / RTO y seguro.
           </p>
         </div>
       </div>

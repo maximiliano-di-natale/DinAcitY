@@ -30,6 +30,8 @@ import {
 
 export function Navbar({
   user,
+  userLocation,
+  onOpenLocationModal,
   onOpenAuth,
   onLogout,
   onOpenAlerts,
@@ -215,8 +217,8 @@ export function Navbar({
                   AcitY
                 </span>
                 <span className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider bg-blue-900 text-white border border-blue-400 rounded-full shadow-sm ml-1">
-                  <MapPin className="w-2.5 h-2.5 text-red-400" />
-                  Mendoza
+                  <span>🇦🇷</span>
+                  Argentina
                 </span>
               </div>
             </div>
@@ -231,13 +233,13 @@ export function Navbar({
               type="text"
               value={navSearch}
               onChange={(e) => setNavSearch(e.target.value)}
-              placeholder="Buscar repuestos, marcas o autos en Mendoza (ej: radiador, gol, hilux, pastillas)..."
+              placeholder="Buscar repuestos, marcas o autos en toda Argentina (ej: radiador, gol, hilux, pastillas)..."
               className="w-full bg-white text-gray-800 placeholder-gray-400 text-xs sm:text-sm pl-3.5 pr-10 py-2 sm:py-2 rounded shadow-inner focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-200"
             />
             <button
               type="submit"
-              className="absolute right-0 top-0 bottom-0 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-r transition flex items-center justify-center"
-              title="Buscar en Mendoza"
+              className="absolute right-0 top-0 bottom-0 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-r transition flex items-center justify-center cursor-pointer"
+              title="Buscar en toda Argentina"
             >
               <Search className="w-4 h-4 text-white" />
             </button>
@@ -396,24 +398,31 @@ export function Navbar({
       <div className="bg-red-700 border-t border-red-500/30 border-b border-red-800/40 text-xs text-white">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-1.5 flex items-center justify-between gap-2 sm:gap-4 overflow-x-auto scrollbar-none md:overflow-visible">
           
-          {/* Left: Ubicación del usuario registrado (con acceso a editar perfil) */}
-          {user ? (
-            <div
-              onClick={() => onOpenAuth && onOpenAuth('profile')}
-              className="flex items-center gap-2 shrink-0 cursor-pointer hover:bg-white/10 px-2 py-1 rounded-lg transition"
-              title={`Ubicación registrada: ${user.direccion || 'Mendoza'}. Clic para editar en tu perfil.`}
-            >
-              <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center">
-                <MapPin className="w-4 h-4 text-yellow-300" />
-              </div>
-              <div className="text-[11px] leading-tight text-left">
-                <span className="text-red-200 block text-[10px] font-medium">Ubicación</span>
-                <span className="font-semibold text-white block max-w-[150px] sm:max-w-[220px] truncate" title={user.direccion}>
-                  {user.direccion || `${user.nombre} - Mendoza`}
-                </span>
-              </div>
+          {/* Left: Ubicación activa del usuario en Argentina (GPS o Manual) */}
+          <div
+            onClick={onOpenLocationModal}
+            className="flex items-center gap-2 shrink-0 cursor-pointer hover:bg-black/40 bg-black/20 px-2.5 py-1 rounded-lg transition border border-white/20"
+            title="Clic para cambiar ubicación o activar GPS"
+          >
+            <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center">
+              <MapPin className="w-3.5 h-3.5 text-yellow-300" />
             </div>
-          ) : null}
+            <div className="text-[11px] leading-tight text-left">
+              <span className="text-red-200 block text-[9px] font-black uppercase tracking-wider flex items-center gap-1">
+                {userLocation?.isGps ? (
+                  <>
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block animate-pulse"></span>
+                    GPS Activo
+                  </>
+                ) : (
+                  'Tu Ubicación'
+                )}
+              </span>
+              <span className="font-bold text-white block max-w-[150px] sm:max-w-[210px] truncate">
+                {userLocation?.displayName || `${userLocation?.cityName || 'CABA'}, ${userLocation?.provinceName || 'Argentina'}`}
+              </span>
+            </div>
+          </div>
 
           {/* Center: Accesos directos y herramientas */}
           <div className="flex items-center gap-1 sm:gap-2 text-xs shrink-0">
@@ -500,10 +509,10 @@ export function Navbar({
                   ? 'bg-white text-blue-950 border-white shadow-[0_0_15px_rgba(255,255,255,0.7)] scale-[1.04]'
                   : 'bg-black/30 hover:bg-black/50 text-white border-white/20 hover:border-white/40 shadow-xs hover:scale-[1.02]'
               }`}
-              title="Mapa de Mostradores: Circuito Carril Rodríguez Peña, Godoy Cruz y Guaymallén"
+              title="Mapa de Mostradores: Polos Warnes CABA, Rodríguez Peña Mendoza, Córdoba, Rosario y todo el país"
             >
               <span>📍</span>
-              <span>Mapa MZA</span>
+              <span>Mapa Nacional</span>
               {currentView === 'mapa' && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block"></span>}
             </button>
 

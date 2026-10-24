@@ -4,6 +4,8 @@
  * (Yacopini Chevrolet/Toyota, Goldstein VW/Ford, Lorenzo Fiat, Mediterráneo Renault, AGSM Peugeot, Módica Motos, Ficamen Iveco)
  * Todos los links son 100% reales, verificados y funcionales sin dominios caídos.
  */
+import { ARGENTINA_NATIONAL_STORES } from './storesDataService.js';
+export { ARGENTINA_NATIONAL_STORES };
 
 export const CLIENT_TAXONOMY = {
   auto: {
