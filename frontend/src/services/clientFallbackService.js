@@ -2238,7 +2238,7 @@ export const clientFallbackService = {
     return defaults;
   },
 
-  buildVehicleFromManualInput({ vehicleType = 'auto', brand = '', model = '', year = 2020, version = '', engine = '', currentKm = 60000, patente = '' }) {
+  buildVehicleFromManualInput({ id = null, vehicleType = 'auto', brand = '', model = '', year = 2020, version = '', engine = '', currentKm = 60000, patente = '' }) {
     const cleanPlate = (patente || '').trim().toUpperCase();
     const parsedKm = parseInt(currentKm, 10) || 60000;
     const parsedYear = parseInt(year, 10) || new Date().getFullYear();
@@ -2261,7 +2261,7 @@ export const clientFallbackService = {
     const displayPlate = cleanPlate || `AUTO • ${parsedYear}`;
 
     return {
-      id: `veh_manual_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      id: id || `veh_manual_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       patente: cleanPlate || displayPlate,
       displayPlate,
       hasCustomPlate: !!cleanPlate,
@@ -2360,16 +2360,95 @@ export const clientFallbackService = {
     }
   },
 
-  saveToCochera(vehicle) {
-    if (!vehicle) return;
+  updateVehicleInCochera(vehicle) {
+    if (!vehicle) return this.getCocheraVehicles();
     const current = this.getCocheraVehicles();
     const cleanPlate = (vehicle.patente || vehicle.displayPlate || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
-    const vehicleId = vehicle.id;
+    const targetId = vehicle.id;
 
-    // Filtrar si ya existe por ID o por patente (si tiene patente cargada)
+    // Buscar si ya existe por ID exacto, o por patente (si tiene patente)
+    let matchIndex = -1;
+    if (targetId) {
+      matchIndex = current.findIndex(v => v.id === targetId);
+    }
+    if (matchIndex === -1 && cleanPlate && !cleanPlate.startsWith('AUTO')) {
+      matchIndex = current.findIndex(v => {
+        const vp = (v.patente || v.displayPlate || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+        return vp === cleanPlate;
+      });
+    }
+
+    const parsedKm = parseInt(vehicle.currentKm || vehicle.km, 10) || 60000;
+    const parsedYear = parseInt(vehicle.year, 10) || 2022;
+
+    const updatedEntry = {
+      id: targetId || (matchIndex >= 0 ? current[matchIndex].id : `veh_${Date.now()}`),
+      patente: vehicle.displayPlate || vehicle.patente || (cleanPlate || `AUTO ${parsedYear}`),
+      displayPlate: vehicle.displayPlate || vehicle.patente || (cleanPlate || `AUTO ${parsedYear}`),
+      hasCustomPlate: vehicle.hasCustomPlate !== undefined ? vehicle.hasCustomPlate : (cleanPlate && !cleanPlate.startsWith('AUTO')),
+      brand: vehicle.brand || 'Vehículo',
+      model: vehicle.model || 'Registrado',
+      version: vehicle.version || '',
+      year: parsedYear,
+      vehicleType: vehicle.vehicleType || 'auto',
+      currentKm: parsedKm,
+      engine: typeof vehicle.engine === 'string' ? { name: vehicle.engine, fuel: 'Nafta' } : (vehicle.engine || { name: 'Motor Homologado', fuel: 'Nafta' }),
+      chassis: vehicle.chassis || { vin: vehicle.vin || '-' },
+      dnrpa: vehicle.dnrpa || { seccional: 'Mendoza (Registro Automotor)' },
+      recommendedParts: vehicle.recommendedParts || {},
+      isPrimary: true
+    };
+
+    let updatedList;
+    if (matchIndex >= 0) {
+      // Modificar el auto existente en su lugar sin crear uno nuevo
+      updatedList = current.map((item, idx) => {
+        if (idx === matchIndex) {
+          return updatedEntry;
+        }
+        return { ...item, isPrimary: false };
+      });
+    } else {
+      // Si no existía ninguno coincidente, agregar
+      updatedList = [updatedEntry, ...current.map(f => ({ ...f, isPrimary: false }))];
+    }
+
+    try {
+      this._setStorage('dinacity_user_vehicles', JSON.stringify(updatedList));
+      this._setStorage('dinacity_active_vehicle', JSON.stringify(updatedEntry));
+    } catch (e) {
+      console.warn('Error actualizando vehículo en cochera:', e);
+    }
+    return updatedList;
+  },
+
+  saveToCochera(vehicle, options = {}) {
+    if (!vehicle) return this.getCocheraVehicles();
+    const isExplicitlyNew = options.isNew === true;
+
+    // Si NO es explícitamente un auto nuevo y ya existe por id o patente, se modifica el que ya está
+    if (!isExplicitlyNew) {
+      const current = this.getCocheraVehicles();
+      const cleanPlate = (vehicle.patente || vehicle.displayPlate || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+      const hasMatch = current.some(v =>
+        (vehicle.id && v.id === vehicle.id) ||
+        (cleanPlate && !cleanPlate.startsWith('AUTO') && (v.patente || v.displayPlate || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase() === cleanPlate)
+      );
+      if (hasMatch) {
+        return this.updateVehicleInCochera(vehicle);
+      }
+    }
+
+    const current = this.getCocheraVehicles();
+    const cleanPlate = (vehicle.patente || vehicle.displayPlate || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    const newId = isExplicitlyNew
+      ? `veh_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`
+      : (vehicle.id || `veh_${Date.now()}`);
+
+    // Filtrar si ya existe por ID o por patente (para evitar duplicados exactos)
     const filtered = current.filter(v => {
-      if (vehicleId && v.id === vehicleId) return false;
-      if (cleanPlate && !cleanPlate.startsWith('AUTO')) {
+      if (!isExplicitlyNew && v.id === newId) return false;
+      if (!isExplicitlyNew && cleanPlate && !cleanPlate.startsWith('AUTO')) {
         const vp = (v.patente || v.displayPlate || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
         if (vp === cleanPlate) return false;
       }
@@ -2377,15 +2456,17 @@ export const clientFallbackService = {
     });
 
     const parsedKm = parseInt(vehicle.currentKm || vehicle.km, 10) || 60000;
+    const parsedYear = parseInt(vehicle.year, 10) || 2022;
+
     const newEntry = {
-      id: vehicle.id || `veh_${Date.now()}`,
-      patente: vehicle.displayPlate || vehicle.patente || (cleanPlate || `AUTO ${vehicle.year || 2020}`),
-      displayPlate: vehicle.displayPlate || vehicle.patente || (cleanPlate || `AUTO ${vehicle.year || 2020}`),
+      id: newId,
+      patente: vehicle.displayPlate || vehicle.patente || (cleanPlate || `AUTO ${parsedYear}`),
+      displayPlate: vehicle.displayPlate || vehicle.patente || (cleanPlate || `AUTO ${parsedYear}`),
       hasCustomPlate: vehicle.hasCustomPlate !== undefined ? vehicle.hasCustomPlate : (cleanPlate && !cleanPlate.startsWith('AUTO')),
       brand: vehicle.brand || 'Vehículo',
       model: vehicle.model || 'Registrado',
       version: vehicle.version || '',
-      year: parseInt(vehicle.year, 10) || 2022,
+      year: parsedYear,
       vehicleType: vehicle.vehicleType || 'auto',
       currentKm: parsedKm,
       engine: typeof vehicle.engine === 'string' ? { name: vehicle.engine, fuel: 'Nafta' } : (vehicle.engine || { name: 'Motor Homologado', fuel: 'Nafta' }),

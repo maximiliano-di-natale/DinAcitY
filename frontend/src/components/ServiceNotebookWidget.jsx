@@ -219,14 +219,15 @@ export function ServiceNotebookWidget({
     }
   }, [currentPatente, storageKeyKm, currentVehicle]);
 
-  // Guardar KM del auto activo
+  // Guardar KM del auto activo y sincronizar con Cochera
   useEffect(() => {
     try {
       localStorage.setItem(storageKeyKm, currentKm.toString());
+      clientFallbackService.updateVehicleKm(currentPatente, currentKm);
     } catch (e) {
       console.error('Error guardando km:', e);
     }
-  }, [currentKm, storageKeyKm]);
+  }, [currentKm, storageKeyKm, currentPatente]);
 
   // Tabs internas de la Libreta: 'historial' (Qué se le hizo) | 'pendientes' (Qué le falta hacer)
   const [activeTab, setActiveTab] = useState('historial');

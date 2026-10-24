@@ -38,28 +38,57 @@ export function PatenteSearchWidget({
   onNavigateKits,
   onNavigateMapa
 }) {
-  // Pestañas internas: 'manual' (Carga Guiada) | 'cochera' (Mis Vehículos)
+  // Pestañas internas: 'manual' (Carga / Edición Guiada) | 'cochera' (Mis Vehículos)
   const [activeTab, setActiveTab] = useState('manual');
 
-  // Estado del formulario de carga manual
-  const [manualType, setManualType] = useState('auto'); // 'auto' | 'moto' | 'camion'
-  const [manualBrand, setManualBrand] = useState('Volkswagen');
-  const [manualModel, setManualModel] = useState('Gol Trend');
-  const [manualYear, setManualYear] = useState('2019');
-  const [manualEngine, setManualEngine] = useState('1.6 8V MSI (101 CV)');
-  const [manualKm, setManualKm] = useState('65000');
-  const [manualPatente, setManualPatente] = useState('');
+  // Vehículo actualmente seleccionado / activo
+  const [activeVehicle, setActiveVehicle] = useState(() => {
+    return clientFallbackService.getActiveCocheraVehicle();
+  });
+
+  // Modo del formulario: 'edit' (modificar datos de un auto existente) | 'new' (inscribir auto nuevo)
+  const [formMode, setFormMode] = useState('edit');
+  const [editingVehicleId, setEditingVehicleId] = useState(() => {
+    const act = clientFallbackService.getActiveCocheraVehicle();
+    return act?.id || null;
+  });
+
+  // Estado del formulario inicializado con el vehículo activo para no crear duplicados
+  const [manualType, setManualType] = useState(() => {
+    const act = clientFallbackService.getActiveCocheraVehicle();
+    return act?.vehicleType || 'auto';
+  });
+  const [manualBrand, setManualBrand] = useState(() => {
+    const act = clientFallbackService.getActiveCocheraVehicle();
+    return act?.brand || 'Toyota';
+  });
+  const [manualModel, setManualModel] = useState(() => {
+    const act = clientFallbackService.getActiveCocheraVehicle();
+    return act?.model || 'Hilux';
+  });
+  const [manualYear, setManualYear] = useState(() => {
+    const act = clientFallbackService.getActiveCocheraVehicle();
+    return (act?.year || 2022).toString();
+  });
+  const [manualEngine, setManualEngine] = useState(() => {
+    const act = clientFallbackService.getActiveCocheraVehicle();
+    return act?.engine?.name || (typeof act?.engine === 'string' ? act.engine : '2.8 D-4D 16V Turbo Diésel (204 CV)');
+  });
+  const [manualKm, setManualKm] = useState(() => {
+    const act = clientFallbackService.getActiveCocheraVehicle();
+    return (act?.currentKm || 60000).toString();
+  });
+  const [manualPatente, setManualPatente] = useState(() => {
+    const act = clientFallbackService.getActiveCocheraVehicle();
+    const isCustom = act?.hasCustomPlate !== false && act?.patente && !act.patente.startsWith('AUTO');
+    return isCustom ? (act.displayPlate || act.patente) : '';
+  });
 
   // Filtro de origen de marcas (Alemanas, Americanas, Europeas, Asiáticas, Chinas, Todas)
   const [brandOriginFilter, setBrandOriginFilter] = useState('all');
 
   // Filtro de etapas de kilometraje (0-100k, 100k-200k, 200k-300k, 300k-400k, 400k-500k, all)
   const [selectedKmStage, setSelectedKmStage] = useState('all');
-
-  // Vehículo actualmente seleccionado / activo
-  const [activeVehicle, setActiveVehicle] = useState(() => {
-    return clientFallbackService.getActiveCocheraVehicle();
-  });
 
   // Lista de vehículos en la Cochera Digital
   const [cocheraList, setCocheraList] = useState(() => {
@@ -199,14 +228,58 @@ export function PatenteSearchWidget({
     return mileageMilestones.filter((km) => km >= stage.min && km <= stage.max);
   }, [selectedKmStage]);
 
-  // Guardar y activar vehículo cargado a mano
+  // Cargar datos de un vehículo en el formulario para editarlo
+  const populateFormWithVehicle = (vehicle) => {
+    if (!vehicle) return;
+    setFormMode('edit');
+    setEditingVehicleId(vehicle.id || null);
+    setManualType(vehicle.vehicleType || 'auto');
+    setManualBrand(vehicle.brand || 'Toyota');
+    setManualModel(vehicle.model || 'Hilux');
+    setManualYear((vehicle.year || 2022).toString());
+    setManualEngine(
+      vehicle.engine?.name || (typeof vehicle.engine === 'string' ? vehicle.engine : 'Motor Homologado')
+    );
+    setManualKm((vehicle.currentKm || 60000).toString());
+    const isCustom = vehicle.hasCustomPlate !== false && vehicle.patente && !vehicle.patente.startsWith('AUTO');
+    setManualPatente(isCustom ? (vehicle.displayPlate || vehicle.patente) : '');
+  };
+
+  // Iniciar edición de un auto
+  const handleStartEditVehicle = (vehicle) => {
+    const target = vehicle || activeVehicle;
+    if (!target) return;
+    populateFormWithVehicle(target);
+    setActiveTab('manual');
+  };
+
+  // Iniciar registro de un NUEVO auto DISTINTO
+  const handleStartNewVehicle = () => {
+    setFormMode('new');
+    setEditingVehicleId(null);
+    setManualType('auto');
+    setManualBrand('Volkswagen');
+    setManualModel('Gol Trend');
+    setManualYear('2021');
+    setManualEngine('1.6 MSI (101 CV)');
+    setManualKm('55000');
+    setManualPatente('');
+    setActiveTab('manual');
+    setToastMessage('Modo: Inscribiendo un nuevo vehículo distinto para tu Cochera');
+    setTimeout(() => setToastMessage(''), 3000);
+  };
+
+  // Guardar y activar vehículo cargado a mano (modifica el existente si se edita, o crea uno nuevo si se pide explícitamente)
   const handleSaveManualVehicle = (e) => {
     e?.preventDefault();
     if (!manualBrand.trim() || !manualModel.trim()) {
       return;
     }
 
+    const isEditMode = formMode === 'edit' && !!editingVehicleId;
+
     const vehicle = clientFallbackService.buildVehicleFromManualInput({
+      id: isEditMode ? editingVehicleId : null,
       vehicleType: manualType,
       brand: manualBrand,
       model: manualModel,
@@ -216,8 +289,20 @@ export function PatenteSearchWidget({
       patente: manualPatente
     });
 
-    // Guardar en Cochera
-    const updated = clientFallbackService.saveToCochera(vehicle);
+    let updated;
+    if (isEditMode) {
+      // Modificar el auto que ya está en la cochera SIN generar uno nuevo
+      updated = clientFallbackService.updateVehicleInCochera(vehicle);
+      setToastMessage(`✅ ¡Datos de ${vehicle.brand} ${vehicle.model} modificados con éxito! (Sin duplicar en cochera)`);
+    } else {
+      // Solamente cuando se genera uno nuevo, se guarda en la cochera uno distinto
+      updated = clientFallbackService.saveToCochera(vehicle, { isNew: true });
+      setToastMessage(`🎉 ¡Nuevo vehículo ${vehicle.brand} ${vehicle.model} guardado en tu Cochera!`);
+      // A partir de ahora, queda registrado para edición directa
+      setFormMode('edit');
+      setEditingVehicleId(vehicle.id);
+    }
+
     setCocheraList(updated);
     setActiveVehicle(vehicle);
 
@@ -237,7 +322,6 @@ export function PatenteSearchWidget({
       });
     }
 
-    setToastMessage(`¡${vehicle.brand} ${vehicle.model} guardado y activado en tu Cochera!`);
     setTimeout(() => setToastMessage(''), 3500);
   };
 
@@ -245,6 +329,7 @@ export function PatenteSearchWidget({
   const handleSelectFromCochera = (item) => {
     clientFallbackService.setActiveCocheraVehicle(item);
     setActiveVehicle(item);
+    populateFormWithVehicle(item); // Deja el formulario listo para editar este auto
     if (onSelectVehicle) {
       onSelectVehicle({
         query: item.model,
@@ -271,6 +356,9 @@ export function PatenteSearchWidget({
     if (activeVehicle?.id === item.id || activeVehicle?.patente === item.patente) {
       const next = updated[0] || null;
       setActiveVehicle(next);
+      if (next) {
+        populateFormWithVehicle(next);
+      }
       if (next && onSelectVehicle) {
         onSelectVehicle({
           query: next.model,
@@ -298,7 +386,10 @@ export function PatenteSearchWidget({
     setManualKm(sample.km.toString());
     setManualPatente(sample.plate);
 
+    const isEditMode = formMode === 'edit' && !!editingVehicleId;
+
     const vehicle = clientFallbackService.buildVehicleFromManualInput({
+      id: isEditMode ? editingVehicleId : null,
       vehicleType: type,
       brand: sample.brand,
       model: sample.model,
@@ -308,7 +399,17 @@ export function PatenteSearchWidget({
       patente: sample.plate
     });
 
-    const updated = clientFallbackService.saveToCochera(vehicle);
+    let updated;
+    if (isEditMode) {
+      updated = clientFallbackService.updateVehicleInCochera(vehicle);
+      setToastMessage(`✅ ¡${sample.brand} ${sample.model} cargado en tu auto actual! (Sin duplicar)`);
+    } else {
+      updated = clientFallbackService.saveToCochera(vehicle, { isNew: true });
+      setToastMessage(`🎉 ¡${sample.brand} ${sample.model} guardado como nuevo en tu Cochera!`);
+      setFormMode('edit');
+      setEditingVehicleId(vehicle.id);
+    }
+
     setCocheraList(updated);
     setActiveVehicle(vehicle);
 
@@ -327,7 +428,6 @@ export function PatenteSearchWidget({
       });
     }
 
-    setToastMessage(`¡${vehicle.brand} ${vehicle.model} cargado con éxito!`);
     setTimeout(() => setToastMessage(''), 3000);
   };
 
@@ -362,30 +462,56 @@ export function PatenteSearchWidget({
         </div>
 
         {/* Tab Switcher Superior */}
-        <div className="flex items-center bg-slate-950/80 p-1.5 rounded-xl border border-blue-900/70 shrink-0 self-start md:self-auto">
-          <button
-            type="button"
-            onClick={() => setActiveTab('manual')}
-            className={`px-3.5 py-2 rounded-lg text-xs font-black transition flex items-center gap-1.5 cursor-pointer ${
-              activeTab === 'manual'
-                ? 'bg-blue-600 text-white shadow-md'
-                : 'text-slate-300 hover:text-white hover:bg-slate-900'
-            }`}
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>➕ Cargar Vehículo</span>
-          </button>
+        <div className="flex items-center gap-2 flex-wrap self-start md:self-auto">
+          <div className="flex items-center bg-slate-950/80 p-1.5 rounded-xl border border-blue-900/70">
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('manual');
+                if (!editingVehicleId && activeVehicle) {
+                  populateFormWithVehicle(activeVehicle);
+                }
+              }}
+              className={`px-3.5 py-2 rounded-lg text-xs font-black transition flex items-center gap-1.5 cursor-pointer ${
+                activeTab === 'manual'
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-900'
+              }`}
+            >
+              {formMode === 'edit' ? (
+                <>
+                  <Edit3 className="w-3.5 h-3.5" />
+                  <span>✏️ Datos de mi Auto</span>
+                </>
+              ) : (
+                <>
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>➕ Cargar Nuevo Auto</span>
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('cochera')}
+              className={`px-3.5 py-2 rounded-lg text-xs font-black transition flex items-center gap-1.5 cursor-pointer ${
+                activeTab === 'cochera'
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-900'
+              }`}
+            >
+              <span>🚘 Mis Autos ({cocheraList.length})</span>
+            </button>
+          </div>
 
           <button
             type="button"
-            onClick={() => setActiveTab('cochera')}
-            className={`px-3.5 py-2 rounded-lg text-xs font-black transition flex items-center gap-1.5 cursor-pointer ${
-              activeTab === 'cochera'
-                ? 'bg-blue-600 text-white shadow-md'
-                : 'text-slate-300 hover:text-white hover:bg-slate-900'
-            }`}
+            onClick={handleStartNewVehicle}
+            className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black shadow-md transition flex items-center gap-1.5 cursor-pointer"
+            title="Cargar un nuevo vehículo distinto a mi Cochera"
           >
-            <span>🚘 Mis Autos ({cocheraList.length})</span>
+            <Plus className="w-3.5 h-3.5" />
+            <span>➕ Agregar Nuevo Auto</span>
           </button>
         </div>
       </div>
@@ -402,6 +528,71 @@ export function PatenteSearchWidget({
       {activeTab === 'manual' && (
         <div className="mt-5 relative z-10 space-y-6">
           
+          {/* Banner Informativo de Modo: Modificar Auto Existente vs Cargar Auto Nuevo Distinto */}
+          {formMode === 'edit' && editingVehicleId ? (
+            <div className="p-3.5 rounded-xl bg-blue-950/80 border border-blue-500/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-blue-600/30 border border-blue-400/50 flex items-center justify-center text-blue-300 shrink-0">
+                  <Edit3 className="w-4 h-4 text-blue-300" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs sm:text-sm font-black text-white">
+                      Modificando datos de: {manualBrand} {manualModel} ({manualYear})
+                    </span>
+                    <span className="text-[10px] bg-blue-500/30 text-blue-200 border border-blue-400/40 px-2 py-0.5 rounded font-black">
+                      Auto en Cochera
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-blue-200">
+                    Al guardar, se modifican los datos de este auto sin generar duplicados en tu cochera.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleStartNewVehicle}
+                className="w-full sm:w-auto px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow transition flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>+ Cargar un auto NUEVO distinto</span>
+              </button>
+            </div>
+          ) : (
+            <div className="p-3.5 rounded-xl bg-emerald-950/80 border border-emerald-500/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-emerald-600/30 border border-emerald-400/50 flex items-center justify-center text-emerald-300 shrink-0">
+                  <Plus className="w-4 h-4 text-emerald-300" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs sm:text-sm font-black text-white">
+                      Registrando un Nuevo Vehículo Distinto
+                    </span>
+                    <span className="text-[10px] bg-emerald-500/30 text-emerald-200 border border-emerald-400/40 px-2 py-0.5 rounded font-black">
+                      Nuevo en Cochera
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-emerald-200">
+                    Se guardará como un auto adicional en tu cochera ({cocheraList.length} existentes).
+                  </p>
+                </div>
+              </div>
+
+              {activeVehicle && (
+                <button
+                  type="button"
+                  onClick={() => handleStartEditVehicle(activeVehicle)}
+                  className="w-full sm:w-auto px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs shadow transition flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
+                >
+                  <Edit3 className="w-3.5 h-3.5 text-blue-400" />
+                  <span>Volver a {activeVehicle.brand} {activeVehicle.model}</span>
+                </button>
+              )}
+            </div>
+          )}
+
           {/* Tarjeta del Formulario Principal */}
           <div className="bg-slate-900/90 border border-blue-500/30 rounded-2xl p-4 sm:p-6 shadow-xl space-y-5">
             
@@ -751,16 +942,31 @@ export function PatenteSearchWidget({
             {/* Botón Principal de Envío */}
             <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
               <span className="text-xs text-slate-400">
-                ✓ Se guardará en tu Cochera y sincronizará con Pasaporte Service, Cotizador y Guantera.
+                {formMode === 'edit'
+                  ? '✓ Se modificarán los datos de este vehículo en tu Cochera (sin generar duplicados).'
+                  : '✓ Se guardará como un nuevo vehículo independiente en tu Cochera.'}
               </span>
 
               <button
                 type="button"
                 onClick={handleSaveManualVehicle}
-                className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl font-black text-sm shadow-xl hover:shadow-blue-500/30 transition flex items-center justify-center gap-2 cursor-pointer transform active:scale-98"
+                className={`w-full sm:w-auto px-8 py-3.5 text-white rounded-xl font-black text-sm shadow-xl transition flex items-center justify-center gap-2 cursor-pointer transform active:scale-98 ${
+                  formMode === 'edit'
+                    ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 hover:shadow-blue-500/30'
+                    : 'bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-500 hover:shadow-emerald-500/30'
+                }`}
               >
-                <CheckCircle2 className="w-5 h-5 text-emerald-300" />
-                <span>Guardar y Activar Vehículo en Mi Cochera</span>
+                {formMode === 'edit' ? (
+                  <>
+                    <CheckCircle2 className="w-5 h-5 text-emerald-300" />
+                    <span>Guardar Cambios en este Auto (Modificar)</span>
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-5 h-5 text-white" />
+                    <span>Guardar Nuevo Auto en mi Cochera</span>
+                  </>
+                )}
               </button>
             </div>
 
@@ -798,11 +1004,11 @@ export function PatenteSearchWidget({
             </span>
             <button
               type="button"
-              onClick={() => setActiveTab('manual')}
-              className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+              onClick={handleStartNewVehicle}
+              className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center gap-1 cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>Agregar otro vehículo</span>
+              <span>+ Cargar nuevo auto</span>
             </button>
           </div>
 
@@ -831,6 +1037,17 @@ export function PatenteSearchWidget({
                             ✓ Activo
                           </span>
                         )}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStartEditVehicle(item);
+                          }}
+                          className="text-slate-400 hover:text-blue-300 p-1 transition cursor-pointer"
+                          title="Modificar datos de este auto"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
                         <button
                           type="button"
                           onClick={(e) => handleRemoveFromCochera(e, item)}
@@ -895,11 +1112,20 @@ export function PatenteSearchWidget({
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => setActiveTab('manual')}
+                onClick={() => handleStartEditVehicle(activeVehicle)}
+                className="px-3.5 py-2 rounded-xl bg-blue-600/30 hover:bg-blue-600/50 text-blue-200 border border-blue-400/50 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <Edit3 className="w-3.5 h-3.5 text-blue-300" />
+                <span>Modificar Datos de este Auto</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleStartNewVehicle}
                 className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
               >
-                <Edit3 className="w-3.5 h-3.5 text-blue-400" />
-                <span>Editar Datos o Cambiar Auto</span>
+                <Plus className="w-3.5 h-3.5 text-emerald-400" />
+                <span>+ Cargar Otro Auto</span>
               </button>
             </div>
           </div>
